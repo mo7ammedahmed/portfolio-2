@@ -15,6 +15,7 @@ php artisan view:clear
 
 # Run migrations FIRST (before caching)
 php artisan migrate --force
+php artisan db:seed
 
 # THEN cache everything AFTER migrations
 php artisan config:cache
