@@ -1,73 +1,102 @@
-# ==========================================
-# Stage 1: Build Frontend Assets (Vite / React)
-# ==========================================
-FROM node:20-alpine AS frontend-builder
+# ---------- Stage 1: PHP dependencies (Composer) ----------
+FROM composer:2 AS vendor
+
 WORKDIR /app
 
-# Copy package files and install JS dependencies
-COPY package.json package-lock.json* yarn.lock* ./
-RUN npm ci
+COPY database/ database/
+COPY composer.json composer.lock ./
+RUN composer install \
+    --no-interaction \
+    --no-plugins \
+    --no-scripts \
+    --no-dev \
+    --prefer-dist \
+    --optimize-autoloader
 
-# Copy full application code and build static assets
+# ---------- Stage 2: Build frontend assets (Vite/React) ----------
+# Uses a PHP+Node image because Laravel Wayfinder runs `php artisan` during `npm run build`
+FROM php:8.4-cli-alpine AS frontend
+
+RUN apk add --no-cache \
+        nodejs \
+        npm \
+        bash \
+        icu-dev \
+        libzip-dev \
+        oniguruma-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_mysql \
+        mbstring \
+        zip \
+        gd \
+        intl \
+        bcmath
+
+WORKDIR /app
+
+# Full app code + vendor (Wayfinder needs a bootable Laravel app to reflect routes)
 COPY . .
+COPY --from=vendor /app/vendor ./vendor
+
+# Build-time only dummy env so the app can boot for Wayfinder's route reflection.
+# This .env never ships in the final runtime image (frontend stage is discarded after build).
+RUN if [ ! -f .env ]; then cp .env.example .env; fi \
+    && php artisan key:generate --force
+
+RUN npm ci
 RUN npm run build
 
-# ==========================================
-# Stage 2: Install PHP Composer Dependencies
-# ==========================================
-FROM composer:2 AS composer-builder
-WORKDIR /app
+# ---------- Stage 3: Runtime image ----------
+FROM php:8.4-fpm-alpine AS runtime
 
-COPY composer.json composer.lock* ./
-RUN composer install \
-    --no-dev \
-    --no-interaction \
-    --prefer-dist \
-    --optimize-autoloader \
-    --no-scripts
-
-# ==========================================
-# Stage 3: Production Web Server
-# ==========================================
-FROM php:8.3-fpm-alpine
-
-# Install system dependencies & PHP extensions
+# System deps + PHP extensions Laravel typically needs
 RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    curl \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    oniguruma-dev \
-    icui18n \
-    libxml2-dev \
-    icu-dev \
+        nginx \
+        supervisor \
+        bash \
+        curl \
+        libpng-dev \
+        libzip-dev \
+        oniguruma-dev \
+        icu-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache
+    && docker-php-ext-install -j$(nproc) \
+        pdo_mysql \
+        mbstring \
+        zip \
+        gd \
+        intl \
+        bcmath \
+        opcache
 
 WORKDIR /var/www/html
 
-# Copy application code
+# App code
 COPY . .
 
-# Copy built vendor directory from Composer stage
-COPY --from=composer-builder /app/vendor /var/www/html/vendor
+# Vendor from composer stage
+COPY --from=vendor /app/vendor ./vendor
 
-# Copy compiled frontend assets from Node stage
-COPY --from=frontend-builder /app/public/build /var/www/html/public/build
+# Built frontend assets from node stage
+COPY --from=frontend /app/public/build ./public/build
 
-# Set permissions for Laravel storage and cache
+# Nginx + Supervisor config
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache
 
-# Copy Nginx & Supervisor configuration files
-COPY .docker/nginx.conf /etc/nginx/nginx.conf
-COPY .docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+EXPOSE 8080
 
-EXPOSE 80
-
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
