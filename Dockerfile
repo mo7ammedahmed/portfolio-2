@@ -81,8 +81,11 @@ COPY . .
 # Vendor from composer stage
 COPY --from=vendor /app/vendor ./vendor
 
-# Built frontend assets from node stage
-COPY --from=frontend /app/public/build ./public/build 2>/dev/null || echo "No build assets"
+# Built frontend assets from node stage (FIXED: removed shell operators)
+COPY --from=frontend /app/public/build ./public/build
+
+# Create dummy .env to prevent key:generate errors
+RUN echo "APP_KEY=base64:dummy" > .env
 
 # Configure PHP-FPM to listen on port 9000
 RUN echo "listen = 127.0.0.1:9000" > /usr/local/etc/php-fpm.d/zz-docker.conf \
