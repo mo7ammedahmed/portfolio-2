@@ -1,7 +1,10 @@
 # ==========================================
-# Stage 1: Install PHP Composer Dependencies
+# Stage 1: Install PHP Composer Dependencies (PHP 8.3 - نفس نسخة التشغيل)
 # ==========================================
-FROM composer:2 AS composer-builder
+FROM php:8.3-cli-alpine AS composer-builder
+RUN apk add --no-cache git unzip libzip-dev \
+    && docker-php-ext-install zip
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY composer.json composer.lock* ./
 RUN composer install \
@@ -26,7 +29,7 @@ RUN npm ci
 COPY . .
 COPY --from=composer-builder /app/vendor ./vendor
 
-# ملف بيئة وهمي — فقط لتشغيل artisan أثناء البناء
+# ملف بيئة وهمي — فقط لتشغيل artisan أثناء البناء، بدون أي بيانات حقيقية
 RUN printf "APP_KEY=base64:dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdGtleT0=\nAPP_ENV=production\nDB_CONNECTION=sqlite\nDB_DATABASE=:memory:\n" > .env
 
 RUN npm run build
@@ -35,6 +38,7 @@ RUN npm run build
 # Stage 3: Production Web Server
 # ==========================================
 FROM php:8.3-fpm-alpine
+# Install system dependencies & PHP extensions
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -53,13 +57,20 @@ RUN apk add --no-cache \
 
 WORKDIR /var/www/html
 
+# Copy application code
 COPY . .
+
+# Copy built vendor directory from Composer stage
 COPY --from=composer-builder /app/vendor /var/www/html/vendor
+
+# Copy compiled frontend assets from Node stage
 COPY --from=frontend-builder /app/public/build /var/www/html/public/build
 
+# Set permissions for Laravel storage and cache
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Write Nginx Config inline
 RUN echo 'events { worker_connections 1024; } \n\
 http { \n\
     include mime.types; \n\
@@ -87,6 +98,7 @@ http { \n\
     } \n\
 }' > /etc/nginx/nginx.conf
 
+# Write Supervisor Config inline
 RUN echo '[supervisord] \n\
 nodaemon=true \n\
 user=root \n\
