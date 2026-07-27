@@ -8,12 +8,17 @@ if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force
 fi
 
-# Cache config/routes/views for production performance
+# Clear any old cache FIRST
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+
+# Run migrations FIRST (before caching)
+php artisan migrate --force
+
+# THEN cache everything AFTER migrations
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-
-# Run migrations automatically on deploy (safe to remove if you prefer manual control)
-php artisan migrate --force
 
 exec "$@"
