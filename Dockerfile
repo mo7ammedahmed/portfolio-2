@@ -1,4 +1,32 @@
 # ==========================================
+# Stage 1: Build Frontend Assets (Vite / React)
+# ==========================================
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app
+
+# Copy package files and install JS dependencies
+COPY package.json package-lock.json* yarn.lock* ./
+RUN npm ci
+
+# Copy full application code and build static assets
+COPY . .
+RUN npm run build
+
+# ==========================================
+# Stage 2: Install PHP Composer Dependencies
+# ==========================================
+FROM composer:2 AS composer-builder
+WORKDIR /app
+
+COPY composer.json composer.lock* ./
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-scripts
+
+# ==========================================
 # Stage 3: Production Web Server
 # ==========================================
 FROM php:8.3-fpm-alpine
