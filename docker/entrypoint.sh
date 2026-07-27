@@ -7,7 +7,7 @@ echo "========================================="
 echo "🚀 Starting container setup..."
 echo "========================================="
 
-# APP_KEY must be set via environment
+# Check if APP_KEY is set
 if [ -z "$APP_KEY" ]; then
     echo "❌ ERROR: APP_KEY environment variable is not set!"
     echo "Please set APP_KEY in your Render environment variables."
@@ -16,21 +16,21 @@ else
     echo "✅ APP_KEY is set via environment"
 fi
 
-# Clear all caches
+# Clear caches (ignore errors)
 echo "🔄 Clearing caches..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan cache:clear
+php artisan config:clear 2>/dev/null || echo "⚠️ Config clear skipped"
+php artisan route:clear 2>/dev/null || echo "⚠️ Route clear skipped" 
+php artisan view:clear 2>/dev/null || echo "⚠️ View clear skipped"
+php artisan cache:clear 2>/dev/null || echo "⚠️ Cache clear skipped (may not exist)"
 
 # Run migrations
 echo "📦 Running migrations..."
-php artisan migrate --force
+php artisan migrate --force || echo "⚠️ Migrations failed, continuing..."
 
-# Cache routes and views only (config is NOT cached)
+# Cache routes and views
 echo "🔄 Caching routes and views..."
-php artisan route:cache
-php artisan view:cache
+php artisan route:cache 2>/dev/null || echo "⚠️ Route cache skipped"
+php artisan view:cache 2>/dev/null || echo "⚠️ View cache skipped"
 
 echo "========================================="
 echo "✅ Container is ready!"
