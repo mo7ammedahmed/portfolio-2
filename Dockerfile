@@ -75,15 +75,15 @@ COPY --from=frontend /app/public/build ./public/build
 RUN echo "APP_KEY=base64:dummy" > .env
 
 # PHP-FPM pool tuned for 512MB RAM
-COPY docker/www.conf /usr/local/etc/php-fpm.d/zz-docker.conf
+COPY .docker/www.conf /usr/local/etc/php-fpm.d/zz-docker.conf
 
 # Custom php.ini (uploads, memory, opcache)
-COPY docker/php.ini /usr/local/etc/php/conf.d/zz-custom.ini
+COPY .docker/php.ini /usr/local/etc/php/conf.d/zz-custom.ini
 
 # Nginx + Supervisor configs
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY .docker/nginx.conf /etc/nginx/nginx.conf
+COPY .docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown -R www-data:www-data /var/www/html \
