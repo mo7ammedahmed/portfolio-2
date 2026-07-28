@@ -35,10 +35,9 @@
             }
         </style>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-        <link rel="manifest" href="{{ route('pwa.manifest') }}">
+       <link rel="icon" href="https://mohammedahmed.laravel.cloud/storage/portfolio/profile/E9S53NZNbYPMf7cHo2BMfQ3rv0SOUhWn5JnAP82K.png" type="image/png" sizes="any">
+<link rel="apple-touch-icon" href="https://mohammedahmed.laravel.cloud/storage/portfolio/profile/E9S53NZNbYPMf7cHo2BMfQ3rv0SOUhWn5JnAP82K.png">
+<link rel="manifest" href="{{ route('pwa.manifest') }}">
 
         @fonts
 
