@@ -86,6 +86,17 @@ COPY .docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# nginx needs writable temp dirs for request bodies (file uploads),
+# proxy buffering, fastcgi, etc. — create them and hand ownership to www-data,
+# since nginx workers run as www-data per nginx.conf.
+RUN mkdir -p /var/lib/nginx/tmp/client_body \
+        /var/lib/nginx/tmp/proxy \
+        /var/lib/nginx/tmp/fastcgi \
+        /var/lib/nginx/tmp/uwsgi \
+        /var/lib/nginx/tmp/scgi \
+        /var/log/nginx \
+    && chown -R www-data:www-data /var/lib/nginx /var/log/nginx
+
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
