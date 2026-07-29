@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Storage;
 use App\Models\Profile;
 use Illuminate\Http\JsonResponse;
 
@@ -21,6 +21,9 @@ class PwaManifestController extends Controller
             : config('app.name', 'Portfolio');
 
         $backgroundColor = $profile?->theme_dark_background ?: '#070707';
+        $iconUrl = $profile?->image
+        ? url(Storage::disk(config('filesystems.default'))->url($profile->image))
+        : '';
 
         return response()->json([
             'id' => '/',
@@ -37,11 +40,11 @@ class PwaManifestController extends Controller
             'theme_color' => $profile?->theme_accent ?: '#d9ff43',
             'icons' => [
                 [
-                    'src' => 'https://mohammedahmed.laravel.cloud/storage/portfolio/profile/E9S53NZNbYPMf7cHo2BMfQ3rv0SOUhWn5JnAP82K.png',
+                    'src' => $iconUrl,
                     'sizes' => '180x180',
                     'type' => 'image/png',
                     'purpose' => 'any',
-                ]
+                ],
             ],
         ])->header('Content-Type', 'application/manifest+json');
     }
