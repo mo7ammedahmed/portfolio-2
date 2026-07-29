@@ -35,9 +35,19 @@
             }
         </style>
 
-       <link rel="icon" href="https://mohammedahmed.laravel.cloud/storage/portfolio/profile/E9S53NZNbYPMf7cHo2BMfQ3rv0SOUhWn5JnAP82K.png" type="image/png" sizes="any">
-<link rel="apple-touch-icon" href="https://mohammedahmed.laravel.cloud/storage/portfolio/profile/E9S53NZNbYPMf7cHo2BMfQ3rv0SOUhWn5JnAP82K.png">
-<link rel="manifest" href="{{ route('pwa.manifest') }}">
+       @php
+        $portfolioProfile = \App\Models\Profile::query()->where('is_visible', true)->oldest()->first();
+
+        $faviconUrl = $portfolioProfile?->image
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($portfolioProfile->image)
+            : asset('favicon.ico');
+    @endphp
+    <link rel="icon" href="{{ $faviconUrl }}">
+
+    <link rel="icon" href="{{ $faviconUrl }}" type="image/png" sizes="any">
+    <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
+    <link rel="manifest" href="{{ route('pwa.manifest') }}">
+
 
         @fonts
 
