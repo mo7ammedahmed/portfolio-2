@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Storage;
 use App\Models\Profile;
 use Illuminate\Http\JsonResponse;
@@ -19,14 +20,35 @@ class PwaManifestController extends Controller
         $name = $profile?->name_en
             ? "{$profile->name_en} — Portfolio"
             : config('app.name', 'Portfolio');
-       $iconUrl = $profile?->image
-    ? url(Storage::disk(config('filesystems.default'))->url($profile->image))
-    : '';
 
         $backgroundColor = $profile?->theme_dark_background ?: '#070707';
-        $iconUrl = $profile?->image
-        ? url(Storage::disk(config('filesystems.default'))->url($profile->image))
-        : '';
+
+        $icons = [];
+
+        if ($profile?->image) {
+            $disk = Storage::disk(config('filesystems.default'));
+            $iconUrl = url($disk->url($profile->image));
+
+            $sizes = '512x512';
+
+            try {
+                $contents = $disk->get($profile->image);
+                $info = @getimagesizefromstring($contents);
+
+                if ($info && $info[0] >= 192 && $info[1] >= 192) {
+                    $sizes = "{$info[0]}x{$info[1]}";
+                }
+            } catch (\Throwable $e) {
+                // Keep default fallback size if the file can't be read
+            }
+
+            $icons[] = [
+                'src' => $iconUrl,
+                'sizes' => $sizes,
+                'type' => 'image/png',
+                'purpose' => 'any',
+            ];
+        }
 
         return response()->json([
             'id' => '/',
@@ -41,14 +63,7 @@ class PwaManifestController extends Controller
             'orientation' => 'any',
             'background_color' => $backgroundColor,
             'theme_color' => $profile?->theme_accent ?: '#d9ff43',
-            'icons' => [
-                [
-                    'src' => $iconUrl,
-                    'sizes' => '180x180',
-                    'type' => 'image/png',
-                    'purpose' => 'any',
-                ],
-            ],
+            'icons' => $icons,
         ])->header('Content-Type', 'application/manifest+json');
     }
 }
