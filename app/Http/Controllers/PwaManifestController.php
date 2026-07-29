@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Storage;
 use App\Models\Profile;
 use Illuminate\Http\JsonResponse;
 
@@ -20,9 +20,8 @@ class PwaManifestController extends Controller
             ? "{$profile->name_en} — Portfolio"
             : config('app.name', 'Portfolio');
         $iconUrl = $profile?->image
-    ? Storage::disk('public')->url($profile->image); // fallback
-
-
+            ? Storage::disk('public')->url($profile->image)
+            : '';
 
         $backgroundColor = $profile?->theme_dark_background ?: '#070707';
 
