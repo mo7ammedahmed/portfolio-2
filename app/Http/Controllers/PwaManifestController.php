@@ -37,17 +37,11 @@ class PwaManifestController extends Controller
             'theme_color' => $profile?->theme_accent ?: '#d9ff43',
             'icons' => [
                 [
-                    'src' => '/apple-touch-icon.png',
+                    'src' => 'https://mohammedahmed.laravel.cloud/storage/portfolio/profile/E9S53NZNbYPMf7cHo2BMfQ3rv0SOUhWn5JnAP82K.png',
                     'sizes' => '180x180',
                     'type' => 'image/png',
                     'purpose' => 'any',
-                ],
-                [
-                    'src' => '/favicon.svg',
-                    'sizes' => 'any',
-                    'type' => 'image/svg+xml',
-                    'purpose' => 'any maskable',
-                ],
+                ]
             ],
         ])->header('Content-Type', 'application/manifest+json');
     }
