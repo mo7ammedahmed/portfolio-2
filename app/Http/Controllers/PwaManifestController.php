@@ -43,7 +43,7 @@ class PwaManifestController extends Controller
             'icons' => [
                 [
                     'src' => $iconUrl,
-                    'sizes' => '90.5',
+                    'sizes' => 'any',
                     'type' => 'image/png',
                     'purpose' => 'any',
                 ],
