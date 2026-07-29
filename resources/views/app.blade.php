@@ -31,29 +31,19 @@
             background-color: oklch(1 0 0);
         }
 
-       @php
-        $portfolioProfile = \App\Models\Profile::query()->where('is_visible', true)->oldest()->first();
+        html.dark {
+            background-color: oklch(0.145 0 0);
+        }
+    </style>
 
-        $faviconUrl = $portfolioProfile?->image
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($portfolioProfile->image)
-            : asset('favicon.ico');
-    @endphp
-    <link rel="icon" href="{{ $faviconUrl }}">
-
-    <link rel="icon" href="{{ $faviconUrl }}" type="image/png" sizes="any">
-    <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
-    <link rel="manifest" href="{{ route('pwa.manifest') }}">
-
-    {{-- resources/views/app.blade.php --}}
     @php
         $portfolioProfile = \App\Models\Profile::query()->where('is_visible', true)->oldest()->first();
 
         $faviconUrl = $portfolioProfile?->image
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($portfolioProfile->image)
+            ? \Illuminate\Support\Facades\Storage::disk(config('filesystems.default'))->url($portfolioProfile->image)
             : asset('favicon.ico');
     @endphp
     <link rel="icon" href="{{ $faviconUrl }}">
-
     <link rel="icon" href="{{ $faviconUrl }}" type="image/png" sizes="any">
     <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
     <link rel="manifest" href="{{ route('pwa.manifest') }}">
