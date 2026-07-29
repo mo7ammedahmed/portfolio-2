@@ -19,6 +19,10 @@ class PwaManifestController extends Controller
         $name = $profile?->name_en
             ? "{$profile->name_en} — Portfolio"
             : config('app.name', 'Portfolio');
+        $iconUrl = $profile?->image
+    ? Storage::disk('public')->url($profile->image); // fallback
+
+
 
         $backgroundColor = $profile?->theme_dark_background ?: '#070707';
 
@@ -37,7 +41,7 @@ class PwaManifestController extends Controller
             'theme_color' => $profile?->theme_accent ?: '#d9ff43',
             'icons' => [
                 [
-                    'src' => 'https://mohammedahmed.laravel.cloud/storage/portfolio/profile/E9S53NZNbYPMf7cHo2BMfQ3rv0SOUhWn5JnAP82K.png',
+                    'src' => $iconUrl,
                     'sizes' => '180x180',
                     'type' => 'image/png',
                     'purpose' => 'any',
