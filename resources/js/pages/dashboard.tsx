@@ -484,7 +484,7 @@ export default function Dashboard({
                                 className="mt-6 w-full bg-primary text-primary-foreground"
                                 asChild
                             >
-                                <a href="/" target="_blank" rel="noreferrer">
+                                <a href="/" target="_self" rel="noreferrer">
                                     Open portfolio
                                     <ArrowRight className="size-4" />
                                 </a>
