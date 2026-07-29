@@ -48,10 +48,6 @@ class PwaManifestController extends Controller
                     'type' => 'image/png',
                     'purpose' => 'any',
                 ],
-<<<<<<< HEAD
-=======
-          
->>>>>>> 15b9293d86d33f4842fec44a9e7b61fd7500fa43
             ],
         ])->header('Content-Type', 'application/manifest+json');
     }
