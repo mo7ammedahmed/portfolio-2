@@ -37,7 +37,7 @@ class SkillController extends Controller
                         'sort_order',
                     ]),
                     'image_url' => $skill->image
-                        ? Storage::disk('public')->url($skill->image)
+                        ? Storage::disk(config('filesystems.default'))->url($skill->image)
                         : null,
                 ]),
         ]);
@@ -56,7 +56,7 @@ class SkillController extends Controller
         $imagePath = null;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('portfolio/skills', 'public');
+            $imagePath = $request->file('image')->store('portfolio/skills', config('filesystems.default'));
 
             if (! is_string($imagePath)) {
                 return back()->withErrors([
@@ -71,7 +71,7 @@ class SkillController extends Controller
             $request->user()->portfolioAccount()->skills()->create($data);
         } catch (Throwable $exception) {
             if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
+                Storage::disk(config('filesystems.default'))->delete($imagePath);
             }
 
             throw $exception;
@@ -101,7 +101,7 @@ class SkillController extends Controller
                     'sort_order',
                 ]),
                 'image_url' => $skill->image
-                    ? Storage::disk('public')->url($skill->image)
+                    ? Storage::disk(config('filesystems.default'))->url($skill->image)
                     : null,
             ],
         ]);
@@ -114,7 +114,7 @@ class SkillController extends Controller
         $newImagePath = null;
 
         if ($request->hasFile('image')) {
-            $newImagePath = $request->file('image')->store('portfolio/skills', 'public');
+            $newImagePath = $request->file('image')->store('portfolio/skills', config('filesystems.default'));
 
             if (! is_string($newImagePath)) {
                 return back()->withErrors([
@@ -131,7 +131,7 @@ class SkillController extends Controller
             $skill->update($data);
         } catch (Throwable $exception) {
             if ($newImagePath) {
-                Storage::disk('public')->delete($newImagePath);
+                Storage::disk(config('filesystems.default'))->delete($newImagePath);
             }
 
             throw $exception;
@@ -142,7 +142,7 @@ class SkillController extends Controller
             && $oldImagePath !== $newImagePath
             && ($newImagePath || $request->boolean('remove_image'))
         ) {
-            Storage::disk('public')->delete($oldImagePath);
+            Storage::disk(config('filesystems.default'))->delete($oldImagePath);
         }
 
         return to_route('portfolio.skills.index')
@@ -154,7 +154,7 @@ class SkillController extends Controller
         Gate::authorize('delete', $skill);
 
         if ($skill->image) {
-            Storage::disk('public')->delete($skill->image);
+            Storage::disk(config('filesystems.default'))->delete($skill->image);
         }
 
         $skill->delete();

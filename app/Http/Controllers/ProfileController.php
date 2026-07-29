@@ -54,7 +54,7 @@ class ProfileController extends Controller
                     'theme_light_muted',
                 ]),
                 'image_url' => $profile->image
-                    ? Storage::disk('public')->url($profile->image)
+                    ? Storage::disk(config('filesystems.default'))->url($profile->image)
                     : null,
             ] : null,
         ]);
@@ -73,7 +73,7 @@ class ProfileController extends Controller
         $data = $request->safe()->except('image');
 
         if ($request->hasFile('image')) {
-            $newImagePath = $request->file('image')->store('portfolio/profile', 'public');
+            $newImagePath = $request->file('image')->store('portfolio/profile', config('filesystems.default'));
 
             if (! is_string($newImagePath)) {
                 return back()->withErrors([
@@ -87,7 +87,7 @@ class ProfileController extends Controller
         $portfolioAccount->profile()->updateOrCreate([], $data);
 
         if ($newImagePath && $profile?->image && $profile->image !== $newImagePath) {
-            Storage::disk('public')->delete($profile->image);
+            Storage::disk(config('filesystems.default'))->delete($profile->image);
         }
 
         return to_route('portfolio.profile.edit')

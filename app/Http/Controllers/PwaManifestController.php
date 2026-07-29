@@ -19,6 +19,9 @@ class PwaManifestController extends Controller
         $name = $profile?->name_en
             ? "{$profile->name_en} — Portfolio"
             : config('app.name', 'Portfolio');
+       $iconUrl = $profile?->image
+    ? url(Storage::disk(config('filesystems.default'))->url($profile->image))
+    : '';
 
         $backgroundColor = $profile?->theme_dark_background ?: '#070707';
         $iconUrl = $profile?->image

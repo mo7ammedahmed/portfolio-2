@@ -52,7 +52,7 @@ class PortfolioController extends Controller
                     'is_featured',
                 ]),
                 'image_url' => $project->image
-                    ? Storage::disk('public')->url($project->image)
+                    ? Storage::disk(config('filesystems.default'))->url($project->image)
                     : null,
                 'category' => $project->category?->only([
                     'id',
@@ -113,7 +113,7 @@ class PortfolioController extends Controller
                     'proficiency',
                 ]),
                 'image_url' => $skill->image
-                    ? Storage::disk('public')->url($skill->image)
+                    ? Storage::disk(config('filesystems.default'))->url($skill->image)
                     : null,
             ]);
 
@@ -160,7 +160,7 @@ class PortfolioController extends Controller
                     'theme_light_muted',
                 ]),
                 'image_url' => $profile->image
-                    ? Storage::disk('public')->url($profile->image)
+                    ? Storage::disk(config('filesystems.default'))->url($profile->image)
                     : null,
             ],
             'projects' => $projects,

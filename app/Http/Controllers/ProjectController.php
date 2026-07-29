@@ -67,7 +67,7 @@ class ProjectController extends Controller
                     'created_at',
                 ]),
                 'image_url' => $project->image
-                    ? Storage::disk('public')->url($project->image)
+                    ? Storage::disk(config('filesystems.default'))->url($project->image)
                     : null,
                 'category' => $project->category?->only(['id', 'name_en', 'color']),
             ]);
@@ -93,7 +93,7 @@ class ProjectController extends Controller
         $data = $request->safe()->except(['image', 'skill_ids']);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('portfolio/projects', 'public');
+            $data['image'] = $request->file('image')->store('portfolio/projects', config('filesystems.default'));
         }
 
         $project = $request->user()->portfolioAccount()->projects()->create($data);
@@ -126,7 +126,7 @@ class ProjectController extends Controller
                 ]),
                 'skill_ids' => $project->skills->pluck('id')->all(),
                 'image_url' => $project->image
-                    ? Storage::disk('public')->url($project->image)
+                    ? Storage::disk(config('filesystems.default'))->url($project->image)
                     : null,
             ],
             ...$this->formOptions($request),
@@ -139,10 +139,10 @@ class ProjectController extends Controller
 
         if ($request->hasFile('image')) {
             if ($project->image) {
-                Storage::disk('public')->delete($project->image);
+                Storage::disk(config('filesystems.default'))->delete($project->image);
             }
 
-            $data['image'] = $request->file('image')->store('portfolio/projects', 'public');
+            $data['image'] = $request->file('image')->store('portfolio/projects', config('filesystems.default'));
         }
 
         $project->update($data);
@@ -157,7 +157,7 @@ class ProjectController extends Controller
         Gate::authorize('delete', $project);
 
         if ($project->image) {
-            Storage::disk('public')->delete($project->image);
+            Storage::disk(config('filesystems.default'))->delete($project->image);
         }
 
         $project->delete();
