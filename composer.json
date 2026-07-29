@@ -16,7 +16,8 @@
         "laravel/framework": "^13.17",
         "laravel/nightwatch": "^1.28",
         "laravel/tinker": "^3.0",
-        "laravel/wayfinder": "^0.1.14"
+        "laravel/wayfinder": "^0.1.14",
+        "league/flysystem-aws-s3-v3": "*"
     },
     "require-dev": {
         "driftingly/rector-laravel": "^2.5",
