@@ -18,6 +18,8 @@ const uuid = (): string =>
           );
 
 const shouldTrack = (): boolean =>
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
     window.location.pathname === '/' &&
     navigator.doNotTrack !== '1' &&
     !document.documentElement.dataset.analyticsInitialized;

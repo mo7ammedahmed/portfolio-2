@@ -4,7 +4,8 @@ export type Localized = {
 };
 
 export type PortfolioTheme = {
-    theme_accent: string;
+    theme_dark_accent: string;
+    theme_light_accent: string;
     theme_dark_background: string;
     theme_dark_surface: string;
     theme_dark_foreground: string;
@@ -13,6 +14,7 @@ export type PortfolioTheme = {
     theme_light_surface: string;
     theme_light_foreground: string;
     theme_light_muted: string;
+    glass_effect_enabled: boolean;
 };
 
 export type PortfolioProfile = Localized &
@@ -35,6 +37,11 @@ export type PortfolioProfile = Localized &
         resume_url: string | null;
         is_available: boolean;
     };
+
+export type TrackingIntegration = {
+    platform: string;
+    tracking_id: string;
+};
 
 export type PortfolioProject = Localized & {
     id: number;

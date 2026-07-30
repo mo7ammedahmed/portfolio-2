@@ -195,7 +195,7 @@ test('analytics show an empty state before a portfolio profile exists', function
 test('the web app manifest uses the saved portfolio theme', function () {
     Profile::factory()->create([
         'name_en' => 'Mohammed Ahmed',
-        'theme_accent' => '#ff5b35',
+        'theme_dark_accent' => '#ff5b35',
         'theme_dark_background' => '#101010',
         'theme_light_background' => '#f7f3ea',
     ]);

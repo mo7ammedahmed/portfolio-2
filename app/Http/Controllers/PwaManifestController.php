@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Storage;
 use App\Models\Profile;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class PwaManifestController extends Controller
 {
@@ -62,7 +62,7 @@ class PwaManifestController extends Controller
             'display' => 'standalone',
             'orientation' => 'any',
             'background_color' => $backgroundColor,
-            'theme_color' => $profile?->theme_accent ?: '#d9ff43',
+            'theme_color' => $profile?->theme_dark_accent ?: '#d9ff43',
             'icons' => $icons,
         ])->header('Content-Type', 'application/manifest+json');
     }

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['profile_id', 'name', 'message'])]
+#[Fillable(['profile_id', 'name', 'email', 'subject', 'message'])]
 class ContactMessage extends Model
 {
     /** @use HasFactory<ContactMessageFactory> */

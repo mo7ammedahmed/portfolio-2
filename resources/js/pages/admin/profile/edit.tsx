@@ -1,6 +1,14 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Check, MonitorCog, Moon, Save, Sun } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import {
+    Braces,
+    Check,
+    MailCheck,
+    MonitorCog,
+    Moon,
+    Save,
+    Sun,
+} from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import {
     Field,
@@ -33,11 +41,18 @@ type ProfileData = {
     whatsapp: string | null;
     mobile: string | null;
     email: string;
+    contact_notification_email: string | null;
+    contact_notification_subject_template: string;
+    contact_notification_body_template: string;
+    contact_auto_reply_enabled: boolean;
+    contact_auto_reply_subject_template: string;
+    contact_auto_reply_body_template: string;
     website: string | null;
     resume_url: string | null;
     is_available: boolean;
     is_visible: boolean;
-    theme_accent: string;
+    theme_dark_accent: string;
+    theme_light_accent: string;
     theme_dark_background: string;
     theme_dark_surface: string;
     theme_dark_foreground: string;
@@ -46,6 +61,7 @@ type ProfileData = {
     theme_light_surface: string;
     theme_light_foreground: string;
     theme_light_muted: string;
+    glass_effect_enabled: boolean;
     image_url: string | null;
 };
 
@@ -70,11 +86,26 @@ export default function EditProfile({
         whatsapp: profile?.whatsapp ?? '',
         mobile: profile?.mobile ?? '',
         email: profile?.email ?? '',
+        contact_notification_email: profile?.contact_notification_email ?? '',
+        contact_notification_subject_template:
+            profile?.contact_notification_subject_template ??
+            'New portfolio enquiry: {subject}',
+        contact_notification_body_template:
+            profile?.contact_notification_body_template ??
+            'You received a new portfolio message.\n\nName: {name}\nEmail: {email}\nSubject: {subject}\n\n{message}',
+        contact_auto_reply_enabled: profile?.contact_auto_reply_enabled ?? true,
+        contact_auto_reply_subject_template:
+            profile?.contact_auto_reply_subject_template ??
+            'Thanks for your message about {subject}',
+        contact_auto_reply_body_template:
+            profile?.contact_auto_reply_body_template ??
+            'Hi {name},\n\nThanks for reaching out. I received your message and will get back to you soon.\n\nBest,\n{portfolio_name}',
         website: profile?.website ?? '',
         resume_url: profile?.resume_url ?? '',
         is_available: profile?.is_available ?? true,
         is_visible: profile?.is_visible ?? true,
-        theme_accent: profile?.theme_accent ?? '#d9ff43',
+        theme_dark_accent: profile?.theme_dark_accent ?? '#d9ff43',
+        theme_light_accent: profile?.theme_light_accent ?? '#006c55',
         theme_dark_background: profile?.theme_dark_background ?? '#070707',
         theme_dark_surface: profile?.theme_dark_surface ?? '#0d0d0d',
         theme_dark_foreground: profile?.theme_dark_foreground ?? '#f4f4f1',
@@ -83,6 +114,7 @@ export default function EditProfile({
         theme_light_surface: profile?.theme_light_surface ?? '#ffffff',
         theme_light_foreground: profile?.theme_light_foreground ?? '#0a0a0a',
         theme_light_muted: profile?.theme_light_muted ?? '#686864',
+        glass_effect_enabled: profile?.glass_effect_enabled ?? false,
         image: null as File | null,
     });
     const [isPreparingImage, setIsPreparingImage] = useState(false);
@@ -302,6 +334,148 @@ export default function EditProfile({
                 </FormSection>
 
                 <FormSection
+                    title="Contact email delivery"
+                    description="Choose where enquiries are delivered and personalize both email templates."
+                >
+                    <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 sm:col-span-2">
+                        <div className="flex items-start gap-3">
+                            <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/30 bg-background text-highlight">
+                                <MailCheck className="size-4" />
+                            </span>
+                            <div>
+                                <p className="text-sm font-semibold">
+                                    Two emails, one conversation
+                                </p>
+                                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                    You receive the full enquiry and the visitor
+                                    receives an automatic acknowledgement when
+                                    auto-reply is enabled.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <Field
+                        label="Inbox email"
+                        error={form.errors.contact_notification_email}
+                        hint="Leave blank to use your public profile email."
+                    >
+                        <TextInput
+                            type="email"
+                            value={form.data.contact_notification_email}
+                            placeholder={form.data.email || 'you@example.com'}
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_notification_email',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <div className="hidden sm:block" aria-hidden="true" />
+                    <Field
+                        label="Owner notification subject"
+                        error={
+                            form.errors.contact_notification_subject_template
+                        }
+                    >
+                        <TextInput
+                            value={
+                                form.data.contact_notification_subject_template
+                            }
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_notification_subject_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Owner notification body"
+                        error={form.errors.contact_notification_body_template}
+                    >
+                        <Textarea
+                            className="min-h-40 font-mono text-sm"
+                            value={form.data.contact_notification_body_template}
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_notification_body_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <div className="sm:col-span-2">
+                        <Toggle
+                            label="Send an automatic reply to visitors"
+                            checked={form.data.contact_auto_reply_enabled}
+                            onChange={(checked) =>
+                                form.setData(
+                                    'contact_auto_reply_enabled',
+                                    checked,
+                                )
+                            }
+                        />
+                    </div>
+                    <Field
+                        label="Auto-reply subject"
+                        error={form.errors.contact_auto_reply_subject_template}
+                    >
+                        <TextInput
+                            disabled={!form.data.contact_auto_reply_enabled}
+                            value={
+                                form.data.contact_auto_reply_subject_template
+                            }
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_auto_reply_subject_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Auto-reply body"
+                        error={form.errors.contact_auto_reply_body_template}
+                    >
+                        <Textarea
+                            disabled={!form.data.contact_auto_reply_enabled}
+                            className="min-h-40 font-mono text-sm"
+                            value={form.data.contact_auto_reply_body_template}
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_auto_reply_body_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <div className="rounded-xl border bg-card p-4 sm:col-span-2">
+                        <p className="flex items-center gap-2 text-sm font-semibold">
+                            <Braces className="size-4 text-highlight" />
+                            Available placeholders
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
+                            {[
+                                '{name}',
+                                '{email}',
+                                '{subject}',
+                                '{message}',
+                                '{portfolio_name}',
+                                '{portfolio_email}',
+                            ].map((placeholder) => (
+                                <code
+                                    key={placeholder}
+                                    className="rounded-md border bg-background px-2 py-1"
+                                >
+                                    {placeholder}
+                                </code>
+                            ))}
+                        </div>
+                    </div>
+                </FormSection>
+
+                <FormSection
                     title="Contact"
                     description="Public ways for people to find and reach you."
                 >
@@ -441,22 +615,14 @@ export default function EditProfile({
                         </div>
                     </div>
 
-                    <div className="rounded-xl border bg-card p-4 sm:col-span-2">
-                        <div className="max-w-md">
-                            <Field
-                                label="Shared accent"
-                                error={form.errors.theme_accent}
-                                hint="Used for actions and highlights in both display modes."
-                            >
-                                <ThemeColorControl
-                                    label="Shared accent"
-                                    value={form.data.theme_accent}
-                                    onChange={(value) =>
-                                        form.setData('theme_accent', value)
-                                    }
-                                />
-                            </Field>
-                        </div>
+                    <div className="sm:col-span-2">
+                        <Toggle
+                            label="Enable the glass surface effect across the public portfolio"
+                            checked={form.data.glass_effect_enabled}
+                            onChange={(checked) =>
+                                form.setData('glass_effect_enabled', checked)
+                            }
+                        />
                     </div>
 
                     <fieldset className="rounded-2xl border bg-card p-4 sm:col-span-2 sm:p-5">
@@ -479,6 +645,7 @@ export default function EditProfile({
                         <div className="mt-5 grid gap-5 sm:grid-cols-2">
                             {(
                                 [
+                                    ['theme_dark_accent', 'Accent'],
                                     ['theme_dark_background', 'Background'],
                                     ['theme_dark_surface', 'Surface'],
                                     ['theme_dark_foreground', 'Text'],
@@ -530,7 +697,7 @@ export default function EditProfile({
                                 <span
                                     className="size-9 shrink-0 rounded-full"
                                     style={{
-                                        background: form.data.theme_accent,
+                                        background: form.data.theme_dark_accent,
                                     }}
                                 />
                             </div>
@@ -557,6 +724,7 @@ export default function EditProfile({
                         <div className="mt-5 grid gap-5 sm:grid-cols-2">
                             {(
                                 [
+                                    ['theme_light_accent', 'Accent'],
                                     ['theme_light_background', 'Background'],
                                     ['theme_light_surface', 'Surface'],
                                     ['theme_light_foreground', 'Text'],
@@ -608,7 +776,8 @@ export default function EditProfile({
                                 <span
                                     className="size-9 shrink-0 rounded-full"
                                     style={{
-                                        background: form.data.theme_accent,
+                                        background:
+                                            form.data.theme_light_accent,
                                     }}
                                 />
                             </div>
@@ -675,13 +844,16 @@ function Toggle({
     checked: boolean;
     onChange: (checked: boolean) => void;
 }) {
+    const id = useId();
+
     return (
         <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
             <Checkbox
+                id={id}
                 checked={checked}
                 onCheckedChange={(value) => onChange(Boolean(value))}
             />
-            <Label>{label}</Label>
+            <Label htmlFor={id}>{label}</Label>
         </div>
     );
 }

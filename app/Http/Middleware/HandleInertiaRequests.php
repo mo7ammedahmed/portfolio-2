@@ -42,7 +42,8 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $themeAttributes = [
-            'theme_accent',
+            'theme_dark_accent',
+            'theme_light_accent',
             'theme_dark_background',
             'theme_dark_surface',
             'theme_dark_foreground',
@@ -51,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             'theme_light_surface',
             'theme_light_foreground',
             'theme_light_muted',
+            'glass_effect_enabled',
         ];
         $portfolioTheme = $user
             ? $user->portfolioAccount()

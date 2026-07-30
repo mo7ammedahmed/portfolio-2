@@ -39,11 +39,18 @@ class ProfileController extends Controller
                     'whatsapp',
                     'mobile',
                     'email',
+                    'contact_notification_email',
+                    'contact_notification_subject_template',
+                    'contact_notification_body_template',
+                    'contact_auto_reply_enabled',
+                    'contact_auto_reply_subject_template',
+                    'contact_auto_reply_body_template',
                     'website',
                     'resume_url',
                     'is_available',
                     'is_visible',
-                    'theme_accent',
+                    'theme_dark_accent',
+                    'theme_light_accent',
                     'theme_dark_background',
                     'theme_dark_surface',
                     'theme_dark_foreground',
@@ -52,7 +59,16 @@ class ProfileController extends Controller
                     'theme_light_surface',
                     'theme_light_foreground',
                     'theme_light_muted',
+                    'glass_effect_enabled',
                 ]),
+                'contact_notification_subject_template' => $profile->contact_notification_subject_template
+                    ?: Profile::DEFAULT_NOTIFICATION_SUBJECT,
+                'contact_notification_body_template' => $profile->contact_notification_body_template
+                    ?: Profile::DEFAULT_NOTIFICATION_BODY,
+                'contact_auto_reply_subject_template' => $profile->contact_auto_reply_subject_template
+                    ?: Profile::DEFAULT_AUTO_REPLY_SUBJECT,
+                'contact_auto_reply_body_template' => $profile->contact_auto_reply_body_template
+                    ?: Profile::DEFAULT_AUTO_REPLY_BODY,
                 'image_url' => $profile->image
                     ? Storage::disk(config('filesystems.default'))->url($profile->image)
                     : null,

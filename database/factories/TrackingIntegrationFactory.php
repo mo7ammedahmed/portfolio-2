@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
-use App\Models\ContactMessage;
+use App\Enums\TrackingPlatform;
 use App\Models\Profile;
+use App\Models\TrackingIntegration;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<ContactMessage>
+ * @extends Factory<TrackingIntegration>
  */
-class ContactMessageFactory extends Factory
+class TrackingIntegrationFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -20,10 +23,9 @@ class ContactMessageFactory extends Factory
     {
         return [
             'profile_id' => Profile::factory(),
-            'name' => fake()->name(),
-            'email' => fake()->safeEmail(),
-            'subject' => fake()->sentence(5),
-            'message' => fake()->paragraph(),
+            'platform' => TrackingPlatform::GoogleTag,
+            'tracking_id' => 'G-'.strtoupper(fake()->bothify('##########')),
+            'is_enabled' => true,
         ];
     }
 }

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Experience;
 use App\Models\Profile;
+use App\Models\TrackingIntegration;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,6 +27,7 @@ class PortfolioController extends Controller
                 'experiences' => [],
                 'skills' => [],
                 'categories' => [],
+                'trackingIntegrations' => [],
             ]);
         }
 
@@ -128,6 +130,14 @@ class PortfolioController extends Controller
             ->oldest('started_at')
             ->first(['started_at']);
 
+        $trackingIntegrations = $profile->trackingIntegrations()
+            ->where('is_enabled', true)
+            ->get(['platform', 'tracking_id'])
+            ->map(fn (TrackingIntegration $integration): array => [
+                'platform' => $integration->platform->value,
+                'tracking_id' => $integration->tracking_id,
+            ]);
+
         return Inertia::render('welcome', [
             'profile' => [
                 ...$profile->only([
@@ -149,7 +159,8 @@ class PortfolioController extends Controller
                     'website',
                     'resume_url',
                     'is_available',
-                    'theme_accent',
+                    'theme_dark_accent',
+                    'theme_light_accent',
                     'theme_dark_background',
                     'theme_dark_surface',
                     'theme_dark_foreground',
@@ -158,6 +169,7 @@ class PortfolioController extends Controller
                     'theme_light_surface',
                     'theme_light_foreground',
                     'theme_light_muted',
+                    'glass_effect_enabled',
                 ]),
                 'image_url' => $profile->image
                     ? Storage::disk(config('filesystems.default'))->url($profile->image)
@@ -167,6 +179,7 @@ class PortfolioController extends Controller
             'experiences' => $experiences,
             'skills' => $skills,
             'categories' => $categories,
+            'trackingIntegrations' => $trackingIntegrations,
             'stats' => [
                 'projects' => $projects->count(),
                 'years' => $earliestExperience

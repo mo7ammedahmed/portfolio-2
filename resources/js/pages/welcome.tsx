@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ComponentType, CSSProperties, ReactNode } from 'react';
+import { MarketingIntegrations } from '@/components/portfolio/marketing-integrations';
 import { ShaderFlow } from '@/components/portfolio/shader-flow';
 import { useAppearance } from '@/hooks/use-appearance';
 import { resolveSkillIconUrl } from '@/lib/skill-icons';
@@ -28,6 +29,7 @@ import type {
     PortfolioProfile,
     PortfolioProject,
     PortfolioSkill,
+    TrackingIntegration,
 } from '@/types';
 
 type Props = {
@@ -36,6 +38,7 @@ type Props = {
     experiences: PortfolioExperience[];
     skills: PortfolioSkill[];
     categories: (Localized & { id: number; color: string })[];
+    trackingIntegrations: TrackingIntegration[];
     stats?: {
         projects: number;
         years: number;
@@ -174,6 +177,8 @@ const copy = {
         location: 'Location',
         contactDetails: 'Direct channels',
         formName: 'Your name',
+        formEmail: 'Your email',
+        formSubject: 'Subject',
         formMessage: 'Your message',
         formSend: 'Send message',
         formSending: 'Sending…',
@@ -239,6 +244,8 @@ const copy = {
         location: 'الموقع',
         contactDetails: 'قنوات التواصل',
         formName: 'الاسم',
+        formEmail: 'البريد الإلكتروني',
+        formSubject: 'الموضوع',
         formMessage: 'الرسالة',
         formSend: 'إرسال الرسالة',
         formSending: 'جارٍ الإرسال…',
@@ -257,6 +264,7 @@ export default function Welcome({
     experiences,
     skills,
     categories,
+    trackingIntegrations,
     stats,
 }: Props) {
     const [locale, setLocale] = useState<'en' | 'ar'>('en');
@@ -599,6 +607,17 @@ export default function Welcome({
               muted: profile.theme_light_muted || '#686864',
               border: `${profile.theme_light_foreground || '#0a0a0a'}1f`,
           };
+    const accent = isDark
+        ? profile.theme_dark_accent || '#d9ff43'
+        : profile.theme_light_accent || '#006c55';
+    const accentForeground =
+        hexToRgb(accent).reduce(
+            (luminance, channel, index) =>
+                luminance + channel * [0.2126, 0.7152, 0.0722][index],
+            0,
+        ) > 0.55
+            ? '#090a09'
+            : '#ffffff';
     const shaderPalette = isDark
         ? {
               background: hexToRgb(palette.background),
@@ -615,6 +634,7 @@ export default function Welcome({
         <div
             ref={portfolioRef}
             dir={rtl ? 'rtl' : 'ltr'}
+            data-glass={profile.glass_effect_enabled ? 'enabled' : 'disabled'}
             className="min-h-screen bg-[var(--portfolio-background)] p-0 font-sans antialiased transition-colors duration-500 md:p-2"
             style={
                 {
@@ -623,10 +643,11 @@ export default function Welcome({
                     '--portfolio-surface': palette.surface,
                     '--portfolio-muted': palette.muted,
                     '--portfolio-border': palette.border,
-                    '--portfolio-accent': profile.theme_accent || '#d9ff43',
+                    '--portfolio-accent': accent,
                 } as CSSProperties
             }
         >
+            <MarketingIntegrations integrations={trackingIntegrations} />
             <Head title={`${name} — ${role}`}>
                 <meta
                     name="description"
@@ -645,14 +666,18 @@ export default function Welcome({
             <div className="relative min-h-screen overflow-x-clip bg-[var(--portfolio-background)] text-[var(--portfolio-foreground)] transition-colors duration-500 md:rounded-[2rem]">
                 <ClientOnlyThreeScene
                     className="pointer-events-none fixed inset-0 size-full md:inset-2 md:h-[calc(100%-1rem)] md:w-[calc(100%-1rem)] md:rounded-[2rem]"
-                    accent={profile?.theme_accent || '#d9ff43'}
+                    accent={accent}
                     isDark={isDark}
                 />
 
                 <header className="fixed inset-x-0 top-4 z-50 flex justify-center px-3 md:top-7">
                     <nav
                         aria-label="Primary navigation"
-                        className="flex items-center rounded-full border border-white/10 bg-[#0a0a0a]/95 p-1.5 text-[#f5f5f2] shadow-2xl shadow-black/25"
+                        className={`portfolio-primary-nav flex items-center rounded-full border border-white/10 p-1.5 text-[#f5f5f2] shadow-2xl shadow-black/25 ${
+                            profile.glass_effect_enabled
+                                ? 'bg-[#0a0a0a]/72'
+                                : 'bg-[#0a0a0a]/95'
+                        }`}
                     >
                         {[
                             ['home', text.nav[0]],
@@ -666,9 +691,17 @@ export default function Welcome({
                                 href={`#${target}`}
                                 className={`rounded-full px-2.5 py-2 text-[11px] font-medium transition-colors sm:px-5 sm:text-sm ${
                                     activeSection === target
-                                        ? 'bg-white text-black'
+                                        ? ''
                                         : 'text-white/58 hover:text-white'
                                 }`}
+                                style={
+                                    activeSection === target
+                                        ? {
+                                              background: accent,
+                                              color: accentForeground,
+                                          }
+                                        : undefined
+                                }
                                 aria-current={
                                     activeSection === target
                                         ? 'location'
@@ -809,19 +842,13 @@ export default function Welcome({
                                         <DeconstructedPortrait
                                             src={profile.image_url}
                                             alt={name}
-                                            accent={
-                                                profile.theme_accent ||
-                                                '#d9ff43'
-                                            }
+                                            accent={accent}
                                         />
                                     ) : (
                                         <div className="relative aspect-[4/5] w-full max-w-[430px] border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)] p-2">
                                             <MonogramPortrait
                                                 initials={initials}
-                                                accent={
-                                                    profile.theme_accent ||
-                                                    '#d9ff43'
-                                                }
+                                                accent={accent}
                                             />
                                         </div>
                                     )}
@@ -1081,9 +1108,7 @@ export default function Welcome({
                                             live: text.live,
                                             source: text.source,
                                         }}
-                                        accent={
-                                            profile.theme_accent || '#d9ff43'
-                                        }
+                                        accent={accent}
                                     />
                                 ))}
                                 <article
@@ -1173,25 +1198,83 @@ export default function Welcome({
                                                     recentlySuccessful,
                                                 }) => (
                                                     <>
+                                                        <div className="grid gap-5 sm:grid-cols-2">
+                                                            <div className="grid gap-2">
+                                                                <label
+                                                                    htmlFor="contact-name"
+                                                                    className="font-mono text-[10px] tracking-[0.14em] text-[var(--portfolio-muted)] uppercase"
+                                                                >
+                                                                    {
+                                                                        text.formName
+                                                                    }
+                                                                </label>
+                                                                <input
+                                                                    id="contact-name"
+                                                                    name="name"
+                                                                    required
+                                                                    maxLength={
+                                                                        120
+                                                                    }
+                                                                    autoComplete="name"
+                                                                    className="min-h-12 border border-[var(--portfolio-border)] bg-[var(--portfolio-background)]/75 px-4 text-sm transition-colors outline-none placeholder:text-[var(--portfolio-muted)] focus:border-[var(--portfolio-accent)]"
+                                                                />
+                                                                {errors.name && (
+                                                                    <p className="text-sm text-red-500">
+                                                                        {
+                                                                            errors.name
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <div className="grid gap-2">
+                                                                <label
+                                                                    htmlFor="contact-email"
+                                                                    className="font-mono text-[10px] tracking-[0.14em] text-[var(--portfolio-muted)] uppercase"
+                                                                >
+                                                                    {
+                                                                        text.formEmail
+                                                                    }
+                                                                </label>
+                                                                <input
+                                                                    id="contact-email"
+                                                                    name="email"
+                                                                    type="email"
+                                                                    required
+                                                                    maxLength={
+                                                                        254
+                                                                    }
+                                                                    autoComplete="email"
+                                                                    className="min-h-12 border border-[var(--portfolio-border)] bg-[var(--portfolio-background)]/75 px-4 text-sm transition-colors outline-none placeholder:text-[var(--portfolio-muted)] focus:border-[var(--portfolio-accent)]"
+                                                                />
+                                                                {errors.email && (
+                                                                    <p className="text-sm text-red-500">
+                                                                        {
+                                                                            errors.email
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                         <div className="grid gap-2">
                                                             <label
-                                                                htmlFor="contact-name"
+                                                                htmlFor="contact-subject"
                                                                 className="font-mono text-[10px] tracking-[0.14em] text-[var(--portfolio-muted)] uppercase"
                                                             >
-                                                                {text.formName}
+                                                                {
+                                                                    text.formSubject
+                                                                }
                                                             </label>
                                                             <input
-                                                                id="contact-name"
-                                                                name="name"
+                                                                id="contact-subject"
+                                                                name="subject"
                                                                 required
-                                                                maxLength={120}
-                                                                autoComplete="name"
+                                                                maxLength={160}
                                                                 className="min-h-12 border border-[var(--portfolio-border)] bg-[var(--portfolio-background)]/75 px-4 text-sm transition-colors outline-none placeholder:text-[var(--portfolio-muted)] focus:border-[var(--portfolio-accent)]"
                                                             />
-                                                            {errors.name && (
+                                                            {errors.subject && (
                                                                 <p className="text-sm text-red-500">
                                                                     {
-                                                                        errors.name
+                                                                        errors.subject
                                                                     }
                                                                 </p>
                                                             )}

@@ -5,6 +5,7 @@ import {
     FolderKanban,
     LayoutGrid,
     MessageSquare,
+    RadioTower,
     Shapes,
     Sparkles,
     UserRound,
@@ -27,6 +28,7 @@ import { dashboard } from '@/routes';
 import { analytics as analyticsIndex, team } from '@/routes/portfolio';
 import { index as categoriesIndex } from '@/routes/portfolio/categories';
 import { index as experiencesIndex } from '@/routes/portfolio/experiences';
+import { index as integrationsIndex } from '@/routes/portfolio/integrations';
 import { index as messagesIndex } from '@/routes/portfolio/messages';
 import { edit as profileEdit } from '@/routes/portfolio/profile';
 import { index as projectsIndex } from '@/routes/portfolio/projects';
@@ -55,6 +57,12 @@ const mainNavItems: PermissionNavItem[] = [
         href: analyticsIndex(),
         icon: Activity,
         permission: 'portfolio.analytics',
+    },
+    {
+        title: 'Pixels & integrations',
+        href: integrationsIndex(),
+        icon: RadioTower,
+        permission: 'portfolio.profile',
     },
     {
         title: 'Messages',

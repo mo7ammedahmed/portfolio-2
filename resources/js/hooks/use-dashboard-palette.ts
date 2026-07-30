@@ -2,8 +2,11 @@ import { useLayoutEffect } from 'react';
 
 import type { PortfolioTheme } from '@/types';
 
-const themeProperties: Record<keyof PortfolioTheme, string> = {
-    theme_accent: '--dashboard-accent',
+type PaletteColorKey = Exclude<keyof PortfolioTheme, 'glass_effect_enabled'>;
+
+const themeProperties: Record<PaletteColorKey, string> = {
+    theme_dark_accent: '--dashboard-dark-accent',
+    theme_light_accent: '--dashboard-light-accent',
     theme_dark_background: '--dashboard-dark-background',
     theme_dark_surface: '--dashboard-dark-surface',
     theme_dark_foreground: '--dashboard-dark-foreground',
@@ -98,20 +101,30 @@ export function useDashboardPalette(theme: PortfolioTheme | null): void {
         Object.entries(themeProperties).forEach(([attribute, property]) => {
             root.style.setProperty(
                 property,
-                theme[attribute as keyof PortfolioTheme],
+                theme[attribute as PaletteColorKey],
             );
         });
         root.style.setProperty(
-            '--dashboard-accent-foreground',
-            contrastingText(theme.theme_accent),
+            '--dashboard-light-accent-foreground',
+            contrastingText(theme.theme_light_accent),
+        );
+        root.style.setProperty(
+            '--dashboard-dark-accent-foreground',
+            contrastingText(theme.theme_dark_accent),
         );
         root.style.setProperty(
             '--dashboard-light-highlight',
-            readableAccent(theme.theme_accent, theme.theme_light_background),
+            readableAccent(
+                theme.theme_light_accent,
+                theme.theme_light_background,
+            ),
         );
         root.style.setProperty(
             '--dashboard-dark-highlight',
-            readableAccent(theme.theme_accent, theme.theme_dark_background),
+            readableAccent(
+                theme.theme_dark_accent,
+                theme.theme_dark_background,
+            ),
         );
 
         return () => {
@@ -120,7 +133,8 @@ export function useDashboardPalette(theme: PortfolioTheme | null): void {
             Object.values(themeProperties).forEach((property) => {
                 root.style.removeProperty(property);
             });
-            root.style.removeProperty('--dashboard-accent-foreground');
+            root.style.removeProperty('--dashboard-light-accent-foreground');
+            root.style.removeProperty('--dashboard-dark-accent-foreground');
             root.style.removeProperty('--dashboard-light-highlight');
             root.style.removeProperty('--dashboard-dark-highlight');
         };

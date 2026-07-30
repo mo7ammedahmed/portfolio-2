@@ -31,9 +31,17 @@ class ProfileFactory extends Factory
             'location_ar' => 'أبها، السعودية',
             'location_en' => 'Abha, Saudi Arabia',
             'email' => fake()->safeEmail(),
+            'contact_notification_email' => null,
+            'contact_notification_subject_template' => Profile::DEFAULT_NOTIFICATION_SUBJECT,
+            'contact_notification_body_template' => Profile::DEFAULT_NOTIFICATION_BODY,
+            'contact_auto_reply_enabled' => true,
+            'contact_auto_reply_subject_template' => Profile::DEFAULT_AUTO_REPLY_SUBJECT,
+            'contact_auto_reply_body_template' => Profile::DEFAULT_AUTO_REPLY_BODY,
             'is_available' => true,
             'is_visible' => true,
             'theme_accent' => '#d9ff43',
+            'theme_dark_accent' => '#d9ff43',
+            'theme_light_accent' => '#006c55',
             'theme_dark_background' => '#070707',
             'theme_dark_surface' => '#0d0d0d',
             'theme_dark_foreground' => '#f4f4f1',
@@ -42,6 +50,7 @@ class ProfileFactory extends Factory
             'theme_light_surface' => '#ffffff',
             'theme_light_foreground' => '#0a0a0a',
             'theme_light_muted' => '#686864',
+            'glass_effect_enabled' => false,
         ];
     }
 }

@@ -25,7 +25,14 @@ function portfolioProfilePayload(): array
         'location_ar' => 'أبها',
         'location_en' => 'Abha',
         'email' => 'mohammed@example.com',
-        'theme_accent' => '#ff5b35',
+        'contact_notification_email' => 'inbox@example.com',
+        'contact_notification_subject_template' => 'New enquiry: {subject}',
+        'contact_notification_body_template' => "From {name}\n\n{message}",
+        'contact_auto_reply_enabled' => true,
+        'contact_auto_reply_subject_template' => 'Thanks: {subject}',
+        'contact_auto_reply_body_template' => 'Hi {name}, thanks for your message.',
+        'theme_dark_accent' => '#ff5b35',
+        'theme_light_accent' => '#006c55',
         'theme_dark_background' => '#070707',
         'theme_dark_surface' => '#0d0d0d',
         'theme_dark_foreground' => '#f4f4f1',
@@ -34,6 +41,7 @@ function portfolioProfilePayload(): array
         'theme_light_surface' => '#ffffff',
         'theme_light_foreground' => '#0a0a0a',
         'theme_light_muted' => '#686864',
+        'glass_effect_enabled' => true,
         'is_available' => true,
         'is_visible' => true,
     ];
@@ -187,7 +195,9 @@ test('an owner can create and update their singleton portfolio profile', functio
         ->assertRedirect(route('portfolio.profile.edit'));
 
     expect($user->fresh()->profile?->role_en)->toBe('Senior Product Engineer')
-        ->and($user->fresh()->profile?->theme_accent)->toBe('#ff5b35')
+        ->and($user->fresh()->profile?->theme_dark_accent)->toBe('#ff5b35')
+        ->and($user->fresh()->profile?->theme_light_accent)->toBe('#006c55')
+        ->and($user->fresh()->profile?->glass_effect_enabled)->toBeTrue()
         ->and(Profile::query()->where('user_id', $user->id)->count())->toBe(1);
 });
 
@@ -224,11 +234,15 @@ test('saved theme palettes are shared publicly without forcing a display mode', 
         ->assertInertia(fn (Assert $page): Assert => $page
             ->component('welcome')
             ->missing('profile.theme_default_mode')
+            ->where('profile.theme_dark_accent', '#ff5b35')
+            ->where('profile.theme_light_accent', '#006c55')
+            ->where('profile.glass_effect_enabled', true)
             ->where('profile.theme_dark_background', '#10131a')
             ->where('profile.theme_light_background', '#f7f3ea'));
 });
 
 test('an owner can upload and replace their portfolio portrait', function () {
+    config()->set('filesystems.default', 'public');
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -256,6 +270,7 @@ test('an owner can upload and replace their portfolio portrait', function () {
 });
 
 test('portfolio portraits larger than the server limit are rejected', function () {
+    config()->set('filesystems.default', 'public');
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -274,6 +289,7 @@ test('portfolio portraits larger than the server limit are rejected', function (
 });
 
 test('an owner can replace and remove the custom image used by tech stack', function () {
+    config()->set('filesystems.default', 'public');
     Storage::fake('public');
 
     $user = User::factory()->create();
