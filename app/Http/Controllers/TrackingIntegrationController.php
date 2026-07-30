@@ -22,19 +22,17 @@ class TrackingIntegrationController extends Controller
         Gate::authorize('viewAny', Profile::class);
 
         $profile = $request->user()->portfolioAccount()->profile()->first();
-        $configuredIntegrations = [];
-
-        if ($profile) {
-            foreach ($profile->trackingIntegrations()->get() as $integration) {
-                $configuredIntegrations[$integration->platform->value] = $integration;
-            }
-        }
+        $configuredIntegrations = $profile?->trackingIntegrations()
+            ->get()
+            ->keyBy(fn (TrackingIntegration $integration): string => $integration->platform->value)
+            ?? collect();
 
         return Inertia::render('admin/integrations/index', [
             'hasProfile' => $profile !== null,
+            'siteUrl' => route('home'),
             'platforms' => collect(TrackingPlatform::cases())
                 ->map(function (TrackingPlatform $platform) use ($configuredIntegrations): array {
-                    $integration = $configuredIntegrations[$platform->value] ?? null;
+                    $integration = $configuredIntegrations->get($platform->value);
 
                     $configuration = $integration instanceof TrackingIntegration
                         ? [
@@ -56,6 +54,14 @@ class TrackingIntegrationController extends Controller
                         'category' => $platform->category(),
                         'description' => $platform->description(),
                         'placeholder' => $platform->placeholder(),
+                        'id_label' => $platform->idLabel(),
+                        'placement' => $platform->placement(),
+                        'documentation_url' => $platform->documentationUrl(),
+                        'diagnostics_url' => $platform->diagnosticsUrl(),
+                        'diagnostics_label' => $platform->diagnosticsLabel(),
+                        'brand_color' => $platform->brandColor(),
+                        'monogram' => $platform->monogram(),
+                        'has_body_fallback' => $platform->hasBodyFallback(),
                         ...$configuration,
                     ];
                 })

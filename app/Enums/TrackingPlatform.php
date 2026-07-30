@@ -81,6 +81,129 @@ enum TrackingPlatform: string
         };
     }
 
+    public function idLabel(): string
+    {
+        return match ($this) {
+            self::GoogleTag => 'Google tag ID',
+            self::GoogleTagManager => 'Container ID',
+            self::GoogleSearchConsole => 'Verification token',
+            self::MetaPixel => 'Dataset / Pixel ID',
+            self::TikTokPixel => 'Pixel ID',
+            self::LinkedInInsight => 'Partner ID',
+            self::XPixel => 'Pixel ID',
+            self::SnapchatPixel => 'Pixel ID',
+            self::PinterestTag => 'Tag ID',
+            self::MicrosoftClarity => 'Project ID',
+        };
+    }
+
+    public function placement(): string
+    {
+        return match ($this) {
+            self::GoogleTagManager => 'Head bootstrap + body fallback',
+            self::GoogleSearchConsole => 'Homepage head metadata',
+            self::MetaPixel,
+            self::LinkedInInsight,
+            self::PinterestTag => 'Head bootstrap + image fallback',
+            self::GoogleTag,
+            self::TikTokPixel,
+            self::XPixel,
+            self::SnapchatPixel,
+            self::MicrosoftClarity => 'Head bootstrap',
+        };
+    }
+
+    public function documentationUrl(): string
+    {
+        return match ($this) {
+            self::GoogleTag => 'https://developers.google.com/tag-platform/gtagjs',
+            self::GoogleTagManager => 'https://support.google.com/tagmanager/answer/14847097',
+            self::GoogleSearchConsole => 'https://support.google.com/webmasters/answer/9008080',
+            self::MetaPixel => 'https://www.facebook.com/help/messenger-app/952192354843755',
+            self::TikTokPixel => 'https://ads.tiktok.com/help/article/get-started-pixel',
+            self::LinkedInInsight => 'https://www.linkedin.com/help/linkedin/answer/a418882',
+            self::XPixel => 'https://business.x.com/en/help/campaign-measurement-and-analytics/conversion-tracking-for-websites',
+            self::SnapchatPixel => 'https://developers.snap.com/marketing-api/Ads-API/snap-pixel',
+            self::PinterestTag => 'https://help.pinterest.com/en/business/article/install-the-pinterest-tag',
+            self::MicrosoftClarity => 'https://learn.microsoft.com/clarity/setup-and-installation/clarity-setup',
+        };
+    }
+
+    public function diagnosticsUrl(): string
+    {
+        return match ($this) {
+            self::GoogleTag,
+            self::GoogleTagManager => 'https://tagassistant.google.com/',
+            self::GoogleSearchConsole => 'https://search.google.com/search-console',
+            self::MetaPixel => 'https://business.facebook.com/events_manager2',
+            self::TikTokPixel => 'https://ads.tiktok.com/i18n/events_manager/',
+            self::LinkedInInsight => 'https://www.linkedin.com/campaignmanager/',
+            self::XPixel => 'https://ads.x.com/',
+            self::SnapchatPixel => 'https://ads.snapchat.com/',
+            self::PinterestTag => 'https://ads.pinterest.com/conversions/',
+            self::MicrosoftClarity => 'https://clarity.microsoft.com/projects',
+        };
+    }
+
+    public function diagnosticsLabel(): string
+    {
+        return match ($this) {
+            self::GoogleTag,
+            self::GoogleTagManager => 'Open Tag Assistant',
+            self::GoogleSearchConsole => 'Open Search Console',
+            self::MetaPixel => 'Open Events Manager',
+            self::TikTokPixel => 'Open Events Manager',
+            self::LinkedInInsight => 'Open Campaign Manager',
+            self::XPixel => 'Open X Ads',
+            self::SnapchatPixel => 'Open Ads Manager',
+            self::PinterestTag => 'Open Conversions',
+            self::MicrosoftClarity => 'Open Clarity',
+        };
+    }
+
+    public function brandColor(): string
+    {
+        return match ($this) {
+            self::GoogleTag => '#4285F4',
+            self::GoogleTagManager => '#246FDB',
+            self::GoogleSearchConsole => '#34A853',
+            self::MetaPixel => '#1877F2',
+            self::TikTokPixel => '#25F4EE',
+            self::LinkedInInsight => '#0A66C2',
+            self::XPixel => '#111111',
+            self::SnapchatPixel => '#F5D90A',
+            self::PinterestTag => '#E60023',
+            self::MicrosoftClarity => '#1683FF',
+        };
+    }
+
+    public function monogram(): string
+    {
+        return match ($this) {
+            self::GoogleTag => 'G',
+            self::GoogleTagManager => 'GTM',
+            self::GoogleSearchConsole => 'GSC',
+            self::MetaPixel => 'M',
+            self::TikTokPixel => 'TT',
+            self::LinkedInInsight => 'in',
+            self::XPixel => 'X',
+            self::SnapchatPixel => 'S',
+            self::PinterestTag => 'P',
+            self::MicrosoftClarity => 'C',
+        };
+    }
+
+    public function hasBodyFallback(): bool
+    {
+        return match ($this) {
+            self::GoogleTagManager,
+            self::MetaPixel,
+            self::LinkedInInsight,
+            self::PinterestTag => true,
+            default => false,
+        };
+    }
+
     public function validationPattern(): string
     {
         return match ($this) {
@@ -93,7 +216,7 @@ enum TrackingPlatform: string
             self::TikTokPixel,
             self::XPixel,
             self::MicrosoftClarity => '/^[A-Z0-9]{5,40}$/i',
-            self::SnapchatPixel => '/^[A-Z0-9-]{10,64}$/i',
+            self::SnapchatPixel => '/^[A-F0-9]{8}-(?:[A-F0-9]{4}-){3}[A-F0-9]{12}$/i',
         };
     }
 }

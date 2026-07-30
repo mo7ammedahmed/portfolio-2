@@ -251,16 +251,24 @@ export function MarketingIntegrations({
 }: {
     integrations: TrackingIntegration[];
 }) {
+    const isServerRendered =
+        typeof document !== 'undefined' &&
+        document.body.dataset.trackingServerRendered === 'true';
     const verificationToken = integrations.find(
         ({ platform }) => platform === 'google_search_console',
     )?.tracking_id;
 
     useEffect(() => {
+        if (document.body.dataset.trackingServerRendered === 'true') {
+            return;
+        }
+
         initializeGoogleTags(integrations);
         integrations.forEach(initializeIntegration);
+        document.body.dataset.trackingServerRendered = 'client';
     }, [integrations]);
 
-    return verificationToken ? (
+    return verificationToken && !isServerRendered ? (
         <Head>
             <meta
                 head-key="google-site-verification"

@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
 
+@php
+    $trackingIntegrations = collect(data_get($page, 'props.trackingIntegrations', []))
+        ->filter(fn (mixed $integration): bool => is_array($integration)
+            && is_string(data_get($integration, 'platform'))
+            && is_string(data_get($integration, 'tracking_id')))
+        ->keyBy('platform');
+@endphp
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +17,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <x-tracking.head :integrations="$trackingIntegrations" />
     {{-- Inline script to detect system dark mode preference and apply it immediately --}}
     <script>
         (function() {
@@ -57,7 +66,11 @@
     </x-inertia::head>
 </head>
 
-<body class="font-sans antialiased">
+<body
+    class="font-sans antialiased"
+    data-tracking-server-rendered="{{ $trackingIntegrations->isNotEmpty() ? 'true' : 'false' }}"
+>
+    <x-tracking.body :integrations="$trackingIntegrations" />
     <x-inertia::app />
 </body>
 
