@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\PortfolioPermission;
+use App\Enums\TrackingInstallationMethod;
 use App\Enums\TrackingPlatform;
 use App\Models\Profile;
 use App\Models\Role;
@@ -25,6 +27,9 @@ test('an owner can inspect configured pixels and supported connectors', function
             ->has('platforms', count(TrackingPlatform::cases()))
             ->where('platforms.0.key', TrackingPlatform::GoogleTag->value)
             ->where('platforms.0.tracking_id', 'G-ABC1234567')
+            ->where('platforms.0.installation_method', 'managed')
+            ->where('platforms.0.head_code', '')
+            ->where('platforms.0.body_code', '')
             ->where('platforms.0.is_enabled', true)
             ->where('platforms.0.id_label', 'Google tag ID')
             ->where('platforms.0.placement', 'Head bootstrap')
@@ -32,6 +37,8 @@ test('an owner can inspect configured pixels and supported connectors', function
             ->where('platforms.0.diagnostics_url', TrackingPlatform::GoogleTag->diagnosticsUrl())
             ->where('platforms.0.brand_color', '#4285F4')
             ->where('platforms.0.monogram', 'G')
+            ->where('platforms.0.head_code_marker', 'googletagmanager.com/gtag/js')
+            ->where('canManageCustomCode', true)
             ->where('siteUrl', route('home'))
             ->has('detected.googleVerificationFiles'));
 });
@@ -136,6 +143,103 @@ test('google tag manager is rendered in the official head and body positions', f
         ->and($bodyFallback)->toBeGreaterThan($bodyOpen)
         ->and($inertiaApp)->not->toBeFalse()
         ->and($bodyFallback)->toBeLessThan($inertiaApp);
+});
+
+test('an owner can paste complete provider code from the dashboard', function () {
+    $owner = User::factory()->create();
+    $profile = Profile::factory()->for($owner)->create(['is_visible' => true]);
+    $headCode = <<<'HTML'
+<!-- Google Tag Manager -->
+<script>
+window.customDashboardGtm = 'https://www.googletagmanager.com/gtm.js?id=GTM-5L7GJKQW';
+</script>
+<!-- End Google Tag Manager -->
+HTML;
+    $bodyCode = <<<'HTML'
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5L7GJKQW"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+HTML;
+
+    $this->actingAs($owner)
+        ->put(route('portfolio.integrations.update', TrackingPlatform::GoogleTagManager), [
+            'installation_method' => TrackingInstallationMethod::Custom->value,
+            'tracking_id' => '',
+            'head_code' => $headCode,
+            'body_code' => $bodyCode,
+            'is_enabled' => true,
+        ])
+        ->assertSessionHasNoErrors();
+
+    $integration = $profile->trackingIntegrations()->sole();
+
+    expect($integration->installation_method)->toBe(TrackingInstallationMethod::Custom)
+        ->and($integration->tracking_id)->toBe('')
+        ->and($integration->head_code)->toBe($headCode)
+        ->and($integration->body_code)->toBe($bodyCode);
+
+    $content = $this->get(route('home'))
+        ->assertOk()
+        ->getContent();
+
+    $headCodePosition = mb_strpos($content, 'window.customDashboardGtm');
+    $headClosePosition = mb_strpos($content, '</head>');
+    $bodyOpenPosition = mb_strpos($content, '<body');
+    $bodyCodePosition = mb_strpos(
+        $content,
+        '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5L7GJKQW">',
+    );
+
+    expect($content)
+        ->toContain('data-tracking-installation="custom"')
+        ->and($headCodePosition)->not->toBeFalse()
+        ->and($headClosePosition)->not->toBeFalse()
+        ->and($headCodePosition)->toBeLessThan($headClosePosition)
+        ->and($bodyOpenPosition)->not->toBeFalse()
+        ->and($bodyCodePosition)->not->toBeFalse()
+        ->and($bodyCodePosition)->toBeGreaterThan($bodyOpenPosition);
+});
+
+test('custom provider code must match the selected connector', function () {
+    $owner = User::factory()->create();
+    Profile::factory()->for($owner)->create();
+
+    $this->actingAs($owner)
+        ->put(route('portfolio.integrations.update', TrackingPlatform::GoogleTagManager), [
+            'installation_method' => TrackingInstallationMethod::Custom->value,
+            'tracking_id' => '',
+            'head_code' => '<script src="https://example.com/tracker.js"></script>',
+            'body_code' => '<noscript>Missing provider fallback</noscript>',
+            'is_enabled' => true,
+        ])
+        ->assertSessionHasErrors(['head_code', 'body_code']);
+
+    expect(TrackingIntegration::query()->count())->toBe(0);
+});
+
+test('only the portfolio owner can install executable custom code', function () {
+    $owner = User::factory()->create();
+    Profile::factory()->for($owner)->create();
+    $role = Role::factory()->create([
+        'owner_id' => $owner->id,
+        'permissions' => [PortfolioPermission::ManageProfile->value],
+    ]);
+    $member = User::factory()->create([
+        'owner_id' => $owner->id,
+        'role_id' => $role->id,
+    ]);
+
+    $this->actingAs($member)
+        ->put(route('portfolio.integrations.update', TrackingPlatform::MicrosoftClarity), [
+            'installation_method' => TrackingInstallationMethod::Custom->value,
+            'tracking_id' => '',
+            'head_code' => '<script src="https://www.clarity.ms/tag/abcdefghij"></script>',
+            'body_code' => '',
+            'is_enabled' => true,
+        ])
+        ->assertSessionHasErrors('installation_method');
+
+    expect(TrackingIntegration::query()->count())->toBe(0);
 });
 
 test('every enabled connector renders its provider bootstrap', function (

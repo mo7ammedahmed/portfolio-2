@@ -41,6 +41,9 @@ export type PortfolioProfile = Localized &
 export type TrackingIntegration = {
     platform: string;
     tracking_id: string;
+    installation_method: 'managed' | 'custom';
+    head_code: string | null;
+    body_code: string | null;
 };
 
 export type PortfolioProject = Localized & {

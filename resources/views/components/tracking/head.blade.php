@@ -11,9 +11,20 @@
     $snapchatPixel = $integrations->get('snapchat_pixel');
     $pinterestTag = $integrations->get('pinterest_tag');
     $microsoftClarity = $integrations->get('microsoft_clarity');
+    $isCustom = fn (?array $integration): bool => data_get($integration, 'installation_method') === 'custom';
 @endphp
 
-@if ($googleSearchConsole)
+@foreach ($integrations as $customIntegration)
+    @if ($isCustom($customIntegration) && filled(data_get($customIntegration, 'head_code')))
+        <meta
+            data-tracking-provider="{{ $customIntegration['platform'] }}"
+            data-tracking-installation="custom"
+        >
+        {!! $customIntegration['head_code'] !!}
+    @endif
+@endforeach
+
+@if ($googleSearchConsole && ! $isCustom($googleSearchConsole))
     <meta
         name="google-site-verification"
         content="{{ $googleSearchConsole['tracking_id'] }}"
@@ -21,7 +32,7 @@
     >
 @endif
 
-@if ($googleTagManager)
+@if ($googleTagManager && ! $isCustom($googleTagManager))
     <script data-tracking-provider="google_tag_manager">
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -31,7 +42,7 @@
     </script>
 @endif
 
-@if ($googleTag)
+@if ($googleTag && ! $isCustom($googleTag))
     <script
         async
         src="https://www.googletagmanager.com/gtag/js?id={{ rawurlencode($googleTag['tracking_id']) }}"
@@ -45,7 +56,7 @@
     </script>
 @endif
 
-@if ($metaPixel)
+@if ($metaPixel && ! $isCustom($metaPixel))
     <script data-tracking-provider="meta_pixel">
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -60,7 +71,7 @@
     </script>
 @endif
 
-@if ($tiktokPixel)
+@if ($tiktokPixel && ! $isCustom($tiktokPixel))
     <script data-tracking-provider="tiktok_pixel">
         !function (w, d, t) {
             w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];
@@ -78,7 +89,7 @@
     </script>
 @endif
 
-@if ($linkedinInsight)
+@if ($linkedinInsight && ! $isCustom($linkedinInsight))
     <script data-tracking-provider="linkedin_insight">
         window._linkedin_partner_id = @js($linkedinInsight['tracking_id']);
         window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
@@ -98,7 +109,7 @@
     </script>
 @endif
 
-@if ($xPixel)
+@if ($xPixel && ! $isCustom($xPixel))
     <script data-tracking-provider="x_pixel">
         !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?
         s.exe.apply(s,arguments):s.queue.push(arguments);},s.version='1.1',
@@ -109,7 +120,7 @@
     </script>
 @endif
 
-@if ($snapchatPixel)
+@if ($snapchatPixel && ! $isCustom($snapchatPixel))
     <script data-tracking-provider="snapchat_pixel">
         (function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function()
         {a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};
@@ -122,7 +133,7 @@
     </script>
 @endif
 
-@if ($pinterestTag)
+@if ($pinterestTag && ! $isCustom($pinterestTag))
     <script data-tracking-provider="pinterest_tag">
         !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(
         Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";
@@ -133,7 +144,7 @@
     </script>
 @endif
 
-@if ($microsoftClarity)
+@if ($microsoftClarity && ! $isCustom($microsoftClarity))
     <script data-tracking-provider="microsoft_clarity">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

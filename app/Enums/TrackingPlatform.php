@@ -204,6 +204,33 @@ enum TrackingPlatform: string
         };
     }
 
+    public function headCodeMarker(): string
+    {
+        return match ($this) {
+            self::GoogleTag => 'googletagmanager.com/gtag/js',
+            self::GoogleTagManager => 'googletagmanager.com/gtm.js',
+            self::GoogleSearchConsole => 'google-site-verification',
+            self::MetaPixel => 'connect.facebook.net',
+            self::TikTokPixel => 'analytics.tiktok.com',
+            self::LinkedInInsight => 'snap.licdn.com',
+            self::XPixel => 'static.ads-twitter.com',
+            self::SnapchatPixel => 'sc-static.net',
+            self::PinterestTag => 's.pinimg.com',
+            self::MicrosoftClarity => 'clarity.ms/tag',
+        };
+    }
+
+    public function bodyCodeMarker(): ?string
+    {
+        return match ($this) {
+            self::GoogleTagManager => 'googletagmanager.com/ns.html',
+            self::MetaPixel => 'facebook.com/tr',
+            self::LinkedInInsight => 'px.ads.linkedin.com',
+            self::PinterestTag => 'ct.pinterest.com',
+            default => null,
+        };
+    }
+
     public function validationPattern(): string
     {
         return match ($this) {

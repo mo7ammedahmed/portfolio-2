@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\TrackingInstallationMethod;
 use App\Enums\TrackingPlatform;
 use App\Http\Requests\UpdateTrackingIntegrationRequest;
 use App\Models\Profile;
@@ -26,23 +27,38 @@ class TrackingIntegrationController extends Controller
             ->get()
             ->keyBy(fn (TrackingIntegration $integration): string => $integration->platform->value)
             ?? collect();
+        $canManageCustomCode = $request->user()->isPortfolioOwner();
 
         return Inertia::render('admin/integrations/index', [
             'hasProfile' => $profile !== null,
+            'canManageCustomCode' => $canManageCustomCode,
             'siteUrl' => route('home'),
             'platforms' => collect(TrackingPlatform::cases())
-                ->map(function (TrackingPlatform $platform) use ($configuredIntegrations): array {
+                ->map(function (TrackingPlatform $platform) use (
+                    $canManageCustomCode,
+                    $configuredIntegrations,
+                ): array {
                     $integration = $configuredIntegrations->get($platform->value);
 
                     $configuration = $integration instanceof TrackingIntegration
                         ? [
                             'tracking_id' => $integration->tracking_id,
+                            'installation_method' => $integration->installation_method->value,
+                            'head_code' => $canManageCustomCode
+                                ? ($integration->head_code ?? '')
+                                : '',
+                            'body_code' => $canManageCustomCode
+                                ? ($integration->body_code ?? '')
+                                : '',
                             'is_enabled' => $integration->is_enabled,
                             'is_configured' => true,
                             'updated_at' => $integration->updated_at?->toIso8601String(),
                         ]
                         : [
                             'tracking_id' => '',
+                            'installation_method' => TrackingInstallationMethod::Managed->value,
+                            'head_code' => '',
+                            'body_code' => '',
                             'is_enabled' => false,
                             'is_configured' => false,
                             'updated_at' => null,
@@ -62,6 +78,8 @@ class TrackingIntegrationController extends Controller
                         'brand_color' => $platform->brandColor(),
                         'monogram' => $platform->monogram(),
                         'has_body_fallback' => $platform->hasBodyFallback(),
+                        'head_code_marker' => $platform->headCodeMarker(),
+                        'body_code_marker' => $platform->bodyCodeMarker(),
                         ...$configuration,
                     ];
                 })
@@ -83,9 +101,23 @@ class TrackingIntegrationController extends Controller
 
         Gate::authorize('update', $profile);
 
+        $data = $request->validated();
+        $installationMethod = TrackingInstallationMethod::from(
+            $data['installation_method'],
+        );
+        $data['tracking_id'] = $installationMethod === TrackingInstallationMethod::Managed
+            ? $data['tracking_id']
+            : '';
+        $data['head_code'] = $installationMethod === TrackingInstallationMethod::Custom
+            ? $data['head_code']
+            : null;
+        $data['body_code'] = $installationMethod === TrackingInstallationMethod::Custom
+            ? ($data['body_code'] ?? null)
+            : null;
+
         $profile->trackingIntegrations()->updateOrCreate(
             ['platform' => $platform->value],
-            $request->validated(),
+            $data,
         );
 
         return to_route('portfolio.integrations.index')

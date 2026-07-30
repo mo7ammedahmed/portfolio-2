@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\TrackingInstallationMethod;
 use App\Enums\TrackingPlatform;
 use App\Models\Profile;
 use App\Models\TrackingIntegration;
@@ -25,6 +26,9 @@ class TrackingIntegrationFactory extends Factory
             'profile_id' => Profile::factory(),
             'platform' => TrackingPlatform::GoogleTag,
             'tracking_id' => 'G-'.strtoupper(fake()->bothify('##########')),
+            'installation_method' => TrackingInstallationMethod::Managed,
+            'head_code' => null,
+            'body_code' => null,
             'is_enabled' => true,
         ];
     }

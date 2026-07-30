@@ -79,7 +79,8 @@ function createTikTokQueue(): TikTokQueue {
 function initializeGoogleTags(integrations: TrackingIntegration[]): void {
     const trackingWindow = window as TrackingWindow;
     const googleTags = integrations.filter(
-        ({ platform }) => platform === 'google_tag',
+        ({ installation_method: method, platform }) =>
+            platform === 'google_tag' && method === 'managed',
     );
 
     if (googleTags.length === 0) {
@@ -210,6 +211,10 @@ function initializeMicrosoftClarity(trackingId: string): void {
 }
 
 function initializeIntegration(integration: TrackingIntegration): void {
+    if (integration.installation_method === 'custom') {
+        return;
+    }
+
     const key = `${integration.platform}:${integration.tracking_id}`;
 
     if (initializedIntegrations.has(key)) {
@@ -255,7 +260,8 @@ export function MarketingIntegrations({
         typeof document !== 'undefined' &&
         document.body.dataset.trackingServerRendered === 'true';
     const verificationToken = integrations.find(
-        ({ platform }) => platform === 'google_search_console',
+        ({ installation_method: method, platform }) =>
+            platform === 'google_search_console' && method === 'managed',
     )?.tracking_id;
 
     useEffect(() => {

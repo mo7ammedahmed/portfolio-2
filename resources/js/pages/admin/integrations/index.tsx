@@ -3,6 +3,7 @@ import {
     AlertTriangle,
     ArrowUpRight,
     BookOpen,
+    Braces,
     Check,
     CheckCircle2,
     CircleDashed,
@@ -17,11 +18,13 @@ import {
     Radar,
     Save,
     Search,
+    ShieldAlert,
     ShieldCheck,
     Trash2,
 } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
 import type { CSSProperties, FormEvent } from 'react';
+import { Textarea } from '@/components/admin/form-elements';
 import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -48,7 +51,12 @@ type Platform = {
     brand_color: string;
     monogram: string;
     has_body_fallback: boolean;
+    head_code_marker: string;
+    body_code_marker: string | null;
     tracking_id: string;
+    installation_method: 'managed' | 'custom';
+    head_code: string;
+    body_code: string;
     is_enabled: boolean;
     is_configured: boolean;
     updated_at: string | null;
@@ -56,6 +64,7 @@ type Platform = {
 
 type Props = {
     hasProfile: boolean;
+    canManageCustomCode: boolean;
     siteUrl: string;
     platforms: Platform[];
     detected: {
@@ -100,7 +109,7 @@ function StatusBadge({
     return (
         <span className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1 text-xs font-semibold text-muted-foreground">
             <CircleOff className="size-3.5" />
-            Needs ID
+            Needs setup
         </span>
     );
 }
@@ -147,23 +156,36 @@ function InstallationCheck({
 function IntegrationCard({
     platform,
     disabled,
+    canManageCustomCode,
     siteUrl,
 }: {
     platform: Platform;
     disabled: boolean;
+    canManageCustomCode: boolean;
     siteUrl: string;
 }) {
     const enabledId = useId();
     const inputId = useId();
     const hintId = useId();
     const errorId = useId();
+    const headCodeId = useId();
+    const bodyCodeId = useId();
     const [copied, setCopied] = useState(false);
     const form = useForm({
         tracking_id: platform.tracking_id,
+        installation_method: platform.installation_method,
+        head_code: platform.head_code,
+        body_code: platform.body_code,
         is_enabled: platform.is_enabled,
     });
-    const isConfigured =
-        platform.is_configured || form.data.tracking_id.length > 0;
+    const isCustom = form.data.installation_method === 'custom';
+    const hasRequiredConfiguration = isCustom
+        ? form.data.head_code.trim().length > 0 &&
+          (!platform.has_body_fallback || form.data.body_code.trim().length > 0)
+        : form.data.tracking_id.trim().length > 0;
+    const isConfigured = form.isDirty
+        ? hasRequiredConfiguration
+        : platform.is_configured;
     const isInstalled = isConfigured && form.data.is_enabled;
     const hasDarkMonogram =
         platform.key === 'snapchat_pixel' || platform.key === 'tiktok_pixel';
@@ -174,6 +196,11 @@ function IntegrationCard({
             preserveScroll: true,
             onSuccess: () => form.setDefaults(),
         });
+    };
+
+    const setInstallationMethod = (method: 'managed' | 'custom') => {
+        form.setData('installation_method', method);
+        form.clearErrors();
     };
 
     const copyTrackingId = async () => {
@@ -242,62 +269,199 @@ function IntegrationCard({
                 onSubmit={submit}
                 className="flex flex-1 flex-col gap-5 p-5 sm:p-6"
             >
-                <div className="grid gap-2">
-                    <div className="flex items-center justify-between gap-3">
-                        <Label htmlFor={inputId}>{platform.id_label}</Label>
-                        <span className="text-[11px] text-muted-foreground">
-                            {platform.placement}
-                        </span>
-                    </div>
-                    <div className="relative">
-                        <Input
-                            id={inputId}
-                            value={form.data.tracking_id}
-                            placeholder={platform.placeholder}
-                            autoCapitalize="none"
-                            autoCorrect="off"
-                            spellCheck={false}
-                            disabled={disabled}
-                            className="pr-11 font-mono"
-                            aria-invalid={Boolean(form.errors.tracking_id)}
-                            aria-describedby={
-                                form.errors.tracking_id ? errorId : hintId
-                            }
-                            onChange={(event) =>
-                                form.setData(
-                                    'tracking_id',
-                                    event.target.value.trim(),
-                                )
-                            }
-                        />
+                <fieldset className="grid gap-2">
+                    <legend className="text-sm font-medium">
+                        Installation method
+                    </legend>
+                    <div className="grid grid-cols-2 rounded-xl border bg-muted/35 p-1">
                         <button
                             type="button"
-                            onClick={copyTrackingId}
-                            disabled={form.data.tracking_id.length === 0}
-                            className="absolute inset-y-0 right-1 my-auto grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-35"
-                            aria-label={`Copy ${platform.id_label}`}
+                            aria-pressed={!isCustom}
+                            onClick={() => setInstallationMethod('managed')}
+                            className={`flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+                                !isCustom
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
                         >
-                            {copied ? (
-                                <Check className="size-4 text-emerald-600" />
-                            ) : (
-                                <Clipboard className="size-4" />
-                            )}
+                            <Code2 className="size-3.5" />
+                            Managed ID
+                        </button>
+                        <button
+                            type="button"
+                            aria-pressed={isCustom}
+                            disabled={!canManageCustomCode}
+                            onClick={() => setInstallationMethod('custom')}
+                            className={`flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45 ${
+                                isCustom
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                            title={
+                                canManageCustomCode
+                                    ? undefined
+                                    : 'Only the portfolio owner can paste executable code.'
+                            }
+                        >
+                            <Braces className="size-3.5" />
+                            Paste full code
                         </button>
                     </div>
-                    {form.errors.tracking_id ? (
-                        <p id={errorId} className="text-sm text-destructive">
-                            {form.errors.tracking_id}
-                        </p>
-                    ) : (
-                        <p
-                            id={hintId}
-                            className="text-xs text-muted-foreground"
-                        >
-                            Saved IDs are emitted only when installation is
-                            enabled.
-                        </p>
-                    )}
-                </div>
+                    <p className="text-xs text-muted-foreground">
+                        {isCustom
+                            ? 'The exact provider code below will be installed on the next full page load.'
+                            : 'Enter the provider ID and the portfolio will generate its official installation code.'}
+                    </p>
+                </fieldset>
+
+                {isCustom ? (
+                    <div className="grid gap-4">
+                        {!canManageCustomCode ? (
+                            <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+                                <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-300" />
+                                <p>
+                                    Custom code is installed and can only be
+                                    viewed or changed by the portfolio owner.
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                                    <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-300" />
+                                    <p className="text-xs leading-5 text-muted-foreground">
+                                        Paste code only from the official
+                                        provider. It executes on every public
+                                        portfolio visit.
+                                    </p>
+                                </div>
+                                <div className="grid gap-2">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <Label htmlFor={headCodeId}>
+                                            Head code
+                                        </Label>
+                                        <span className="font-mono text-[10px] text-muted-foreground">
+                                            Must include{' '}
+                                            {platform.head_code_marker}
+                                        </span>
+                                    </div>
+                                    <Textarea
+                                        id={headCodeId}
+                                        value={form.data.head_code}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'head_code',
+                                                event.target.value,
+                                            )
+                                        }
+                                        placeholder={`Paste the complete ${platform.label} head code`}
+                                        disabled={disabled}
+                                        error={form.errors.head_code}
+                                        spellCheck={false}
+                                        className="min-h-44 resize-y font-mono text-xs leading-5"
+                                    />
+                                    {form.errors.head_code && (
+                                        <p className="text-sm text-destructive">
+                                            {form.errors.head_code}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {platform.has_body_fallback && (
+                                    <div className="grid gap-2">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <Label htmlFor={bodyCodeId}>
+                                                Body fallback code
+                                            </Label>
+                                            <span className="font-mono text-[10px] text-muted-foreground">
+                                                Required
+                                            </span>
+                                        </div>
+                                        <Textarea
+                                            id={bodyCodeId}
+                                            value={form.data.body_code}
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'body_code',
+                                                    event.target.value,
+                                                )
+                                            }
+                                            placeholder={`Paste the complete ${platform.label} body fallback`}
+                                            disabled={disabled}
+                                            error={form.errors.body_code}
+                                            spellCheck={false}
+                                            className="min-h-32 resize-y font-mono text-xs leading-5"
+                                        />
+                                        {form.errors.body_code && (
+                                            <p className="text-sm text-destructive">
+                                                {form.errors.body_code}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                ) : (
+                    <div className="grid gap-2">
+                        <div className="flex items-center justify-between gap-3">
+                            <Label htmlFor={inputId}>{platform.id_label}</Label>
+                            <span className="text-[11px] text-muted-foreground">
+                                {platform.placement}
+                            </span>
+                        </div>
+                        <div className="relative">
+                            <Input
+                                id={inputId}
+                                value={form.data.tracking_id}
+                                placeholder={platform.placeholder}
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                disabled={disabled}
+                                className="pr-11 font-mono"
+                                aria-invalid={Boolean(form.errors.tracking_id)}
+                                aria-describedby={
+                                    form.errors.tracking_id ? errorId : hintId
+                                }
+                                onChange={(event) =>
+                                    form.setData(
+                                        'tracking_id',
+                                        event.target.value.trim(),
+                                    )
+                                }
+                            />
+                            <button
+                                type="button"
+                                onClick={copyTrackingId}
+                                disabled={form.data.tracking_id.length === 0}
+                                className="absolute inset-y-0 right-1 my-auto grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-35"
+                                aria-label={`Copy ${platform.id_label}`}
+                            >
+                                {copied ? (
+                                    <Check className="size-4 text-emerald-600" />
+                                ) : (
+                                    <Clipboard className="size-4" />
+                                )}
+                            </button>
+                        </div>
+                        {form.errors.tracking_id ? (
+                            <p
+                                id={errorId}
+                                className="text-sm text-destructive"
+                            >
+                                {form.errors.tracking_id}
+                            </p>
+                        ) : (
+                            <p
+                                id={hintId}
+                                className="text-xs text-muted-foreground"
+                            >
+                                Saved IDs are emitted only when installation is
+                                enabled.
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 <div className="rounded-xl border bg-background/70 p-4">
                     <div className="flex items-start justify-between gap-4">
@@ -306,8 +470,9 @@ function IntegrationCard({
                                 Install on public portfolio
                             </Label>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                Adds the official provider bootstrap on the next
-                                full page load.
+                                {isCustom
+                                    ? 'Adds the pasted head and body code on the next full page load.'
+                                    : 'Adds the generated provider bootstrap on the next full page load.'}
                             </p>
                         </div>
                         <Checkbox
@@ -322,12 +487,18 @@ function IntegrationCard({
 
                     <ul className="mt-4 grid gap-2 border-t pt-4 sm:grid-cols-2">
                         <InstallationCheck
-                            label="Head markup"
+                            label={
+                                isCustom ? 'Custom head code' : 'Head markup'
+                            }
                             active={isInstalled}
                         />
                         {platform.has_body_fallback && (
                             <InstallationCheck
-                                label="Body fallback"
+                                label={
+                                    isCustom
+                                        ? 'Custom body fallback'
+                                        : 'Body fallback'
+                                }
                                 active={isInstalled}
                             />
                         )}
@@ -402,7 +573,8 @@ function IntegrationCard({
                             disabled={
                                 form.processing ||
                                 disabled ||
-                                form.data.tracking_id.length === 0 ||
+                                !hasRequiredConfiguration ||
+                                (isCustom && !canManageCustomCode) ||
                                 !form.isDirty
                             }
                         >
@@ -459,6 +631,7 @@ function PipelineStep({
 
 export default function Integrations({
     hasProfile,
+    canManageCustomCode,
     siteUrl,
     platforms,
     detected,
@@ -513,7 +686,7 @@ export default function Integrations({
             <PageHeading
                 eyebrow="Measurement control"
                 title="Pixels & integrations"
-                description="Install provider-approved tracking code, keep identifiers in one place, and verify delivery with the right diagnostic tool."
+                description="Install provider-approved tracking code, manage identifiers and full snippets in one place, and verify delivery with the right diagnostic tool."
                 action={
                     <Button asChild variant="outline">
                         <a href={siteUrl} target="_blank" rel="noreferrer">
@@ -558,8 +731,8 @@ export default function Integrations({
                     <PipelineStep
                         index="01"
                         icon={<Code2 className="size-4" />}
-                        label="Identifier saved"
-                        description="The provider ID passes platform-specific validation."
+                        label="Configuration saved"
+                        description="The provider ID or pasted code passes platform-specific validation."
                         state={configuredCount > 0 ? 'complete' : 'waiting'}
                     />
                     <PipelineStep
@@ -585,6 +758,28 @@ export default function Integrations({
                     />
                 </div>
             </section>
+
+            <div className="mt-5 flex items-start gap-3 rounded-2xl border border-blue-500/25 bg-blue-500/8 p-5">
+                <MonitorCheck className="mt-0.5 size-5 shrink-0 text-blue-700 dark:text-blue-300" />
+                <div>
+                    <p className="font-semibold">
+                        Installed code can still be blocked by the browser
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        If Tag Assistant reports{' '}
+                        <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
+                            ERR_BLOCKED_BY_CLIENT
+                        </code>
+                        , temporarily disable ad-blocking or privacy extensions
+                        and allow{' '}
+                        <code className="font-mono text-xs">
+                            googletagmanager.com
+                        </code>
+                        . That message means the dashboard installed the code,
+                        but the browser stopped its network request.
+                    </p>
+                </div>
+            </div>
 
             {!hasProfile && (
                 <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-sm">
@@ -663,7 +858,7 @@ export default function Integrations({
                             type="search"
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
-                            placeholder="Search providers or IDs"
+                            placeholder="Search providers, IDs, or code"
                             className="pl-9"
                         />
                     </div>
@@ -716,6 +911,7 @@ export default function Integrations({
                                 key={platform.key}
                                 platform={platform}
                                 disabled={!hasProfile}
+                                canManageCustomCode={canManageCustomCode}
                                 siteUrl={siteUrl}
                             />
                         ))}

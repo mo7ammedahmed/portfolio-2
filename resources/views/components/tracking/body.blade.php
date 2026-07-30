@@ -5,9 +5,20 @@
     $metaPixel = $integrations->get('meta_pixel');
     $linkedinInsight = $integrations->get('linkedin_insight');
     $pinterestTag = $integrations->get('pinterest_tag');
+    $isCustom = fn (?array $integration): bool => data_get($integration, 'installation_method') === 'custom';
 @endphp
 
-@if ($googleTagManager)
+@foreach ($integrations as $customIntegration)
+    @if ($isCustom($customIntegration) && filled(data_get($customIntegration, 'body_code')))
+        <template
+            data-tracking-provider="{{ $customIntegration['platform'] }}"
+            data-tracking-installation="custom"
+        ></template>
+        {!! $customIntegration['body_code'] !!}
+    @endif
+@endforeach
+
+@if ($googleTagManager && ! $isCustom($googleTagManager))
     <noscript data-tracking-provider="google_tag_manager">
         <iframe
             src="https://www.googletagmanager.com/ns.html?id={{ rawurlencode($googleTagManager['tracking_id']) }}"
@@ -19,7 +30,7 @@
     </noscript>
 @endif
 
-@if ($metaPixel)
+@if ($metaPixel && ! $isCustom($metaPixel))
     <noscript data-tracking-provider="meta_pixel">
         <img
             height="1"
@@ -31,7 +42,7 @@
     </noscript>
 @endif
 
-@if ($linkedinInsight)
+@if ($linkedinInsight && ! $isCustom($linkedinInsight))
     <noscript data-tracking-provider="linkedin_insight">
         <img
             height="1"
@@ -43,7 +54,7 @@
     </noscript>
 @endif
 
-@if ($pinterestTag)
+@if ($pinterestTag && ! $isCustom($pinterestTag))
     <noscript data-tracking-provider="pinterest_tag">
         <img
             height="1"

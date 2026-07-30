@@ -132,10 +132,19 @@ class PortfolioController extends Controller
 
         $trackingIntegrations = $profile->trackingIntegrations()
             ->where('is_enabled', true)
-            ->get(['platform', 'tracking_id'])
+            ->get([
+                'platform',
+                'tracking_id',
+                'installation_method',
+                'head_code',
+                'body_code',
+            ])
             ->map(fn (TrackingIntegration $integration): array => [
                 'platform' => $integration->platform->value,
                 'tracking_id' => $integration->tracking_id,
+                'installation_method' => $integration->installation_method->value,
+                'head_code' => $integration->head_code,
+                'body_code' => $integration->body_code,
             ]);
 
         return Inertia::render('welcome', [
