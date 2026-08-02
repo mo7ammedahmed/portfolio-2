@@ -2,6 +2,7 @@
 
 @php
     $googleTag = $integrations->get('google_tag');
+    $googleAds = $integrations->get('google_ads');
     $googleTagManager = $integrations->get('google_tag_manager');
     $googleSearchConsole = $integrations->get('google_search_console');
     $metaPixel = $integrations->get('meta_pixel');
@@ -12,6 +13,9 @@
     $pinterestTag = $integrations->get('pinterest_tag');
     $microsoftClarity = $integrations->get('microsoft_clarity');
     $isCustom = fn (?array $integration): bool => data_get($integration, 'installation_method') === 'custom';
+    $managedGoogleDestinations = collect([$googleTag, $googleAds])
+        ->filter(fn (?array $integration): bool => $integration !== null && ! $isCustom($integration))
+        ->values();
 @endphp
 
 @foreach ($integrations as $customIntegration)
@@ -42,17 +46,25 @@
     </script>
 @endif
 
-@if ($googleTag && ! $isCustom($googleTag))
+@if ($managedGoogleDestinations->isNotEmpty())
+    @foreach ($managedGoogleDestinations as $googleDestination)
+        <meta
+            data-tracking-provider="{{ $googleDestination['platform'] }}"
+            data-tracking-installation="managed"
+        >
+    @endforeach
     <script
         async
-        src="https://www.googletagmanager.com/gtag/js?id={{ rawurlencode($googleTag['tracking_id']) }}"
-        data-tracking-provider="google_tag"
+        src="https://www.googletagmanager.com/gtag/js?id={{ rawurlencode($managedGoogleDestinations->first()['tracking_id']) }}"
+        data-tracking-provider="google"
     ></script>
-    <script data-tracking-provider="google_tag">
+    <script data-tracking-provider="google">
         window.dataLayer = window.dataLayer || [];
         window.gtag = window.gtag || function(){window.dataLayer.push(arguments);};
         window.gtag('js', new Date());
-        window.gtag('config', @js($googleTag['tracking_id']));
+        @foreach ($managedGoogleDestinations as $googleDestination)
+            window.gtag('config', @js($googleDestination['tracking_id']));
+        @endforeach
     </script>
 @endif
 

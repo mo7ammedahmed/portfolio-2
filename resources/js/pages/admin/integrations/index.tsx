@@ -188,7 +188,9 @@ function IntegrationCard({
         : platform.is_configured;
     const isInstalled = isConfigured && form.data.is_enabled;
     const hasDarkMonogram =
-        platform.key === 'snapchat_pixel' || platform.key === 'tiktok_pixel';
+        platform.key === 'snapchat_pixel' ||
+        platform.key === 'tiktok_pixel' ||
+        platform.key === 'google_ads';
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -777,6 +779,27 @@ export default function Integrations({
                         </code>
                         . That message means the dashboard installed the code,
                         but the browser stopped its network request.
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+                <ShieldAlert className="mt-0.5 size-5 shrink-0 text-amber-700 dark:text-amber-300" />
+                <div>
+                    <p className="font-semibold">
+                        Resolve CSP warnings at the tag source
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        A browser warning about blocked{' '}
+                        <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
+                            eval
+                        </code>{' '}
+                        usually comes from a GTM Custom JavaScript variable or
+                        pasted code. Replace it with provider-managed code or a
+                        GTM Custom Template. The dashboard rejects snippets that
+                        require{' '}
+                        <code className="font-mono text-xs">unsafe-eval</code>{' '}
+                        instead of asking you to weaken a security policy.
                     </p>
                 </div>
             </div>

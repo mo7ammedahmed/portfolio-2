@@ -7,6 +7,7 @@ namespace App\Enums;
 enum TrackingPlatform: string
 {
     case GoogleTag = 'google_tag';
+    case GoogleAds = 'google_ads';
     case GoogleTagManager = 'google_tag_manager';
     case GoogleSearchConsole = 'google_search_console';
     case MetaPixel = 'meta_pixel';
@@ -21,6 +22,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => 'Google tag',
+            self::GoogleAds => 'Google Ads',
             self::GoogleTagManager => 'Google Tag Manager',
             self::GoogleSearchConsole => 'Google Search Console',
             self::MetaPixel => 'Meta Pixel',
@@ -37,6 +39,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag,
+            self::GoogleAds,
             self::GoogleTagManager,
             self::GoogleSearchConsole => 'Google',
             self::MetaPixel,
@@ -53,6 +56,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => 'Connect Google Analytics 4, Google Ads, or another Google destination with a G-, GT-, AW-, or DC- tag ID.',
+            self::GoogleAds => 'Connect a Google Ads destination for remarketing and conversion measurement with an AW- tag ID.',
             self::GoogleTagManager => 'Load a GTM container so tags and events can be managed from Google Tag Manager.',
             self::GoogleSearchConsole => 'Publish a Google site-verification meta token for ownership verification.',
             self::MetaPixel => 'Measure page views and campaign activity with Meta Events Manager.',
@@ -69,6 +73,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => 'G-XXXXXXXXXX',
+            self::GoogleAds => 'AW-XXXXXXXXX',
             self::GoogleTagManager => 'GTM-XXXXXXX',
             self::GoogleSearchConsole => 'Verification token',
             self::MetaPixel => '123456789012345',
@@ -85,6 +90,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => 'Google tag ID',
+            self::GoogleAds => 'Google Ads destination ID',
             self::GoogleTagManager => 'Container ID',
             self::GoogleSearchConsole => 'Verification token',
             self::MetaPixel => 'Dataset / Pixel ID',
@@ -106,6 +112,7 @@ enum TrackingPlatform: string
             self::LinkedInInsight,
             self::PinterestTag => 'Head bootstrap + image fallback',
             self::GoogleTag,
+            self::GoogleAds,
             self::TikTokPixel,
             self::XPixel,
             self::SnapchatPixel,
@@ -117,6 +124,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => 'https://developers.google.com/tag-platform/gtagjs',
+            self::GoogleAds => 'https://support.google.com/google-ads/answer/15756614',
             self::GoogleTagManager => 'https://support.google.com/tagmanager/answer/14847097',
             self::GoogleSearchConsole => 'https://support.google.com/webmasters/answer/9008080',
             self::MetaPixel => 'https://www.facebook.com/help/messenger-app/952192354843755',
@@ -133,6 +141,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag,
+            self::GoogleAds,
             self::GoogleTagManager => 'https://tagassistant.google.com/',
             self::GoogleSearchConsole => 'https://search.google.com/search-console',
             self::MetaPixel => 'https://business.facebook.com/events_manager2',
@@ -149,6 +158,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag,
+            self::GoogleAds,
             self::GoogleTagManager => 'Open Tag Assistant',
             self::GoogleSearchConsole => 'Open Search Console',
             self::MetaPixel => 'Open Events Manager',
@@ -165,6 +175,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => '#4285F4',
+            self::GoogleAds => '#F9AB00',
             self::GoogleTagManager => '#246FDB',
             self::GoogleSearchConsole => '#34A853',
             self::MetaPixel => '#1877F2',
@@ -181,6 +192,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => 'G',
+            self::GoogleAds => 'ADS',
             self::GoogleTagManager => 'GTM',
             self::GoogleSearchConsole => 'GSC',
             self::MetaPixel => 'M',
@@ -208,6 +220,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => 'googletagmanager.com/gtag/js',
+            self::GoogleAds => 'googletagmanager.com/gtag/js',
             self::GoogleTagManager => 'googletagmanager.com/gtm.js',
             self::GoogleSearchConsole => 'google-site-verification',
             self::MetaPixel => 'connect.facebook.net',
@@ -235,6 +248,7 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => '/^(?:G|GT|AW|DC)-[A-Z0-9]+$/i',
+            self::GoogleAds => '/^AW-[0-9]{5,30}$/',
             self::GoogleTagManager => '/^GTM-[A-Z0-9]+$/i',
             self::GoogleSearchConsole => '/^[A-Z0-9_-]{20,200}$/i',
             self::MetaPixel,

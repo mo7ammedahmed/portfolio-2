@@ -217,6 +217,23 @@ test('custom provider code must match the selected connector', function () {
     expect(TrackingIntegration::query()->count())->toBe(0);
 });
 
+test('custom provider code cannot require unsafe string evaluation', function () {
+    $owner = User::factory()->create();
+    Profile::factory()->for($owner)->create();
+
+    $this->actingAs($owner)
+        ->put(route('portfolio.integrations.update', TrackingPlatform::GoogleAds), [
+            'installation_method' => TrackingInstallationMethod::Custom->value,
+            'tracking_id' => '',
+            'head_code' => '<script src="https://www.googletagmanager.com/gtag/js?id=AW-123456789"></script><script>eval("window.dataLayer = []")</script>',
+            'body_code' => '',
+            'is_enabled' => true,
+        ])
+        ->assertSessionHasErrors('head_code');
+
+    expect(TrackingIntegration::query()->count())->toBe(0);
+});
+
 test('only the portfolio owner can install executable custom code', function () {
     $owner = User::factory()->create();
     Profile::factory()->for($owner)->create();
@@ -269,6 +286,11 @@ test('every enabled connector renders its provider bootstrap', function (
         TrackingPlatform::GoogleTag,
         'G-ABC1234567',
         ['googletagmanager.com/gtag/js?id=G-ABC1234567', "window.gtag('config', 'G-ABC1234567')"],
+    ],
+    'Google Ads' => [
+        TrackingPlatform::GoogleAds,
+        'AW-123456789',
+        ['googletagmanager.com/gtag/js?id=AW-123456789', "window.gtag('config', 'AW-123456789')"],
     ],
     'Google Tag Manager' => [
         TrackingPlatform::GoogleTagManager,
@@ -338,6 +360,7 @@ test('every connector accepts its documented identifier format', function (
         ->and($integration->is_enabled)->toBeTrue();
 })->with([
     'Google tag' => [TrackingPlatform::GoogleTag, 'GT-ABC1234567'],
+    'Google Ads' => [TrackingPlatform::GoogleAds, 'AW-123456789'],
     'Google Tag Manager' => [TrackingPlatform::GoogleTagManager, 'GTM-5L7GJKQW'],
     'Google Search Console' => [TrackingPlatform::GoogleSearchConsole, 'MlBLjk8L0D-TBSquV-4PtBobRbjuJ1pl1PQVatc-wf4'],
     'Meta Pixel' => [TrackingPlatform::MetaPixel, '123456789012345'],
@@ -348,6 +371,31 @@ test('every connector accepts its documented identifier format', function (
     'Pinterest Tag' => [TrackingPlatform::PinterestTag, '1234567890123'],
     'Microsoft Clarity' => [TrackingPlatform::MicrosoftClarity, 'abcdefghij'],
 ]);
+
+test('google destinations share one google tag loader', function () {
+    $owner = User::factory()->create();
+    $profile = Profile::factory()->for($owner)->create(['is_visible' => true]);
+    TrackingIntegration::factory()->for($profile)->create([
+        'platform' => TrackingPlatform::GoogleTag,
+        'tracking_id' => 'G-ABC1234567',
+        'is_enabled' => true,
+    ]);
+    TrackingIntegration::factory()->for($profile)->create([
+        'platform' => TrackingPlatform::GoogleAds,
+        'tracking_id' => 'AW-123456789',
+        'is_enabled' => true,
+    ]);
+
+    $content = $this->get(route('home'))
+        ->assertOk()
+        ->getContent();
+
+    expect(mb_substr_count($content, 'googletagmanager.com/gtag/js?id='))
+        ->toBe(1)
+        ->and($content)
+        ->toContain("window.gtag('config', 'G-ABC1234567')")
+        ->toContain("window.gtag('config', 'AW-123456789')");
+});
 
 test('disabled connectors do not emit provider markup', function () {
     $owner = User::factory()->create();

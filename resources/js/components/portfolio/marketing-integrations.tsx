@@ -80,7 +80,8 @@ function initializeGoogleTags(integrations: TrackingIntegration[]): void {
     const trackingWindow = window as TrackingWindow;
     const googleTags = integrations.filter(
         ({ installation_method: method, platform }) =>
-            platform === 'google_tag' && method === 'managed',
+            ['google_tag', 'google_ads'].includes(platform) &&
+            method === 'managed',
     );
 
     if (googleTags.length === 0) {

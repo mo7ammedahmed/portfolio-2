@@ -131,6 +131,15 @@ class UpdateTrackingIntegrationRequest extends FormRequest
                     );
                 }
 
+                if ($this->usesUnsafeStringEvaluation(
+                    $this->string('head_code')->toString(),
+                )) {
+                    $validator->errors()->add(
+                        'head_code',
+                        'This code uses unsafe string evaluation. Use provider code or a GTM Custom Template that does not require unsafe-eval.',
+                    );
+                }
+
                 $bodyCodeMarker = $trackingPlatform->bodyCodeMarker();
 
                 if ($bodyCodeMarker !== null
@@ -144,8 +153,25 @@ class UpdateTrackingIntegrationRequest extends FormRequest
                         "Paste the official {$trackingPlatform->label()} body fallback code.",
                     );
                 }
+
+                if ($this->usesUnsafeStringEvaluation(
+                    $this->string('body_code')->toString(),
+                )) {
+                    $validator->errors()->add(
+                        'body_code',
+                        'This code uses unsafe string evaluation and cannot be installed.',
+                    );
+                }
             },
         ];
+    }
+
+    private function usesUnsafeStringEvaluation(string $code): bool
+    {
+        return Str::isMatch(
+            '/\beval\s*\(|\bnew\s+Function\s*\(|\bset(?:Timeout|Interval)\s*\(\s*[\'\"]/i',
+            $code,
+        );
     }
 
     /**
