@@ -73,7 +73,10 @@ test('the owner can send a role-based invitation', function () {
         ->and($invitation->token_hash)->toHaveLength(64)
         ->and($invitation->isPending())->toBeTrue();
 
-    Notification::assertSentOnDemand(UserInvitationNotification::class);
+    Notification::assertSentOnDemand(
+        UserInvitationNotification::class,
+        fn (UserInvitationNotification $notification): bool => $notification->connection === 'background',
+    );
 });
 
 test('an invited user can accept a valid invitation once', function () {

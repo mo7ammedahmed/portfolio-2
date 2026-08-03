@@ -17,7 +17,9 @@ class UserInvitationNotification extends Notification implements ShouldQueue
     public function __construct(
         public UserInvitation $invitation,
         public string $token,
-    ) {}
+    ) {
+        $this->onConnection('background');
+    }
 
     /**
      * Get the notification's delivery channels.

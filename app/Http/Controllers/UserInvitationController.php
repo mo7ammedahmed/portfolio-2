@@ -33,7 +33,7 @@ class UserInvitationController extends Controller
         );
 
         return to_route('portfolio.team')
-            ->with('success', 'Invitation sent.');
+            ->with('success', 'Invitation submitted for delivery.');
     }
 
     public function destroy(
