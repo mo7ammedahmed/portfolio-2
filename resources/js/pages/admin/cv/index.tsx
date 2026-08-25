@@ -3,7 +3,7 @@ import { ArrowRight, Briefcase, CheckCircle2, Loader2, Monitor, XCircle } from '
 import type { ComponentType } from 'react';
 import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
-import { cv as cvRoutes } from '@/routes/portfolio';
+import cvRoutes from '@/routes/portfolio/cv';
 
 type CvData = {
   id: number;

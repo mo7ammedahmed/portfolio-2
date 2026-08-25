@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
 import { analytics as analyticsIndex } from '@/routes/portfolio';
 import { edit as profileEdit } from '@/routes/portfolio/profile';
-import { cv as cvRoutes } from '@/routes/portfolio';
+import cvRoutes from '@/routes/portfolio/cv';
 import {
     create as projectCreate,
     edit as projectEdit,

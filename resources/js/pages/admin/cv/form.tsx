@@ -26,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { cv as cvRoutes } from '@/routes/portfolio';
+import cvRoutes from '@/routes/portfolio/cv';
 
 type ContactInfo = {
   email: string;
@@ -558,8 +558,7 @@ export default function CvForm({ cv }: Props) {
           title="Professional Experience"
           description="List your work history in reverse chronological order (most recent first)."
         >
-          {form.data.experience.length > 0 ? (
-            form.data.experience.map((exp, index) => (
+          {form.data.experience.map((exp, index) => (
               <div key={index} className="border-b pb-4 last:border-0">
                 <h4 className="font-medium mb-2">Position #{index + 1}</h4>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -647,7 +646,7 @@ export default function CvForm({ cv }: Props) {
                   Remove Position
                 </Button>
               </div>
-            )));
+          ))}
           <Button
             variant="outline"
             size="sm"
@@ -662,8 +661,7 @@ export default function CvForm({ cv }: Props) {
           title="Education"
           description="List your educational background in reverse chronological order."
         >
-          {form.data.education.length > 0 ? (
-            form.data.education.map((edu, index) => (
+          {form.data.education.map((edu, index) => (
               <div key={index} className="border-b pb-4 last:border-0">
                 <h4 className="font-medium mb-2">Education #{index + 1}</h4>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -742,7 +740,7 @@ export default function CvForm({ cv }: Props) {
                       form.setData('education', education);
                     }}
                   />
-                </div>
+                  </Field>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -766,8 +764,7 @@ export default function CvForm({ cv }: Props) {
           title="Skills"
           description="List your technical and professional skills."
         >
-          {form.data.skills.length > 0 ? (
-            form.data.skills.map((skill, index) => (
+          {form.data.skills.map((skill, index) => (
               <div key={index} className="border-b pb-4 last:border-0">
                 <h4 className="font-medium mb-2">Skill #{index + 1}</h4>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -801,7 +798,7 @@ export default function CvForm({ cv }: Props) {
                       value={skill.years_experience ?? ''}
                       onChange={(e) => {
                         const skills = [...form.data.skills];
-                        skills[index] = {...skills[index], years_experience: e.target.value === '' ? null : parseInt(e.target.value)};
+                        skills[index] = {...skills[index], years_experience: e.target.value === '' ? null : parseInt(e.target.value, 10)};
                         form.setData('skills', skills);
                       }}
                     />
@@ -830,8 +827,7 @@ export default function CvForm({ cv }: Props) {
           title="Certifications"
           description="List any professional certifications or licenses."
         >
-          {form.data.certifications.length > 0 ? (
-            form.data.certifications.map((cert, index) => (
+          {form.data.certifications.map((cert, index) => (
               <div key={index} className="border-b pb-4 last:border-0">
                 <h4 className="font-medium mb-2">Certification #{index + 1}</h4>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -922,8 +918,7 @@ export default function CvForm({ cv }: Props) {
           title="Languages"
           description="List any languages you speak and your proficiency level."
         >
-          {form.data.languages.length > 0 ? (
-            form.data.languages.map((lang, index) => (
+          {form.data.languages.map((lang, index) => (
               <div key={index} className="border-b pb-4 last:border-0">
                 <h4 className="font-medium mb-2">Language #{index + 1}</h4>
                 <div className="grid gap-2">
@@ -1044,7 +1039,7 @@ export default function CvForm({ cv }: Props) {
                     </div>
                     <span className="text-xs font-mono">{score}/10</span>
                   </div>
-                ))}
+            ))}
               </div>
             </div>
           </FormSection>
