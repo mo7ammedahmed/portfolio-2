@@ -24,7 +24,7 @@ class CVController extends Controller
 
         $cv = $request->user()->cv; // Assuming we have a one-to-one relationship
 
-        return Inertia::render('admin/CV/Index', [
+        return Inertia::render('admin/cv/index', [
             'cv' => $cv ? [
                 'id' => $cv->id,
                 'title' => $cv->title,
@@ -42,7 +42,7 @@ class CVController extends Controller
     {
         Gate::authorize('create', CV::class);
 
-        return Inertia::render('admin/CV/Form', [
+        return Inertia::render('admin/cv/form', [
             'cv' => null,
         ]);
     }
@@ -82,7 +82,7 @@ class CVController extends Controller
     {
         Gate::authorize('update', $cv);
 
-        return Inertia::render('admin/CV/Form', [
+        return Inertia::render('admin/cv/form', [
             'cv' => [
                 'id' => $cv->id,
                 'title' => $cv->title,

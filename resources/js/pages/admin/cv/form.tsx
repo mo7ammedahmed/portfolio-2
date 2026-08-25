@@ -2,6 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import {
   ArrowLeft,
   Check,
+  CheckCircle2,
   Clock,
   Copy,
   GraduationCap,
@@ -14,6 +15,9 @@ import {
   Sparkles,
   Terminal,
   Users,
+  XCircle,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
@@ -23,9 +27,11 @@ import {
   Textarea,
   TextInput,
 } from '@/components/admin/form-elements';
+import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import cvRoutes from '@/routes/portfolio/cv';
 
 type ContactInfo = {
@@ -189,9 +195,13 @@ export default function CvForm({ cv }: Props) {
   const submit = (event: FormEvent) => {
     event.preventDefault();
 
+    // Show loading state
+    toast.loading('Saving CV...', { id: 'cv-save-toast' });
+
     // In a real implementation, we would save the form data here
-    // For now, we'll just show a success message
-    alert('CV saved successfully!');
+    setTimeout(() => {
+      toast.success('CV saved successfully!', { id: 'cv-save-toast' });
+    }, 1500);
   };
 
   const addExperience = () => {
@@ -478,7 +488,11 @@ export default function CvForm({ cv }: Props) {
             <TextInput
               value={form.data.title}
               onChange={(e) => form.setData('title', e.target.value)}
+              placeholder="e.g., Senior Software Engineer"
             />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Be specific about your role and level of seniority
+            </p>
           </Field>
         </FormSection>
 
@@ -490,7 +504,12 @@ export default function CvForm({ cv }: Props) {
             <Textarea
               value={form.data.summary}
               onChange={(e) => form.setData('summary', e.target.value)}
+              placeholder="Summarize your experience, key skills, and career objectives in 3-4 sentences..."
+              className="min-h-[120px]"
             />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Ideal length: 100-300 characters for optimal ATS scoring
+            </p>
           </Field>
         </FormSection>
 
@@ -498,7 +517,7 @@ export default function CvForm({ cv }: Props) {
           title="Contact Information"
           description="How employers can reach you."
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Email" error={form.errors.contact_info?.email}>
               <TextInput
                 type="email"
@@ -506,7 +525,11 @@ export default function CvForm({ cv }: Props) {
                 onChange={(e) =>
                   form.setData('contact_info', {...form.data.contact_info, email: e.target.value})
                 }
+                placeholder="your.email@example.com"
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Professional email address preferred
+              </p>
             </Field>
             <Field label="Phone" error={form.errors.contact_info?.phone}>
               <TextInput
@@ -514,7 +537,11 @@ export default function CvForm({ cv }: Props) {
                 onChange={(e) =>
                   form.setData('contact_info', {...form.data.contact_info, phone: e.target.value})
                 }
+                placeholder="+1 (555) 123-4567"
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Include country code for international numbers
+              </p>
             </Field>
             <Field label="Location" error={form.errors.contact_info?.location}>
               <TextInput
@@ -522,7 +549,11 @@ export default function CvForm({ cv }: Props) {
                 onChange={(e) =>
                   form.setData('contact_info', {...form.data.contact_info, location: e.target.value})
                 }
+                placeholder="City, State or Remote"
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Current location or "Remote" if applicable
+              </p>
             </Field>
             <Field label="LinkedIn" error={form.errors.contact_info?.linkedin}>
               <TextInput
@@ -531,7 +562,11 @@ export default function CvForm({ cv }: Props) {
                 onChange={(e) =>
                   form.setData('contact_info', {...form.data.contact_info, linkedin: e.target.value || null})
                 }
+                placeholder="linkedin.com/in/your-profile"
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Full LinkedIn profile URL
+              </p>
             </Field>
             <Field label="GitHub" error={form.errors.contact_info?.github}>
               <TextInput
@@ -540,7 +575,11 @@ export default function CvForm({ cv }: Props) {
                 onChange={(e) =>
                   form.setData('contact_info', {...form.data.contact_info, github: e.target.value || null})
                 }
+                placeholder="github.com/yourusername"
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Link to your GitHub profile or portfolio
+              </p>
             </Field>
             <Field label="Website" error={form.errors.contact_info?.website}>
               <TextInput
@@ -549,7 +588,11 @@ export default function CvForm({ cv }: Props) {
                 onChange={(e) =>
                   form.setData('contact_info', {...form.data.contact_info, website: e.target.value || null})
                 }
+                placeholder="yourwebsite.com"
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Personal website, portfolio, or blog
+              </p>
             </Field>
           </div>
         </FormSection>
@@ -558,269 +601,403 @@ export default function CvForm({ cv }: Props) {
           title="Professional Experience"
           description="List your work history in reverse chronological order (most recent first)."
         >
-          {form.data.experience.map((exp, index) => (
-              <div key={index} className="border-b pb-4 last:border-0">
-                <h4 className="font-medium mb-2">Position #{index + 1}</h4>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Field label="Job Title" error={form.errors.experience?.[index]?.title}>
-                    <TextInput
-                      value={exp.title}
-                      onChange={(e) => {
-                        const experience = [...form.data.experience];
-                        experience[index] = {...experience[index], title: e.target.value};
-                        form.setData('experience', experience);
-                      }}
-                    />
-                  </Field>
-                  <Field label="Company" error={form.errors.experience?.[index]?.company}>
-                    <TextInput
-                      value={exp.company}
-                      onChange={(e) => {
-                        const experience = [...form.data.experience];
-                        experience[index] = {...experience[index], company: e.target.value};
-                        form.setData('experience', experience);
-                      }}
-                    />
-                  </Field>
-                  <Field label="Location" error={form.errors.experience?.[index]?.location}>
-                    <TextInput
-                      value={exp.location ?? ''}
-                      onChange={(e) => {
-                        const experience = [...form.data.experience];
-                        experience[index] = {...experience[index], location: e.target.value || null};
-                        form.setData('experience', experience);
-                      }}
-                    />
-                  </Field>
-                  <div className="col-span-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">Current Position</span>
-                      <Checkbox
-                        checked={exp.current}
-                        onChange={(checked) => {
+          {/* Experience Items */}
+          {form.data.experience.length > 0 ? (
+            form.data.experience.map((exp, index) => (
+              <div key={index} className="border lg:border-0 lg:grid lg:grid-cols-[1fr_auto] lg:gap-6 mb-6 pb-4 last:mb-0 last:border-0">
+                <div className="space-y-3">
+                  <h4 className="font-medium">Position #{index + 1}</h4>
+
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Field label="Job Title" error={form.errors.experience?.[index]?.title}>
+                      <TextInput
+                        value={exp.title}
+                        onChange={(e) => {
                           const experience = [...form.data.experience];
-                          experience[index] = {...experience[index], current: checked};
+                          experience[index] = {...experience[index], title: e.target.value};
                           form.setData('experience', experience);
                         }}
+                        placeholder="e.g., Senior Software Engineer"
+                        className="w-full"
                       />
+                    </Field>
+                    <Field label="Company" error={form.errors.experience?.[index]?.company}>
+                      <TextInput
+                        value={exp.company}
+                        onChange={(e) => {
+                          const experience = [...form.data.experience];
+                          experience[index] = {...experience[index], company: e.target.value};
+                          form.setData('experience', experience);
+                        }}
+                        placeholder="e.g., Tech Company Inc."
+                        className="w-full"
+                      />
+                    </Field>
+                    <Field label="Location" error={form.errors.experience?.[index]?.location}>
+                      <TextInput
+                        value={exp.location ?? ''}
+                        onChange={(e) => {
+                          const experience = [...form.data.experience];
+                          experience[index] = {...experience[index], location: e.target.value || null};
+                          form.setData('experience', experience);
+                        }}
+                        placeholder="City, State or Remote"
+                        className="w-full"
+                      />
+                    </Field>
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium">Current Position</span>
+                        <Checkbox
+                          checked={exp.current}
+                          onChange={(checked) => {
+                            const experience = [...form.data.experience];
+                            experience[index] = {...experience[index], current: checked};
+                            form.setData('experience', experience);
+                          }}
+                          className="h-4 w-4"
+                        />
+                      </div>
                     </div>
+                    <Field label="Start Date" error={form.errors.experience?.[index]?.start_date}>
+                      <TextInput
+                        type="date"
+                        value={exp.start_date ?? ''}
+                        onChange={(e) => {
+                          const experience = [...form.data.experience];
+                          experience[index] = {...experience[index], start_date: e.target.value || null};
+                          form.setData('experience', experience);
+                        }}
+                        className="w-full"
+                      />
+                    </Field>
+                    <Field label="End Date" error={form.errors.experience?.[index]?.end_date}>
+                      <TextInput
+                        type="date"
+                        value={exp.end_date ?? ''}
+                        onChange={(e) => {
+                          const experience = [...form.data.experience];
+                          experience[index] = {...experience[index], end_date: e.target.value || null};
+                          form.setData('experience', experience);
+                        }}
+                        className="w-full"
+                      />
+                    </Field>
                   </div>
-                  <Field label="Start Date" error={form.errors.experience?.[index]?.start_date}>
-                    <TextInput
-                      type="date"
-                      value={exp.start_date ?? ''}
+
+                  <Field label="Description" error={form.errors.experience?.[index]?.description}>
+                    <Textarea
+                      value={exp.description}
                       onChange={(e) => {
                         const experience = [...form.data.experience];
-                        experience[index] = {...experience[index], start_date: e.target.value || null};
+                        experience[index] = {...experience[index], description: e.target.value};
                         form.setData('experience', experience);
                       }}
+                      placeholder="Describe your responsibilities, achievements, and impact. Use bullet points and quantify results where possible..."
+                      className="w-full min-h-[80px]"
                     />
-                  </Field>
-                  <Field label="End Date" error={form.errors.experience?.[index]?.end_date}>
-                    <TextInput
-                      type="date"
-                      value={exp.end_date ?? ''}
-                      onChange={(e) => {
-                        const experience = [...form.data.experience];
-                        experience[index] = {...experience[index], end_date: e.target.value || null};
-                        form.setData('experience', experience);
-                      }}
-                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Focus on achievements with metrics (e.g., "Increased sales by 25%", "Managed team of 5 developers")
+                    </p>
                   </Field>
                 </div>
-                <Field label="Description" error={form.errors.experience?.[index]?.description}>
-                  <Textarea
-                    value={exp.description}
-                    onChange={(e) => {
-                      const experience = [...form.data.experience];
-                      experience[index] = {...experience[index], description: e.target.value};
-                      form.setData('experience', experience);
-                    }}
-                  />
-                </Field>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeExperience(index)}
-                >
-                  Remove Position
-                </Button>
+
+                {/* Remove Button */}
+                <div className="lg:col-span-2 lg:self-end lg:mt-8">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeExperience(index)}
+                    className="w-full md:w-auto"
+                  >
+                    Remove Position
+                    <XCircle className="mr-2 h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addExperience}
-          >
-            Add Position
-            <List className="ml-2 h-4 w-4" />
-          </Button>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <AlertCircle className="size-6 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                No experience added yet. Click "Add Position" to get started.
+              </p>
+            </div>
+          )}
+
+          {/* Add Experience Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addExperience}
+              className="w-full md:w-auto"
+            >
+              Add Position
+              <List className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </FormSection>
 
         <FormSection
           title="Education"
           description="List your educational background in reverse chronological order."
         >
-          {form.data.education.map((edu, index) => (
-              <div key={index} className="border-b pb-4 last:border-0">
-                <h4 className="font-medium mb-2">Education #{index + 1}</h4>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Field label="Institution" error={form.errors.education?.[index]?.institution}>
-                    <TextInput
-                      value={edu.institution}
-                      onChange={(e) => {
-                        const education = [...form.data.education];
-                        education[index] = {...education[index], institution: e.target.value};
-                        form.setData('education', education);
-                      }}
-                    />
-                  </Field>
-                  <Field label="Degree" error={form.errors.education?.[index]?.degree}>
-                    <TextInput
-                      value={edu.degree}
-                      onChange={(e) => {
-                        const education = [...form.data.education];
-                        education[index] = {...education[index], degree: e.target.value};
-                        form.setData('education', education);
-                      }}
-                    />
-                  </Field>
-                  <Field label="Field of Study" error={form.errors.education?.[index]?.field_of_study}>
-                    <TextInput
-                      value={edu.field_of_study ?? ''}
-                      onChange={(e) => {
-                        const education = [...form.data.education];
-                        education[index] = {...education[index], field_of_study: e.target.value || null};
-                        form.setData('education', education);
-                      }}
-                    />
-                  </Field>
-                  <div className="col-span-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">Currently Studying</span>
-                      <Checkbox
-                        checked={edu.current}
-                        onChange={(checked) => {
-                          const education = [...form.data.education];
-                          education[index] = {...education[index], current: checked};
-                          form.setData('education', education);
-                        }}
-                      />
+          {/* Education Items */}
+          {form.data.education.length > 0 ? (
+            form.data.education.map((edu, index) => (
+              <div key={index} className="border lg:border-0 lg:grid lg:grid-cols-[1fr_auto] lg:gap-6 mb-6 pb-4 last:mb-0 last:border-0">
+                <div className="space-y-3">
+                  <h4 className="font-medium">Education #{index + 1}</h4>
+
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                    <div>
+                      <Field label="Institution" error={form.errors.education?.[index]?.institution}>
+                        <TextInput
+                          placeholder="e.g., University of Technology"
+                          value={edu.institution}
+                          onChange={(e) => {
+                            const education = [...form.data.education];
+                            education[index] = {...education[index], institution: e.target.value};
+                            form.setData('education', education);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                    <div>
+                      <Field label="Degree" error={form.errors.education?.[index]?.degree}>
+                        <TextInput
+                          placeholder="e.g., Bachelor of Science"
+                          value={edu.degree}
+                          onChange={(e) => {
+                            const education = [...form.data.education];
+                            education[index] = {...education[index], degree: e.target.value};
+                            form.setData('education', education);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                    <div>
+                      <Field label="Field of Study" error={form.errors.education?.[index]?.field_of_study}>
+                        <TextInput
+                          placeholder="e.g., Computer Science"
+                          value={edu.field_of_study ?? ''}
+                          onChange={(e) => {
+                            const education = [...form.data.education];
+                            education[index] = {...education[index], field_of_study: e.target.value || null};
+                            form.setData('education', education);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium">Currently Studying</span>
+                        <Checkbox
+                          checked={edu.current}
+                          onChange={(checked) => {
+                            const education = [...form.data.education];
+                            education[index] = {...education[index], current: checked};
+                            form.setData('education', education);
+                          }}
+                          className="h-4 w-4"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <Field label="Start Date" error={form.errors.education?.[index]?.start_date}>
-                    <TextInput
-                      type="date"
-                      value={edu.start_date ?? ''}
+
+                  <div className="grid gap-2 mt-4">
+                    <div>
+                      <Field label="Start Date" error={form.errors.education?.[index]?.start_date}>
+                        <TextInput
+                          type="date"
+                          placeholder="YYYY-MM-DD"
+                          value={edu.start_date ?? ''}
+                          onChange={(e) => {
+                            const education = [...form.data.education];
+                            education[index] = {...education[index], start_date: e.target.value || null};
+                            form.setData('education', education);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                    <div>
+                      <Field label="End Date" error={form.errors.education?.[index]?.end_date}>
+                        <TextInput
+                          type="date"
+                          placeholder="YYYY-MM-DD (leave blank if current)"
+                          value={edu.end_date ?? ''}
+                          onChange={(e) => {
+                            const education = [...form.data.education];
+                            education[index] = {...education[index], end_date: e.target.value || null};
+                            form.setData('education', education);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                  </div>
+
+                  <Field label="Description" error={form.errors.education?.[index]?.description}>
+                    <Textarea
+                      placeholder="Describe relevant coursework, projects, thesis, or academic achievements..."
+                      value={edu.description}
                       onChange={(e) => {
                         const education = [...form.data.education];
-                        education[index] = {...education[index], start_date: e.target.value || null};
+                        education[index] = {...education[index], description: e.target.value};
                         form.setData('education', education);
                       }}
+                      className="w-full min-h-[80px]"
                     />
-                  </Field>
-                  <Field label="End Date" error={form.errors.education?.[index]?.end_date}>
-                    <TextInput
-                      type="date"
-                      value={edu.end_date ?? ''}
-                      onChange={(e) => {
-                        const education = [...form.data.education];
-                        education[index] = {...education[index], end_date: e.target.value || null};
-                        form.setData('education', education);
-                      }}
-                    />
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Include relevant details like GPA, honors, or relevant coursework
+                    </p>
                   </Field>
                 </div>
-                <Field label="Description" error={form.errors.education?.[index]?.description}>
-                  <Textarea
-                    value={edu.description}
-                    onChange={(e) => {
-                      const education = [...form.data.education];
-                      education[index] = {...education[index], description: e.target.value};
-                      form.setData('education', education);
-                    }}
-                  />
-                  </Field>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeEducation(index)}
-                >
-                  Remove Education
-                </Button>
+
+                {/* Remove Button */}
+                <div className="lg:col-span-2 lg:self-end lg:mt-6">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeEducation(index)}
+                    className="w-full md:w-auto"
+                  >
+                    Remove Education
+                    <GraduationCap className="mr-2 h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addEducation}
-          >
-            Add Education
-            <GraduationCap className="ml-2 h-4 w-4" />
-          </Button>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <AlertCircle className="size-6 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                No education added yet. Click "Add Education" to get started.
+              </p>
+            </div>
+          )}
+
+          {/* Add Education Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addEducation}
+              className="w-full md:w-auto"
+            >
+              Add Education
+              <GraduationCap className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </FormSection>
 
         <FormSection
           title="Skills"
           description="List your technical and professional skills."
         >
-          {form.data.skills.map((skill, index) => (
-              <div key={index} className="border-b pb-4 last:border-0">
-                <h4 className="font-medium mb-2">Skill #{index + 1}</h4>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Field label="Skill Name" error={form.errors.skills?.[index]?.name}>
-                    <TextInput
-                      value={skill.name}
-                      onChange={(e) => {
-                        const skills = [...form.data.skills];
-                        skills[index] = {...skills[index], name: e.target.value};
-                        form.setData('skills', skills);
-                      }}
-                    />
-                  </Field>
-                  <Field label="Proficiency (1-5)" error={form.errors.skills?.[index]?.proficiency}>
-                    <TextInput
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={skill.proficiency}
-                      onChange={(e) => {
-                        const skills = [...form.data.skills];
-                        skills[index] = {...skills[index], proficiency: parseInt(e.target.value) || 3};
-                        form.setData('skills', skills);
-                      }}
-                    />
-                  </Field>
-                  <Field label="Years of Experience" error={form.errors.skills?.[index]?.years_experience}>
-                    <TextInput
-                      type="number"
-                      min="0"
-                      value={skill.years_experience ?? ''}
-                      onChange={(e) => {
-                        const skills = [...form.data.skills];
-                        skills[index] = {...skills[index], years_experience: e.target.value === '' ? null : parseInt(e.target.value, 10)};
-                        form.setData('skills', skills);
-                      }}
-                    />
-                  </Field>
+          {/* Skills Items */}
+          {form.data.skills.length > 0 ? (
+            form.data.skills.map((skill, index) => (
+              <div key={index} className="border lg:border-0 lg:grid lg:grid-cols-[1fr_auto] lg:gap-6 mb-4 pb-3 last:mb-0 last:border-0">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Skill #{index + 1}</h4>
+
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                    <div>
+                      <Field label="Skill Name" error={form.errors.skills?.[index]?.name}>
+                        <TextInput
+                          placeholder="e.g., JavaScript, Project Management"
+                          value={skill.name}
+                          onChange={(e) => {
+                            const skills = [...form.data.skills];
+                            skills[index] = {...skills[index], name: e.target.value};
+                            form.setData('skills', skills);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                    <div>
+                      <Field label="Proficiency (1-5)" error={form.errors.skills?.[index]?.proficiency}>
+                        <TextInput
+                          type="number"
+                          min="1"
+                          max="5"
+                          placeholder="1 = Beginner, 5 = Expert"
+                          value={skill.proficiency}
+                          onChange={(e) => {
+                            const skills = [...form.data.skills];
+                            skills[index] = {...skills[index], proficiency: parseInt(e.target.value) || 3};
+                            form.setData('skills', skills);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                    <div>
+                      <Field label="Years of Experience" error={form.errors.skills?.[index]?.years_experience}>
+                        <TextInput
+                          type="number"
+                          min="0"
+                          placeholder="Years of experience with this skill"
+                          value={skill.years_experience ?? ''}
+                          onChange={(e) => {
+                            const skills = [...form.data.skills];
+                            skills[index] = {...skills[index], years_experience: e.target.value === '' ? null : parseInt(e.target.value, 10)};
+                            form.setData('skills', skills);
+                          }}
+                          className="w-full"
+                        />
+                      </Field>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Consider adding both technical skills (programming languages, tools) and professional skills (communication, leadership)
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeSkill(index)}
-                >
-                  Remove Skill
-                </Button>
+
+                {/* Remove Button */}
+                <div className="lg:col-span-2 lg:self-end">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeSkill(index)}
+                    className="w-full md:w-auto"
+                  >
+                    Remove Skill
+                    <XCircle className="mr-2 h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addSkill}
-          >
-            Add Skill
-            <Sparkles className="ml-2 h-4 w-4" />
-          </Button>
+            ))
+          ) : (
+            <div className="text-center py-6">
+              <AlertCircle className="size-6 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                No skills added yet. Click "Add Skill" to get started.
+              </p>
+            </div>
+          )}
+
+          {/* Add Skill Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addSkill}
+              className="w-full md:w-auto"
+            >
+              Add Skill
+              <Sparkles className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </FormSection>
 
         <FormSection
@@ -904,73 +1081,109 @@ export default function CvForm({ cv }: Props) {
                 </Button>
               </div>
             ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addCertification}
-          >
-            Add Certification
-            <CheckCircle2 className="ml-2 h-4 w-4" />
-          </Button>
+          {/* Add Certification Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addCertification}
+              className="w-full md:w-auto"
+            >
+              Add Certification
+              <CheckCircle2 className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </FormSection>
 
         <FormSection
           title="Languages"
           description="List any languages you speak and your proficiency level."
         >
-          {form.data.languages.map((lang, index) => (
-              <div key={index} className="border-b pb-4 last:border-0">
-                <h4 className="font-medium mb-2">Language #{index + 1}</h4>
-                <div className="grid gap-2">
-                  <Field label="Language" error={form.errors.languages?.[index]?.language}>
-                    <TextInput
-                      value={lang.language}
-                      onChange={(e) => {
-                        const languages = [...form.data.languages];
-                        languages[index] = {...languages[index], language: e.target.value};
-                        form.setData('languages', languages);
-                      }}
-                    />
-                  </Field>
-                  <Field label="Proficiency" error={form.errors.languages?.[index]?.proficiency}>
-                    <TextInput
-                      value={lang.proficiency}
-                      onChange={(e) => {
-                        const languages = [...form.data.languages];
-                        languages[index] = {...languages[index], proficiency: e.target.value as any};
-                        form.setData('languages', languages);
-                      }}
-                    />
-                  </Field>
+          {form.data.languages.length > 0 ? (
+            form.data.languages.map((lang, index) => (
+              <div key={index} className="border lg:border-0 lg:grid lg:grid-cols-[1fr_auto] lg:gap-6 mb-4 pb-3 last:mb-0 last:border-0">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Language #{index + 1}</h4>
+
+                  <div className="grid gap-2">
+                    <Field label="Language" error={form.errors.languages?.[index]?.language}>
+                      <TextInput
+                        placeholder="e.g., English, Spanish, Mandarin"
+                        value={lang.language}
+                        onChange={(e) => {
+                          const languages = [...form.data.languages];
+                          languages[index] = {...languages[index], language: e.target.value};
+                          form.setData('languages', languages);
+                        }}
+                        className="w-full"
+                      />
+                    </Field>
+                    <Field label="Proficiency" error={form.errors.languages?.[index]?.proficiency}>
+                      <TextInput
+                        placeholder="e.g., Native, Fluent, Intermediate, Beginner"
+                        value={lang.proficiency}
+                        onChange={(e) => {
+                          const languages = [...form.data.languages];
+                          languages[index] = {...languages[index], proficiency: e.target.value as any};
+                          form.setData('languages', languages);
+                        }}
+                        className="w-full"
+                      />
+                    </Field>
+                  </div>
                 </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeLanguage(index)}
-                >
-                  Remove Language
-                </Button>
+
+                {/* Remove Button */}
+                <div className="lg:col-span-2 lg:self-end">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeLanguage(index)}
+                    className="w-full md:w-auto"
+                  >
+                    Remove Language
+                    <Terminal className="mr-2 h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addLanguage}
-          >
-            Add Language
-            <Terminal className="ml-2 h-4 w-4" />
-          </Button>
+            ))
+          ) : (
+            <div className="text-center py-6">
+              <AlertCircle className="size-6 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                No languages added yet. Click "Add Language" to get started.
+              </p>
+            </div>
+          )}
+
+          {/* Add Language Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addLanguage}
+              className="w-full md:w-auto"
+            >
+              Add Language
+              <Terminal className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </FormSection>
 
         <FormSection
           title="Additional Sections"
-          description="Add any other relevant sections to your CV."
+          description="Add any other relevant sections to your CV such as publications, awards, volunteer work, or hobbies."
         >
           <Field label="Additional Content" error={form.errors.additional_sections}>
             <Textarea
+              placeholder="Enter any additional sections that strengthen your CV, such as:\n• Publications and research\n• Awards and honors\n• Volunteer work and community involvement\n• Professional affiliations\n• Hobbies and interests (if relevant to the position)"
               value={form.data.additional_sections}
               onChange={(e) => form.setData('additional_sections', e.target.value)}
+              className="w-full min-h-[120px]"
             />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Use this section to showcase unique qualifications that don't fit in other categories but add value to your professional profile.
+            </p>
           </Field>
         </FormSection>
 
@@ -980,6 +1193,11 @@ export default function CvForm({ cv }: Props) {
             title="ATS Score"
             description="How well your CV is optimized for Applicant Tracking Systems."
           >
+            <div className="mb-4 text-sm text-muted-foreground">
+              ATS systems scan your CV for keywords, formatting, and content quality.
+              Scores above 80 are excellent, 60-79 are good, 40-59 need improvement,
+              and below 40 may not pass initial screening.
+            </div>
             <div className="grid gap-4">
               <div className="text-center">
                 <div className="w-24 h-24 relative">
@@ -1050,7 +1268,7 @@ export default function CvForm({ cv }: Props) {
             asChild
             disabled={isSaving}
           >
-            <Link href={cvRoutes.index()}>
+            <Link href={cvRoutes.index().url()}>
               <ArrowLeft className="size-4" />
               Back to CV List
             </Link>
