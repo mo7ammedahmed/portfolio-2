@@ -159,9 +159,11 @@ export default function Dashboard({
                                     <ArrowRight className="size-4" />
                                 </Link>
                             </Button>
-                            <Button ml={3} asChild href={metrics.cvId ? cvRoutes.edit({ cv: metrics.cvId }) : cvRoutes.create()}>
-                                {metrics.cvId ? 'Edit CV' : 'Build CV'}
-                                <ArrowRight className="size-4" />
+                            <Button asChild className="ml-3">
+                                <Link href={metrics.cvId ? cvRoutes.edit({ cv: metrics.cvId }) : cvRoutes.create()}>
+                                    {metrics.cvId ? 'Edit CV' : 'Build CV'}
+                                    <ArrowRight className="size-4" />
+                                </Link>
                             </Button>
                         </>
                     }

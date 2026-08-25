@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, Briefcase, CheckCircle2, Loader2, Monitor, XCircle } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { PageHeading } from '@/components/admin/page-heading';
@@ -27,9 +27,11 @@ export default function CvIndex({ cv }: Props) {
           title="CV Builder"
           description="Create, edit, and optimize your professional CV with real-time ATS scoring."
           action={
-            <Button asChild href={cvRoutes.create().url()}>
-              Create new CV
-              <ArrowRight className="size-4" />
+            <Button asChild>
+              <Link href={cvRoutes.create().url()}>
+                Create new CV
+                <ArrowRight className="size-4" />
+              </Link>
             </Button>
           }
         />
@@ -57,18 +59,17 @@ export default function CvIndex({ cv }: Props) {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Button variant="outline" size="sm" asChild href={cvRoutes.edit({ cv: cv.id }).url()}>
-                    Edit CV
-                    <ArrowRight className="size-3.5" />
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={cvRoutes.edit({ cv: cv.id }).url()}>
+                      Edit CV
+                      <ArrowRight className="size-3.5" />
+                    </Link>
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
-                    asChild
                     onClick={() => {
                       if (window.confirm('Are you sure you want to delete your CV? This action cannot be undone.')) {
-                        // In a real implementation, we would call the delete route here
-                        // For now, we'll just show an alert
                         alert('Delete functionality would be implemented here');
                       }
                     }}

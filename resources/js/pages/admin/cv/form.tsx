@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
   ArrowLeft,
   Check,
@@ -7,7 +7,7 @@ import {
   GraduationCap,
   Heart,
   Info,
-  Link,
+  Link as LinkIcon,
   List,
   MapPin,
   Monitor,
@@ -1048,14 +1048,15 @@ export default function CvForm({ cv }: Props) {
         <div className="flex justify-end pt-8">
           <Button
             asChild
-            href={cvRoutes.index()}
             disabled={isSaving}
           >
-            <ArrowLeft className="size-4" />
-            Back to CV List
+            <Link href={cvRoutes.index()}>
+              <ArrowLeft className="size-4" />
+              Back to CV List
+            </Link>
           </Button>
           <Button
-            ml-4
+            className="ml-4"
             disabled={isSaving}
           >
             {isCalculatingScore ? 'Calculating score…' : form.processing ? 'Saving…' : 'Save CV'}
