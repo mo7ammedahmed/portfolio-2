@@ -19,6 +19,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TrackingIntegrationController;
 use App\Http\Controllers\UserInvitationController;
+use App\Http\Controllers\Dashboard\AnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', PortfolioController::class)->name('home');
@@ -56,6 +57,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('team-members/{member}', [TeamMemberController::class, 'destroy'])
             ->name('team-members.destroy');
         Route::get('analytics', PortfolioAnalyticsController::class)->name('analytics');
+        Route::get('analytics/page-views', [AnalyticsController::class, 'pageViews'])
+            ->name('analytics.page-views');
         Route::get('integrations', [TrackingIntegrationController::class, 'index'])
             ->name('integrations.index');
         Route::put('integrations/{platform}', [TrackingIntegrationController::class, 'update'])
