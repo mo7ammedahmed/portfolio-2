@@ -13,6 +13,7 @@ enum PortfolioPermission: string
     case ManageExperiences = 'portfolio.experiences';
     case ManageSkills = 'portfolio.skills';
     case ManageCategories = 'portfolio.categories';
+    case ManageCV = 'portfolio.cv';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum PortfolioPermission: string
             self::ManageExperiences => 'Manage experience',
             self::ManageSkills => 'Manage skills',
             self::ManageCategories => 'Manage categories',
+            self::ManageCV => 'Manage CV',
         };
     }
 
@@ -37,6 +39,7 @@ enum PortfolioPermission: string
             self::ManageExperiences => 'Create, edit, and delete career experience.',
             self::ManageSkills => 'Create, edit, and delete skills and their icons.',
             self::ManageCategories => 'Create, edit, and delete project categories.',
+            self::ManageCV => 'Create, edit, and delete professional CV.',
         };
     }
 }
