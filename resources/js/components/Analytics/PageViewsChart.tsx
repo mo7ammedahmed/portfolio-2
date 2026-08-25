@@ -27,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   );
 };
 
-const PageViewsChart = ({ data }: { data: ChartData[] }) => {
+export const PageViewsChart = ({ data }: { data: ChartData[] }) => {
   if (!data || data.length === 0) {
     return null; // Let the parent handle empty state
   }
@@ -84,5 +84,3 @@ const PageViewsChart = ({ data }: { data: ChartData[] }) => {
     </ResponsiveContainer>
   );
 };
-
-export default PageViewsChart;

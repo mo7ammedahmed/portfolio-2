@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { PageHeading } from '@/components/admin/page-heading';
-import { PageViewsChart } from '@/components/analytics/PageViewsChart';
+import { PageViewsChart } from '@/Components/analytics/PageViewsChart';
 import { analytics as analyticsIndex } from '@/routes/portfolio';
 import { edit as profileEdit } from '@/routes/portfolio/profile';
 
