@@ -15,10 +15,6 @@ import {
 } from 'lucide-react';
 import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { PageHeading } from '@/components/admin/page-heading';
-<<<<<<< HEAD
-=======
-import PageViewsChart from '@/components/Analytics/PageViewsChart';
->>>>>>> local-snapshot
 import { analytics as analyticsIndex } from '@/routes/portfolio';
 import { edit as profileEdit } from '@/routes/portfolio/profile';
 
@@ -206,10 +202,9 @@ export default function Analytics({ hasProfile, filters, analytics }: Props) {
                     </div>
                 </section>
 
-                <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,.72fr)]">
+                    <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,.72fr)]">
                     <section className="overflow-hidden rounded-xl border bg-card">
                         <PanelHeader
-<<<<<<< HEAD
                             title="Traffic over time"
                             description="Visitors, sessions, and page views across the selected period"
                             aside={
@@ -225,24 +220,11 @@ export default function Analytics({ hasProfile, filters, analytics }: Props) {
                                     <Legend
                                         color="bg-foreground/25"
                                         label="Views"
-=======
-                            title="Page Views over Time"
-                            description="Daily page views across the selected period"
-                            aside={
-                                <div className="flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-muted-foreground">
-                                    <Legend
-                                        color="var(--color-page-view-line)"
-                                        label="Page Views"
->>>>>>> local-snapshot
                                     />
                                 </div>
                             }
                         />
-<<<<<<< HEAD
                         <TrafficChart points={analytics.daily} />
-=======
-                        <PageViewsChart data={analytics.daily.map(day => ({ date: day.date, count: day.pageViews }))} />
->>>>>>> local-snapshot
                     </section>
 
                     <BreakdownPanel
@@ -619,7 +601,6 @@ function PanelHeader({
     );
 }
 
-<<<<<<< HEAD
 function TrafficChart({ points }: { points: DailyPoint[] }) {
     const width = 900;
     const height = 300;
@@ -742,8 +723,6 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
         </div>
     );
 }
-=======
->>>>>>> local-snapshot
 
 function BreakdownPanel({
     title,
