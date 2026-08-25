@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Models\PageView;
 use App\Models\VisitorSession;
@@ -23,10 +22,8 @@ class TrackPageView
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(\Illuminate\Http\Request $request, Closure $next)
     {
-        $path = $request->path();
-
         // Skip if the request is for an API route, asset, admin route, or dashboard
         if ($this->shouldSkip($request)) {
             return $next($request);
@@ -51,85 +48,7 @@ class TrackPageView
         }
 
         DB::transaction(function () use ($request, $visitorHash, $cacheKey) {
-            // Get the profile for the current user if authenticated, otherwise fallback to first visible profile
-            if ($request->user()) {
-                $user = $request->user();
-                $portfolioAccount = $user->portfolioAccount();
-                $profile = Profile::query()
-                    ->where('user_id', $portfolioAccount->id)
-                    ->first();
-            } else {
-                // Get the profile (assuming single profile for now, similar to analytics collector)
-                $profile = Profile::query()
-                    ->where('is_visible', true)
-                    ->oldest()
-                    ->first();
-            }
-
-            if (!$profile) {
-                // If no profile, we cannot associate the session, so we skip recording.
-                // But we still need to set the cache to prevent repeated attempts?
-                // We'll set the cache and return.
-                Cache::put($cacheKey, true, 30);
-                return;
-            }
-
-            $now = now();
-            $path = $request->getPathInfo();
-
-            // Try to find an existing session for this visitor that was active in the last 30 minutes
-            $session = VisitorSession::query()
-                ->where('visitor_hash', $visitorHash)
-                ->where('last_seen_at', '>=', $now->copy()->subMinutes(30))
-                ->orderBy('last_seen_at', 'desc')
-                ->first();
-
-            if ($session) {
-                // Update the existing session
-                $sessionStartedAt = Carbon::parse($session->started_at);
-                $durationSeconds = $now->diffInSeconds($sessionStartedAt);
-
-                $session->forceFill([
-                    'last_seen_at' => $now,
-                    'last_page' => $path,
-                    'duration_seconds' => $durationSeconds,
-                    'page_views_count' => $session->page_views_count + 1,
-                ])->save();
-            } else {
-                // Create a new session
-                $session = VisitorSession::create([
-                    'session_uuid' => Str::uuid(),
-                    'profile_id' => $profile->id,
-                    'visitor_hash' => $visitorHash,
-                    'started_at' => $now,
-                    'last_seen_at' => $now,
-                    'landing_page' => $path,
-                    'last_page' => $path,
-                    'referrer' => $request->headers->get('referrer'),
-                    'utm_source' => $request->query('utm_source'),
-                    'utm_medium' => $request->query('utm_medium'),
-                    'utm_campaign' => $request->query('utm_campaign'),
-                    'browser' => $this->getBrowser($request->userAgent()),
-                    'platform' => $this->getPlatform($request->userAgent()),
-                    'device_type' => $this->getDeviceType($request->userAgent()),
-                    'language' => $request->headers->get('accept-language'),
-                    'timezone' => null,
-                    'screen_width' => null,
-                    'screen_height' => null,
-                    'duration_seconds' => 0,
-                    'page_views_count' => 1,
-                ]);
-            }
-
-            // Create page view
-            PageView::create([
-                'visitor_session_id' => $session->id,
-                'page_uuid' => Str::uuid(),
-                'path' => $path,
-                'title' => null,
-                'entered_at' => $now,
-                'duration_seconds' => 0,
-            ]);
+            $this->handlePageView($request, $visitorHash, $cacheKey);
         });
 
         // Set cache for debounce (30 minutes)
@@ -139,9 +58,114 @@ class TrackPageView
     }
 
     /**
+     * Handle the page view logging logic.
+     */
+    protected function handlePageView(\Illuminate\Http\Request $request, string $visitorHash, string $cacheKey): void
+    {
+        // Get the profile for the current user if authenticated, otherwise fallback to first visible profile
+        $profile = $this->getProfile($request);
+
+        if (!$profile) {
+            // If no profile, we cannot associate the session, so we skip recording.
+            // But we still need to set the cache to prevent repeated attempts?
+            // We'll set the cache and return.
+            Cache::put($cacheKey, true, 30);
+            return;
+        }
+
+        $now = now();
+        $path = $request->getPathInfo();
+
+        // Try to find an existing session for this visitor that was active in the last 30 minutes
+        $session = $this->getOrCreateVisitorSession($request, $visitorHash, $path, $profile, $now);
+
+        // Create page view
+        PageView::create([
+            'visitor_session_id' => $session->id,
+            'page_uuid' => Str::uuid(),
+            'path' => $path,
+            'title' => null,
+            'entered_at' => $now,
+            'duration_seconds' => 0,
+        ]);
+    }
+
+    /**
+     * Get the profile for the current user or fallback to first visible profile.
+     */
+    protected function getProfile(\Illuminate\Http\Request $request): ?Profile
+    {
+        if ($request->user()) {
+            $user = $request->user();
+            $portfolioAccount = $user->portfolioAccount();
+            return Profile::query()
+                ->where('user_id', $portfolioAccount->id)
+                ->first();
+        }
+
+        // Get the profile (assuming single profile for now, similar to analytics collector)
+        return Profile::query()
+            ->where('is_visible', true)
+            ->oldest()
+            ->first();
+    }
+
+    /**
+     * Get existing visitor session or create a new one.
+     */
+    protected function getOrCreateVisitorSession(\Illuminate\Http\Request $request, string $visitorHash, string $path, Profile $profile, $now): VisitorSession
+    {
+        // Try to find an existing session for this visitor that was active in the last 30 minutes
+        $session = VisitorSession::query()
+            ->where('visitor_hash', $visitorHash)
+            ->where('last_seen_at', '>=', $now->copy()->subMinutes(30))
+            ->orderBy('last_seen_at', 'desc')
+            ->first();
+
+        if ($session) {
+            // Update the existing session
+            $sessionStartedAt = Carbon::parse($session->started_at);
+            $durationSeconds = $now->diffInSeconds($sessionStartedAt);
+
+            $session->forceFill([
+                'last_seen_at' => $now,
+                'last_page' => $path,
+                'duration_seconds' => $durationSeconds,
+                'page_views_count' => $session->page_views_count + 1,
+            ])->save();
+
+            return $session;
+        }
+
+        // Create a new session
+        return VisitorSession::create([
+            'session_uuid' => Str::uuid(),
+            'profile_id' => $profile->id,
+            'visitor_hash' => $visitorHash,
+            'started_at' => $now,
+            'last_seen_at' => $now,
+            'landing_page' => $path,
+            'last_page' => $path,
+            'referrer' => $request->headers->get('referrer'),
+            'utm_source' => $request->query('utm_source'),
+            'utm_medium' => $request->query('utm_medium'),
+            'utm_campaign' => $request->query('utm_campaign'),
+            'browser' => $this->getBrowser($request->userAgent()),
+            'platform' => $this->getPlatform($request->userAgent()),
+            'device_type' => $this->getDeviceType($request->userAgent()),
+            'language' => $request->headers->get('accept-language'),
+            'timezone' => null,
+            'screen_width' => null,
+            'screen_height' => null,
+            'duration_seconds' => 0,
+            'page_views_count' => 1,
+        ]);
+    }
+
+    /**
      * Determine if the request should be skipped (API, assets, admin, and dashboard).
      */
-    protected function shouldSkip(Request $request): bool
+    protected function shouldSkip(\Illuminate\Http\Request $request): bool
     {
         $path = $request->path();
 

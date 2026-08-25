@@ -126,11 +126,11 @@ test('google tag manager is rendered in the official head and body positions', f
         ->assertOk()
         ->getContent();
 
-    $headClose = mb_strpos($content, '</head>');
-    $bodyOpen = mb_strpos($content, '<body');
-    $inertiaApp = mb_strpos($content, 'data-page="app"');
-    $headBootstrap = mb_strpos($content, 'gtm.start');
-    $bodyFallback = mb_strpos($content, 'googletagmanager.com/ns.html?id=GTM-5L7GJKQW');
+    $headClose = mb_strpos((string) $content, '</head>');
+    $bodyOpen = mb_strpos((string) $content, '<body');
+    $inertiaApp = mb_strpos((string) $content, 'data-page="app"');
+    $headBootstrap = mb_strpos((string) $content, 'gtm.start');
+    $bodyFallback = mb_strpos((string) $content, 'googletagmanager.com/ns.html?id=GTM-5L7GJKQW');
 
     expect($content)
         ->toContain('data-tracking-provider="google_tag_manager"')
@@ -182,11 +182,11 @@ HTML;
         ->assertOk()
         ->getContent();
 
-    $headCodePosition = mb_strpos($content, 'window.customDashboardGtm');
-    $headClosePosition = mb_strpos($content, '</head>');
-    $bodyOpenPosition = mb_strpos($content, '<body');
+    $headCodePosition = mb_strpos((string) $content, 'window.customDashboardGtm');
+    $headClosePosition = mb_strpos((string) $content, '</head>');
+    $bodyOpenPosition = mb_strpos((string) $content, '<body');
     $bodyCodePosition = mb_strpos(
-        $content,
+        (string) $content,
         '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5L7GJKQW">',
     );
 
@@ -390,7 +390,7 @@ test('google destinations share one google tag loader', function () {
         ->assertOk()
         ->getContent();
 
-    expect(mb_substr_count($content, 'googletagmanager.com/gtag/js?id='))
+    expect(mb_substr_count((string) $content, 'googletagmanager.com/gtag/js?id='))
         ->toBe(1)
         ->and($content)
         ->toContain("window.gtag('config', 'G-ABC1234567')")

@@ -6,17 +6,13 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 use App\Models\PageView;
-use App\Models\VisitorSession;
 
 class PageViewAnalyticsService
 {
     /**
      * Get daily page view counts for a date range, with zero-filled gaps.
      *
-     * @param  Carbon  $from
-     * @param  Carbon  $to
      * @param  string|null  $path  Optional path to filter by
      * @return Collection<int, array{date: string, count: int}>
      */
