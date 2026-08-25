@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import {
     Activity,
     ArrowRight,
+    Briefcase,
     BriefcaseBusiness,
     Clock3,
     Eye,
@@ -19,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
 import { analytics as analyticsIndex } from '@/routes/portfolio';
 import { edit as profileEdit } from '@/routes/portfolio/profile';
+import { cv as cvRoutes } from '@/routes/portfolio';
 import {
     create as projectCreate,
     edit as projectEdit,
@@ -104,6 +106,12 @@ export default function Dashboard({
             note: 'capabilities listed',
             icon: Sparkles,
         },
+        {
+            label: 'CV',
+            value: metrics.cvComplete ? 1 : 0,
+            note: metrics.cvComplete ? 'Complete' : 'Not started',
+            icon: Briefcase,
+        },
     ];
     const summaryCards = [
         {
@@ -144,12 +152,18 @@ export default function Dashboard({
                     title="Control room"
                     description="Manage your portfolio, shape its visual system, and understand how people engage with your work."
                     action={
-                        <Button asChild>
-                            <Link href={projectCreate()}>
-                                Add project
+                        <>
+                            <Button asChild>
+                                <Link href={projectCreate()}>
+                                    Add project
+                                    <ArrowRight className="size-4" />
+                                </Link>
+                            </Button>
+                            <Button ml={3} asChild href={metrics.cvId ? cvRoutes.edit({ cv: metrics.cvId }) : cvRoutes.create()}>
+                                {metrics.cvId ? 'Edit CV' : 'Build CV'}
                                 <ArrowRight className="size-4" />
-                            </Link>
-                        </Button>
+                            </Button>
+                        </>
                     }
                 />
 

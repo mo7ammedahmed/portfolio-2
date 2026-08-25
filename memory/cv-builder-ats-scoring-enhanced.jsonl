@@ -1,0 +1,17 @@
+---
+name: cv-builder-ats-scoring-enhanced
+description: Enhanced CV builder with realistic, data-driven ATS scoring system replacing placeholder/random-based scoring
+metadata:
+  type: project
+---
+
+Implemented comprehensive ATS scoring system for CV builder that analyzes actual CV content to provide meaningful optimization feedback. Replaced placeholder scoring with 6 detailed scoring functions:
+- calculateKeywordScore(): Professional keyword density analysis
+- calculateSkillsSectionScore(): Skills proficiency and variety evaluation
+- calculateWorkExperienceScore(): Work experience completeness and consistency
+- calculateEducationScore(): Education completeness and relevant details
+- calculateLengthScore(): Appropriate length assessment across sections
+- calculateQuantifiableScore(): Quantifiable achievements (metrics, percentages, etc.)
+
+Each function returns scores 0-10, summed for overall 0-100 ATS score. Improved responsiveness by reducing calculation timeout from 1000ms to 500ms. Maintained hardcoded scores for controlled aspects (standard headings, file format, font readability).
+**How to apply**: The enhanced scoring provides users with actionable feedback to optimize their CVs for Applicant Tracking Systems, moving beyond random placeholder values to real content analysis.

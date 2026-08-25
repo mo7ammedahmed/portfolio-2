@@ -4,25 +4,27 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Support\Facades\Cache;
 use App\Models\PageView;
-use App\Models\VisitorSession;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 use App\Models\Profile;
+use App\Models\VisitorSession;
+use Carbon\Carbon;
+use Closure;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TrackPageView
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     * @param  Closure(Request): (Response|RedirectResponse)  $next
+     * @return Response|RedirectResponse
      */
-    public function handle(\Illuminate\Http\Request $request, Closure $next)
+    public function handle(Request $request, Closure $next)
     {
         // Skip if the request is for an API route, asset, admin route, or dashboard
         if ($this->shouldSkip($request)) {
@@ -37,12 +39,12 @@ class TrackPageView
         // Compute visitor hash (IP + User Agent)
         $visitorHash = hash_hmac(
             'sha256',
-            $request->ip() . '|' . $request->userAgent(),
+            $request->ip().'|'.$request->userAgent(),
             (string) config('app.key')
         );
 
         // Debounce: skip if same visitor_hash + path within last 30 minutes
-        $cacheKey = 'page_view:' . $visitorHash . ':' . hash('sha256', $request->getPathInfo());
+        $cacheKey = 'page_view:'.$visitorHash.':'.hash('sha256', $request->getPathInfo());
         if (Cache::has($cacheKey)) {
             return $next($request);
         }
@@ -60,16 +62,17 @@ class TrackPageView
     /**
      * Handle the page view logging logic.
      */
-    protected function handlePageView(\Illuminate\Http\Request $request, string $visitorHash, string $cacheKey): void
+    protected function handlePageView(Request $request, string $visitorHash, string $cacheKey): void
     {
         // Get the profile for the current user if authenticated, otherwise fallback to first visible profile
         $profile = $this->getProfile($request);
 
-        if (!$profile) {
+        if (! $profile) {
             // If no profile, we cannot associate the session, so we skip recording.
             // But we still need to set the cache to prevent repeated attempts?
             // We'll set the cache and return.
             Cache::put($cacheKey, true, 30);
+
             return;
         }
 
@@ -93,11 +96,12 @@ class TrackPageView
     /**
      * Get the profile for the current user or fallback to first visible profile.
      */
-    protected function getProfile(\Illuminate\Http\Request $request): ?Profile
+    protected function getProfile(Request $request): ?Profile
     {
         if ($request->user()) {
             $user = $request->user();
             $portfolioAccount = $user->portfolioAccount();
+
             return Profile::query()
                 ->where('user_id', $portfolioAccount->id)
                 ->first();
@@ -113,7 +117,7 @@ class TrackPageView
     /**
      * Get existing visitor session or create a new one.
      */
-    protected function getOrCreateVisitorSession(\Illuminate\Http\Request $request, string $visitorHash, string $path, Profile $profile, $now): VisitorSession
+    protected function getOrCreateVisitorSession(Request $request, string $visitorHash, string $path, Profile $profile, $now): VisitorSession
     {
         // Try to find an existing session for this visitor that was active in the last 30 minutes
         $session = VisitorSession::query()
@@ -125,7 +129,7 @@ class TrackPageView
         if ($session) {
             // Update the existing session
             $sessionStartedAt = Carbon::parse($session->started_at);
-            $durationSeconds = $now->diffInSeconds($sessionStartedAt);
+            $durationSeconds = max(0, (int) $now->diffInSeconds($sessionStartedAt));
 
             $session->forceFill([
                 'last_seen_at' => $now,
@@ -165,7 +169,7 @@ class TrackPageView
     /**
      * Determine if the request should be skipped (API, assets, admin, and dashboard).
      */
-    protected function shouldSkip(\Illuminate\Http\Request $request): bool
+    protected function shouldSkip(Request $request): bool
     {
         $path = $request->path();
 
@@ -199,11 +203,12 @@ class TrackPageView
      */
     protected function isBot(?string $userAgent): bool
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return true;
         }
 
         $botPattern = '/bot|crawl|spider|slurp/i';
+
         return (bool) preg_match($botPattern, $userAgent);
     }
 
@@ -212,7 +217,7 @@ class TrackPageView
      */
     protected function getBrowser(?string $userAgent): string
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return 'Other';
         }
 
@@ -242,7 +247,7 @@ class TrackPageView
      */
     protected function getPlatform(?string $userAgent): string
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return 'Other';
         }
 
@@ -276,7 +281,7 @@ class TrackPageView
      */
     protected function getDeviceType(?string $userAgent): string
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return 'Desktop';
         }
 

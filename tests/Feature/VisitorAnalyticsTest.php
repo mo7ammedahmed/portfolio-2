@@ -4,6 +4,7 @@ use App\Models\PageView;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\VisitorSession;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 function analyticsPayload(array $overrides = []): array
@@ -209,4 +210,32 @@ test('the web app manifest uses the saved portfolio theme', function () {
             'background_color' => '#101010',
             'display' => 'standalone',
         ]);
+});
+
+test('track page view middleware never stores negative durations', function () {
+    $profile = Profile::factory()->create(['is_visible' => true]);
+
+    $userAgent = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/126.0';
+    $ip = '127.0.0.1';
+    $visitorHash = hash_hmac('sha256', $ip.'|'.$userAgent, (string) config('app.key'));
+
+    VisitorSession::query()->create([
+        'profile_id' => $profile->id,
+        'session_uuid' => (string) Str::uuid(),
+        'visitor_hash' => $visitorHash,
+        'started_at' => now()->addHour(),
+        'last_seen_at' => now(),
+        'landing_page' => '/',
+        'last_page' => '/',
+        'duration_seconds' => 0,
+        'page_views_count' => 1,
+    ]);
+
+    $this->withHeader('User-Agent', $userAgent)
+        ->get(route('home'))
+        ->assertOk();
+
+    $session = VisitorSession::query()->where('visitor_hash', $visitorHash)->firstOrFail();
+
+    expect($session->duration_seconds)->toBeGreaterThanOrEqual(0);
 });

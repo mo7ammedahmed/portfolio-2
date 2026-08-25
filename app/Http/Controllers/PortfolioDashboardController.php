@@ -107,12 +107,16 @@ class PortfolioDashboardController extends Controller
                 ),
             ]);
 
+        $cv = $portfolioAccount->cv()->first();
+
         return Inertia::render('dashboard', [
             'metrics' => [
                 'projects' => $portfolioAccount->projects()->count(),
                 'featuredProjects' => $portfolioAccount->projects()->where('is_featured', true)->count(),
                 'experiences' => $portfolioAccount->experiences()->count(),
                 'skills' => $portfolioAccount->skills()->count(),
+                'cvId' => $cv ? $cv->id : null,
+                'cvComplete' => $cv !== null,
                 'profileComplete' => $portfolioAccount->profile()->exists(),
             ],
             'recentProjects' => $portfolioAccount->projects()

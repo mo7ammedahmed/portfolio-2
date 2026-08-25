@@ -122,6 +122,12 @@ class User extends Authenticatable implements PasskeyUser
         return $this->owner()->firstOrFail();
     }
 
+    /** @return HasOne<CV, $this> */
+    public function cv(): HasOne
+    {
+        return $this->hasOne(CV::class);
+    }
+
     public function hasPortfolioPermission(PortfolioPermission|string $permission): bool
     {
         if ($this->isPortfolioOwner()) {

@@ -4,22 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Enums\PortfolioPermission;
 use App\Http\Controllers\Controller;
 use App\Services\PageViewAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use App\Enums\PortfolioPermission;
 
 class AnalyticsController extends Controller
 {
     /**
      * Return daily page view counts for a date range as JSON.
-     *
-     * @param  Request  $request
-     * @param  PageViewAnalyticsService  $service
-     * @return JsonResponse
      */
     public function pageViews(Request $request, PageViewAnalyticsService $service): JsonResponse
     {

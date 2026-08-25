@@ -6,6 +6,7 @@ use App\Http\Controllers\AcceptUserInvitationController;
 use App\Http\Controllers\AnalyticsCollectorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactMessageController;
+use App\Http\Controllers\Dashboard\AnalyticsController;
 use App\Http\Controllers\ExperienceController;
 use App\Http\Controllers\PortfolioAnalyticsController;
 use App\Http\Controllers\PortfolioController;
@@ -19,7 +20,6 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TrackingIntegrationController;
 use App\Http\Controllers\UserInvitationController;
-use App\Http\Controllers\Dashboard\AnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', PortfolioController::class)->name('home');
@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('experiences', ExperienceController::class)->except('show');
         Route::resource('categories', CategoryController::class)->except('show');
         Route::resource('skills', SkillController::class)->except('show');
+        Route::resource('cv', CVController::class)->except(['show']);
     });
 });
 
