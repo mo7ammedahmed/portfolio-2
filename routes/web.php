@@ -7,6 +7,7 @@ use App\Http\Controllers\AnalyticsCollectorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\Dashboard\AnalyticsController;
+use App\Http\Controllers\Dashboard\CVController;
 use App\Http\Controllers\ExperienceController;
 use App\Http\Controllers\PortfolioAnalyticsController;
 use App\Http\Controllers\PortfolioController;
