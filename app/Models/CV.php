@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Auth;
 class CV extends Model
 {
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'cvs';
+
+    /**
      * The attributes that should be cast.
      *
      * @var array<string, string>
