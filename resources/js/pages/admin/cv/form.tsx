@@ -294,10 +294,10 @@ export default function CvForm({ cv }: Props) {
   const calculateKeywordScore = (): number => {
     // Simple keyword score based on presence of common professional terms
     const allText = [
-        form.data.summary,
-        ...form.data.experience.map(exp => exp.description),
-        ...form.data.education.map(edu => edu.description),
-        form.data.additional_sections
+      form.data.summary,
+      ...form.data.experience.map(exp => exp.description),
+      ...form.data.education.map(edu => edu.description),
+      form.data.additional_sections
     ].join(' ').toLowerCase();
 
     const keywords = ['experience', 'management', 'leadership', 'developed', 'created',
@@ -306,9 +306,9 @@ export default function CvForm({ cv }: Props) {
 
     let matches = 0;
     keywords.forEach(keyword => {
-        if (allText.includes(keyword)) {
-            matches++;
-        }
+      if (allText.includes(keyword)) {
+        matches++;
+      }
     });
 
     // Score based on keyword density (capped at 10)
@@ -378,25 +378,25 @@ export default function CvForm({ cv }: Props) {
     // Summary length (ideal: 100-300 characters)
     const summaryLength = form.data.summary.length;
     if (summaryLength >= 100 && summaryLength <= 300) {
-        score += 4;
+      score += 4;
     } else if (summaryLength >= 50) {
-        score += 2;
+      score += 2;
     }
 
     // Experience count (ideal: 2-4 positions for most people)
     const expCount = form.data.experience.length;
     if (expCount >= 2 && expCount <= 4) {
-        score += 3;
+      score += 3;
     } else if (expCount >= 1) {
-        score += 1;
+      score += 1;
     }
 
     // Education count (ideal: 1-2 entries)
     const eduCount = form.data.education.length;
     if (eduCount >= 1 && eduCount <= 2) {
-        score += 3;
+      score += 3;
     } else if (eduCount >= 1) {
-        score += 1;
+      score += 1;
     }
 
     return Math.min(10, score);
@@ -407,30 +407,30 @@ export default function CvForm({ cv }: Props) {
 
     // Check for numbers, percentages, dollar amounts in descriptions
     const allText = [
-        ...form.data.experience.map(exp => exp.description),
-        ...form.data.education.map(edu => edu.description),
-        form.data.summary
+      ...form.data.experience.map(exp => exp.description),
+      ...form.data.education.map(edu => edu.description),
+      form.data.summary
     ].join(' ');
 
     // Patterns for quantifiable achievements
     const patterns = [
-        /\d+%/g,          // Percentages
-        /\$\d+/g,         // Dollar amounts
-        /\d+\+/g,         // Numbers with plus (e.g., "5+ years")
-        /\d+\s*(years?|yrs)/g, // Years of experience
-        /\d+\s*[km]?\/year/g,  // Per year metrics
-        /increased.*\d+/i,     // Increased by X
-        /reduced.*\d+/i,       // Reduced by X
-        /managed.*\d+/i,       // Managed X
-        /led.*\d+/i            // Led X people
+      /\d+%/g,          // Percentages
+      /\$\d+/g,         // Dollar amounts
+      /\d+\+/g,         // Numbers with plus (e.g., "5+ years")
+      /\d+\s*(years?|yrs)/g, // Years of experience
+      /\d+\s*[km]?\/year/g,  // Per year metrics
+      /increased.*\d+/i,     // Increased by X
+      /reduced.*\d+/i,       // Reduced by X
+      /managed.*\d+/i,       // Managed X
+      /led.*\d+/i            // Led X people
     ];
 
     let matches = 0;
     patterns.forEach(pattern => {
-        const matchesFound = allText.match(pattern);
-        if (matchesFound) {
-            matches += matchesFound.length;
-        }
+      const matchesFound = allText.match(pattern);
+      if (matchesFound) {
+        matches += matchesFound.length;
+      }
     });
 
     // Score based on number of quantifiable achievements
@@ -638,7 +638,7 @@ export default function CvForm({ cv }: Props) {
                       form.setData('experience', experience);
                     }}
                   />
-                </div>
+                </Field>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -850,7 +850,7 @@ export default function CvForm({ cv }: Props) {
                       value={cert.issuing_organization ?? ''}
                       onChange={(e) => {
                         const certifications = [...form.data.certifications];
-                        certizations[index] = {...certifications[index], issuing_organization: e.target.value || null};
+                        certifications[index] = {...certifications[index], issuing_organization: e.target.value || null};
                         form.setData('certifications', certifications);
                       }}
                     />
@@ -860,9 +860,9 @@ export default function CvForm({ cv }: Props) {
                       type="date"
                       value={cert.issue_date ?? ''}
                       onChange={(e) => {
-                        const certifications = [...form.data.certifications];
-                        certifications[index] = {...certifications[index], issue_date: e.target.value || null};
-                        form.setData('certifications', certifications);
+                        const certinations = [...form.data.certifications];
+                        certinations[index] = {...certinations[index], issue_date: e.target.value || null};
+                        form.setData('certifications', certinations);
                       }}
                     />
                   </Field>
