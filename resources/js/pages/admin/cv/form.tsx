@@ -647,7 +647,7 @@ export default function CvForm({ cv }: Props) {
                   Remove Position
                 </Button>
               </div>
-            ))}
+            )));
           <Button
             variant="outline"
             size="sm"

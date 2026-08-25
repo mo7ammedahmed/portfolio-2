@@ -2,3 +2,4 @@
 - [CV Builder Dashboard Integration](cv-builder-dashboard-integration.jsonl) — Added CV builder access point to dashboard with dynamic linking to create/edit CV
 - [CV Builder Complete Implementation](cv-builder-complete-implementation.jsonl) — Complete implementation of CV builder with dashboard integration and ranked 10 by 10 ATS scoring system
 - [CV Builder Final Fixes](cv-builder-final-fixes.jsonl) — Fixed JSX syntax errors and routing issues in CV builder implementation
+- [CV Builder JSX Fix](cv-builder-jsx-fix.jsonl) — Fixed JSX syntax error in CV builder experience section mapping
