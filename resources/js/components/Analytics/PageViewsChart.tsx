@@ -1,61 +1,66 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-type ChartData = {
-  date: string;
-  count: number;
-};
+	type ChartData = {
+	  date: string;
+	  count: number;
+	};
 
-type TooltipProps = {
-  active: boolean;
-  payload: any;
-  label?: string | number | undefined;
-};
+	type TooltipProps = {
+	  active: boolean;
+	  payload: any;
+	  label?: string | number | undefined;
+	};
 
-const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
-  if (!active || payload.length === 0) {
-    return null;
-  }
+	const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+	  if (!active || payload.length === 0) {
+	    return null;
+	  }
 
-  const date = label != null ? String(label) : '';
-  const count = payload[0].value;
+	  const date = label != null ? String(label) : '';
+	  const count = payload[0].value;
 
-  return (
-    <div className="px-3 py-2 bg-white text-sm text-muted-foreground border border-muted/40 shadow-md">
-      <p className="mb-1">{date}</p>
-      <p className="mb-0 font-medium">count: {count}</p>
-    </div>
-  );
-};
+	  return (
+	    <div className="px-3 py-2 bg-white text-sm text-muted-foreground border border-muted/40 shadow-md">
+	      <p className="mb-1">{date}</p>
+	      <p className="mb-0 font-medium">count: {count}</p>
+	    </div>
+	  );
+	};
 
-export const PageViewsChart = ({ data }: { data: ChartData[] }) => {
-  if (!data || data.length === 0) {
-    return null; // Let the parent handle empty state
-  }
+	interface PageViewsChartProps {
+	  data: ChartData[];
+	  color?: string;
+	}
 
-  // Determine tick density: show every tick if <= 20 points, else every 2nd point
-  const shouldShowTick = (index: number) => {
-    if (data.length <= 20) {
-      return true;
-    }
+	export const PageViewsChart = ({ data, color }: PageViewsChartProps) => {
+	  if (!data || data.length === 0) {
+	    return null; // Let the parent handle empty state
+	  }
 
-    return index % 2 === 0;
-  };
+	  // Determine tick density: show every tick if <= 20 points, else every 2nd point
+	  const shouldShowTick = (index: number) => {
+	    if (data.length <= 20) {
+	      return true;
+	    }
 
-  return (
-    <ResponsiveContainer width="100%" height={250}>
-      <LineChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.5} />
-        <XAxis
-          dataKey="date"
-          tick={(props: any) => {
-            const { payload, index, x, y } = props;
+	    return index % 2 === 0;
+	  };
 
-            if (!shouldShowTick(index)) {
-              return null;
-            }
+	  return (
+	    <ResponsiveContainer width="100%" height={250}>
+	      <LineChart
+	        data={data}
+	        margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+	      >
+	        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.5} />
+	        <XAxis
+	          dataKey="date"
+	          tick={(props: any) => {
+	            const { payload, index, x, y } = props;
+
+	            if (!shouldShowTick(index)) {
+	              return null;
+	            }
 
             return <text x={x} y={y}>{payload.value}</text>;
           }}
@@ -74,7 +79,7 @@ export const PageViewsChart = ({ data }: { data: ChartData[] }) => {
         <Line
           type="monotone"
           dataKey="count"
-          stroke="var(--color-page-view-line)"
+          stroke={color || 'var(--color-page-view-line)'}
           strokeWidth={2}
           dot={{ stroke: '#ffffff', strokeWidth: 2, r: 4 }} // White dot with stroke to stand out
           activeDot={{ r: 6 }}

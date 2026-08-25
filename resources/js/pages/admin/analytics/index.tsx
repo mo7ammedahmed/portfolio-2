@@ -217,7 +217,7 @@ export default function Analytics({ hasProfile, filters, analytics }: Props) {
                                 </div>
                             }
                         />
-                        <PageViewsChart data={analytics.daily.map(day => ({ date: day.date, count: day.pageViews }))} />
+                        <PageViewsChart data={analytics.daily.map(day => ({ date: day.date, count: day.pageViews }))} color={analytics.profileColor} />
                     </section>
 
                     <BreakdownPanel

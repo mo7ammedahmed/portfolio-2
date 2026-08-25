@@ -89,6 +89,14 @@ class PortfolioAnalyticsController extends Controller
         );
         $sessionTotal = $currentSummary['sessions'];
 
+        $profileColor = null;
+        if ($profileId) {
+            $profile = Profile::find($profileId);
+            if ($profile) {
+                $profileColor = $profile->theme_light_accent;
+            }
+        }
+
         return Inertia::render('admin/analytics/index', [
             'filters' => [
                 'period' => $period,
@@ -181,6 +189,7 @@ class PortfolioAnalyticsController extends Controller
                     $sessionTotal,
                 ),
                 'recentSessions' => $this->recentSessions($currentSessions),
+                'profileColor' => $profileColor,
             ],
         ]);
     }
