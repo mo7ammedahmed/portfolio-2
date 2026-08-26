@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
             'website' => 'https://mohammedahmed112.netlify.app',
             'is_available' => true,
             'is_visible' => true,
-            'theme_dark_accent' => '#d9ff43',
+            'theme_dark_accent' => '#006c55',
             'theme_light_accent' => '#006c55',
         ]);
 
