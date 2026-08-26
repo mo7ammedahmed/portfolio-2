@@ -21,8 +21,11 @@ import AlertError from '@/components/alert-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import FloatingSaveButton from '@/components/ui/FloatingSaveButton';
+import { getSolidColor, gradientToCss } from '@/lib/color-utils';
 import { prepareImageUpload } from '@/lib/prepare-image-upload';
-import { edit, update } from '@/routes/portfolio/profile';
+import { update } from '@/routes/portfolio/profile';
+import type { Gradient, GradientStop } from '@/types';
 
 type ProfileData = {
     id: number;
@@ -51,17 +54,21 @@ type ProfileData = {
     resume_url: string | null;
     is_available: boolean;
     is_visible: boolean;
-    theme_dark_accent: string;
-    theme_light_accent: string;
-    theme_dark_background: string;
-    theme_dark_surface: string;
+    theme_dark_accent: string | Gradient;
+    theme_light_accent: string | Gradient;
+    theme_dark_background: string | Gradient;
+    theme_dark_surface: string | Gradient;
     theme_dark_foreground: string;
     theme_dark_muted: string;
-    theme_light_background: string;
-    theme_light_surface: string;
+    theme_light_background: string | Gradient;
+    theme_light_surface: string | Gradient;
     theme_light_foreground: string;
     theme_light_muted: string;
     glass_effect_enabled: boolean;
+    glass_blur: number;
+    glass_surface_opacity: number;
+    glass_border_opacity: number;
+    glass_saturation: number;
     image_url: string | null;
 };
 
@@ -115,6 +122,10 @@ export default function EditProfile({
         theme_light_foreground: profile?.theme_light_foreground ?? '#0a0a0a',
         theme_light_muted: profile?.theme_light_muted ?? '#686864',
         glass_effect_enabled: profile?.glass_effect_enabled ?? false,
+        glass_blur: profile?.glass_blur ?? 1.25,
+        glass_surface_opacity: profile?.glass_surface_opacity ?? 0.64,
+        glass_border_opacity: profile?.glass_border_opacity ?? 0.22,
+        glass_saturation: profile?.glass_saturation ?? 1.35,
         image: null as File | null,
     });
     const [isPreparingImage, setIsPreparingImage] = useState(false);
@@ -135,8 +146,8 @@ export default function EditProfile({
         };
     }, []);
 
-    const submit = (event: FormEvent) => {
-        event.preventDefault();
+    const submit = (event?: FormEvent) => {
+        event?.preventDefault();
 
         if (isPreparingImage) {
             return;
@@ -148,6 +159,8 @@ export default function EditProfile({
             preserveScroll: true,
         });
     };
+
+
 
     const selectImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const input = event.currentTarget;
@@ -354,6 +367,7 @@ export default function EditProfile({
                             </div>
                         </div>
                     </div>
+                    <div className="hidden sm:block" aria-hidden="true" />
                     <Field
                         label="Inbox email"
                         error={form.errors.contact_notification_email}
@@ -371,7 +385,6 @@ export default function EditProfile({
                             }
                         />
                     </Field>
-                    <div className="hidden sm:block" aria-hidden="true" />
                     <Field
                         label="Owner notification subject"
                         error={
@@ -616,13 +629,139 @@ export default function EditProfile({
                     </div>
 
                     <div className="sm:col-span-2">
-                        <Toggle
-                            label="Enable the glass surface effect across the public portfolio"
-                            checked={form.data.glass_effect_enabled}
-                            onChange={(checked) =>
-                                form.setData('glass_effect_enabled', checked)
-                            }
-                        />
+                        <div className="space-y-4">
+                            {/* Glass Effect Configuration */}
+                            <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+                                <div className="flex items-start gap-3">
+                                    <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/30 bg-background text-highlight">
+                                        <MonitorCog className="size-4" />
+                                    </span>
+                                    <div>
+                                        <h3 className="font-editorial text-xl">
+                                            Glass Effect
+                                        </h3>
+                                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                            Configure the glass surface effect across the public portfolio.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-4 space-y-3">
+                                    <div className="flex items-center">
+                                        <Label htmlFor="glass-effect-enabled">
+                                            Enable glass effect
+                                        </Label>
+                                        <Checkbox
+                                            id="glass-effect-enabled"
+                                            checked={form.data.glass_effect_enabled}
+                                            onCheckedChange={(value) =>
+                                                form.setData('glass_effect_enabled', Boolean(value))
+                                            }
+                                        />
+                                    </div>
+                                    {!form.data.glass_effect_enabled ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            When enabled, the glass effect will be applied using the
+                                            settings below.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div>
+                                                    <Label htmlFor="glass-blur">Blur intensity (px)</Label>
+                                                    <input
+                                                        id="glass-blur"
+                                                        type="range"
+                                                        min="0"
+                                                        max="50"
+                                                        step="0.05"
+                                                        value={form.data.glass_blur}
+                                                        onChange={(e) =>
+                                                            form.setData('glass_blur', parseFloat(e.target.value))
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0px</span>
+                                                        <span>50px</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current: {form.data.glass_blur}px
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="glass-surface-opacity">Surface opacity</Label>
+                                                    <input
+                                                        id="glass-surface-opacity"
+                                                        type="range"
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                        value={form.data.glass_surface_opacity}
+                                                        onChange={(e) =>
+                                                            form.setData('glass_surface_opacity', parseFloat(e.target.value))
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0%</span>
+                                                        <span>100%</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current: {(form.data.glass_surface_opacity * 100).toFixed(0)}%
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div>
+                                                    <Label htmlFor="glass-border-opacity">Border highlight opacity</Label>
+                                                    <input
+                                                        id="glass-border-opacity"
+                                                        type="range"
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                        value={form.data.glass_border_opacity}
+                                                        onChange={(e) =>
+                                                            form.setData('glass_border_opacity', parseFloat(e.target.value))
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0%</span>
+                                                        <span>100%</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current: {(form.data.glass_border_opacity * 100).toFixed(0)}%
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="glass-saturation">Saturation boost</Label>
+                                                    <input
+                                                        id="glass-saturation"
+                                                        type="range"
+                                                        min="0"
+                                                        max="3"
+                                                        step="0.01"
+                                                        value={form.data.glass_saturation}
+                                                        onChange={(e) =>
+                                                            form.setData('glass_saturation', parseFloat(e.target.value))
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0%</span>
+                                                        <span>300%</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current: {(form.data.glass_saturation * 100).toFixed(0)}%
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <fieldset className="rounded-2xl border bg-card p-4 sm:col-span-2 sm:p-5">
@@ -643,22 +782,39 @@ export default function EditProfile({
                         </div>
 
                         <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                            {(
-                                [
-                                    ['theme_dark_accent', 'Accent'],
-                                    ['theme_dark_background', 'Background'],
-                                    ['theme_dark_surface', 'Surface'],
-                                    ['theme_dark_foreground', 'Text'],
-                                    ['theme_dark_muted', 'Muted text'],
-                                ] as const
-                            ).map(([key, label]) => (
+                            {([
+                                ['theme_dark_accent', 'Accent'],
+                                ['theme_dark_background', 'Background'],
+                                ['theme_dark_surface', 'Surface'],
+                            ] as const).map(([key, label]) => (
+                                <Field
+                                    key={key}
+                                    label={label}
+                                    error={form.errors[key]}
+                                >
+                                    <PaletteField
+                                        label={`${label}`}
+                                        value={form.data[key]}
+                                        onChange={(value) =>
+                                            form.setData(
+                                                key,
+                                                value as string | Gradient,
+                                            )
+                                        }
+                                    />
+                                </Field>
+                            ))}
+                            {([
+                                ['theme_dark_foreground', 'Text'],
+                                ['theme_dark_muted', 'Muted text'],
+                            ] as const).map(([key, label]) => (
                                 <Field
                                     key={key}
                                     label={label}
                                     error={form.errors[key]}
                                 >
                                     <ThemeColorControl
-                                        label={`Dark ${label.toLowerCase()}`}
+                                        label={`${label}`}
                                         value={form.data[key]}
                                         onChange={(value) =>
                                             form.setData(key, value)
@@ -671,14 +827,14 @@ export default function EditProfile({
                         <div
                             className="mt-5 rounded-xl border p-4"
                             style={{
-                                background: form.data.theme_dark_background,
+                                background: getSolidColor(form.data.theme_dark_background),
                                 color: form.data.theme_dark_foreground,
                             }}
                         >
                             <div
                                 className="flex min-h-28 items-end justify-between gap-5 rounded-lg p-4"
                                 style={{
-                                    background: form.data.theme_dark_surface,
+                                    background: getSolidColor(form.data.theme_dark_surface),
                                 }}
                             >
                                 <div>
@@ -697,7 +853,7 @@ export default function EditProfile({
                                 <span
                                     className="size-9 shrink-0 rounded-full"
                                     style={{
-                                        background: form.data.theme_dark_accent,
+                                        background: getSolidColor(form.data.theme_dark_accent),
                                     }}
                                 />
                             </div>
@@ -722,22 +878,39 @@ export default function EditProfile({
                         </div>
 
                         <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                            {(
-                                [
-                                    ['theme_light_accent', 'Accent'],
-                                    ['theme_light_background', 'Background'],
-                                    ['theme_light_surface', 'Surface'],
-                                    ['theme_light_foreground', 'Text'],
-                                    ['theme_light_muted', 'Muted text'],
-                                ] as const
-                            ).map(([key, label]) => (
+                            {([
+                                ['theme_light_accent', 'Accent'],
+                                ['theme_light_background', 'Background'],
+                                ['theme_light_surface', 'Surface'],
+                            ] as const).map(([key, label]) => (
+                                <Field
+                                    key={key}
+                                    label={label}
+                                    error={form.errors[key]}
+                                >
+                                    <PaletteField
+                                        label={`${label}`}
+                                        value={form.data[key]}
+                                        onChange={(value) =>
+                                            form.setData(
+                                                key,
+                                                value as string | Gradient,
+                                            )
+                                        }
+                                    />
+                                </Field>
+                            ))}
+                            {([
+                                ['theme_light_foreground', 'Text'],
+                                ['theme_light_muted', 'Muted text'],
+                            ] as const).map(([key, label]) => (
                                 <Field
                                     key={key}
                                     label={label}
                                     error={form.errors[key]}
                                 >
                                     <ThemeColorControl
-                                        label={`Light ${label.toLowerCase()}`}
+                                        label={`${label}`}
                                         value={form.data[key]}
                                         onChange={(value) =>
                                             form.setData(key, value)
@@ -750,14 +923,14 @@ export default function EditProfile({
                         <div
                             className="mt-5 rounded-xl border p-4"
                             style={{
-                                background: form.data.theme_light_background,
+                                background: getSolidColor(form.data.theme_light_background),
                                 color: form.data.theme_light_foreground,
                             }}
                         >
                             <div
                                 className="flex min-h-28 items-end justify-between gap-5 rounded-lg p-4"
                                 style={{
-                                    background: form.data.theme_light_surface,
+                                    background: getSolidColor(form.data.theme_light_surface),
                                 }}
                             >
                                 <div>
@@ -776,8 +949,7 @@ export default function EditProfile({
                                 <span
                                     className="size-9 shrink-0 rounded-full"
                                     style={{
-                                        background:
-                                            form.data.theme_light_accent,
+                                        background: getSolidColor(form.data.theme_light_accent),
                                     }}
                                 />
                             </div>
@@ -793,46 +965,11 @@ export default function EditProfile({
                             : 'Save all changes'}
                     </Button>
                 </div>
+
+                <FloatingSaveButton form={form} onSubmit={submit} />
             </form>
         </>
     );
-}
-
-function ThemeColorControl({
-    id,
-    label,
-    value,
-    onChange,
-}: {
-    id?: string;
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-}) {
-    return (
-        <div className="flex gap-3">
-            <input
-                aria-label={`${label} color picker`}
-                type="color"
-                value={value}
-                onChange={(event) => onChange(event.target.value)}
-                className="h-10 w-14 shrink-0 cursor-pointer rounded-md border bg-card p-1"
-            />
-            <TextInput
-                id={id}
-                aria-label={`${label} hex value`}
-                value={value}
-                maxLength={7}
-                spellCheck={false}
-                onChange={(event) => onChange(event.target.value)}
-                className="font-mono uppercase"
-            />
-        </div>
-    );
-}
-
-function formatFileSize(bytes: number) {
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 function Toggle({
@@ -858,6 +995,278 @@ function Toggle({
     );
 }
 
-EditProfile.layout = {
-    breadcrumbs: [{ title: 'Profile', href: edit() }],
-};
+function formatFileSize(bytes: number) {
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+// PaletteField component for solid/gradient toggle and editor
+function PaletteField({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: string | Gradient;
+    onChange: (value: string | Gradient) => void;
+}) {
+    const isGradient = typeof value !== 'string' && value !== null;
+    const gradient: Gradient = isGradient
+        ? (value as Gradient)
+        : {
+              type: 'linear',
+              angle: 0,
+              stops: [
+                  { color: value as string, position: 0 },
+                  { color: value as string, position: 100 },
+              ],
+          };
+
+    // When toggling modes, preserve color stops
+    const handleToggle = (checked: boolean) => {
+        if (!checked) {
+            // Switching to solid: use first stop's color as solid
+            const solidColor = gradient.stops[0].color;
+            onChange(solidColor);
+        } else {
+            // Switching to gradient: keep current gradient (already set)
+            onChange(gradient);
+        }
+    };
+
+    // Update gradient stops when color or position changes
+    const updateStop = (index: number, field: keyof GradientStop, val: string | number) => {
+        const newGradient: Gradient = {
+            ...gradient,
+            stops: gradient.stops.map((stop, i) =>
+                i === index ? { ...stop, [field]: val } : stop,
+            ),
+        };
+        onChange(newGradient);
+    };
+
+    const addStop = () => {
+        const newStop = {
+            color: '#ffffff',
+            position: 50,
+        };
+        const newStops = [...gradient.stops, newStop].sort(
+            (a, b) => a.position - b.position,
+        );
+        onChange({ ...gradient, stops: newStops });
+    };
+
+    const removeStop = (index: number) => {
+        if (gradient.stops.length <= 2) {
+            return;
+        } // keep at least 2 stops
+
+        const newStops = gradient.stops.filter((_, i) => i !== index);
+        onChange({ ...gradient, stops: newStops });
+    };
+
+    // Convert gradient to CSS string
+    const gradientToCss = (grad: Gradient): string => {
+        if (grad.type === 'linear') {
+            return `linear-gradient(${grad.angle}deg, ${grad.stops
+                .map(s => `${s.color} ${s.position}%`)
+                .join(', ')})`;
+        } else {
+            // radial gradient: we ignore angle, use default shape
+            return `radial-gradient(${grad.stops
+                .map(s => `${s.color} ${s.position}%`)
+                .join(', ')})`;
+        }
+    };
+
+    return (
+        <>
+            <div className="flex items-start gap-4">
+                <div className="flex items-center gap-2">
+                    <Tooltip>
+                        <span className="cursor-help text-muted-foreground">
+                            {/* Help icon */}
+                        </span>
+                        <TooltipContent>
+                            Solid color or gradient?
+                        </TooltipContent>
+                    </Tooltip>
+                    <Toggle
+                        label={isGradient ? 'Gradient' : 'Solid'}
+                        checked={isGradient}
+                        onChange={handleToggle}
+                    />
+                </div>
+                {isGradient ? (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                            <Label htmlFor={`label}`}>Type</Label>
+                            <select
+                                id={`label}`}
+                                value={gradient.type}
+                                onChange={(e) => {
+                                    onChange({
+                                        ...gradient,
+                                        type: e.target.value as 'linear' | 'radial',
+                                    });
+                                }}
+                                className="border rounded"
+                            >
+                                <option value="linear">Linear</option>
+                                <option value="radial">Radial</option>
+                            </select>
+                        </div>
+                        {gradient.type === 'linear' && (
+                            <div className="flex items-center gap-3">
+                                <Label htmlFor={`${label}-angle`}>Angle (°)</Label>
+                                <input
+                                    id={`${label}-angle`}
+                                    type="range"
+                                    min="0"
+                                    max="360"
+                                    step="1"
+                                    value={gradient.angle}
+                                onChange={(e) => {
+                                    onChange({
+                                        ...gradient,
+                                        angle: parseFloat(e.target.value),
+                                    });
+                                }}
+                                className="w-[150px]"
+                                />
+                                <span className="text-xs">{gradient.angle}°</span>
+                            </div>
+                        )}
+                        <div className="space-y-2">
+                            <div className="font-medium">Stops</div>
+                            <div className="space-y-2">
+                                {gradient.stops.map((stop, idx) => (
+                                    <div key={idx} className="border p-3 rounded flex items-start gap-4">
+                                        <div className="flex-1">
+                                            <Label htmlFor={`${label}-stop-${idx}-color`}>Color</Label>
+                                            <input
+                                                id={`${label}-stop-${idx}-color`}
+                                                type="color"
+                                                value={stop.color}
+                                                onChange={(e) => {
+                                                    updateStop(idx, 'color', e.target.value);
+                                                }}
+                                            />
+                                            <input
+                                                id={`${label}-stop-${idx}-hex`}
+                                                type="text"
+                                                value={stop.color}
+                                                onChange={(e) => {
+                                                    updateStop(idx, 'color', e.target.value);
+                                                }}
+                                                className="mt-1 block w-full text-center font-mono"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Label htmlFor={`${label}-stop-${idx}-pos`}>Position</Label>
+                                            <input
+                                                id={`${label}-stop-${idx}-pos`}
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                step="0.1"
+                                                value={stop.position}
+                                                onChange={(e) => {
+                                                    updateStop(idx, 'position', parseFloat(e.target.value));
+                                                }}
+                                                className="w-full"
+                                            />
+                                            <div className="mt-1 flex justify-between text-xs">
+                                                <span>{stop.position}%</span>
+                                                <button
+                                                    onClick={() => removeStop(idx)}
+                                                    className="text-xs rounded border hover:bg-primary/20"
+                                                    aria-label="Remove stop"
+                                                >
+                                                    –</button>
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <div
+                                                className={`h-6 w-6 rounded border`}
+                                                style={{
+                                                    backgroundColor: stop.color,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="flex justify-center">
+                                    <button
+                                        onClick={addStop}
+                                        className="px-3 py-1 rounded border hover:bg-primary/20"
+                                    >
+                                        + Add stop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Preview */}
+                        <div className="mt-3">
+                            <div className="h-10 w-full rounded border overflow-hidden">
+                                <div
+                                    className="h-full w-full"
+                                    style={{
+                                        background: gradientToCss(gradient),
+                                    }}
+                                />
+                            </div>
+                            <p className="mt-1 text-xs text-center text-muted-foreground">
+                                {gradientToCss(gradient)}
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <ThemeColorControl
+                        label={label}
+                        value={value as string}
+                        onChange={onChange}
+                    />
+                )}
+            </div>
+        </>
+    );
+}
+
+// Reuse existing ThemeColorControl from earlier (we'll copy it)
+function ThemeColorControl({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <div className="flex gap-3">
+            <input
+                aria-label={`${label} color picker`}
+                type="color"
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className="h-10 w-14 shrink-0 cursor-pointer rounded-md border bg-card p-1"
+            />
+            <TextInput
+                aria-label={`${label} hex value`}
+                value={value}
+                maxLength={7}
+                spellCheck={false}
+                onChange={(event) => onChange(event.target.value)}
+                className="font-mono uppercase"
+            />
+        </div>
+    );
+}
+
+// Simple tooltip component (placeholder)
+function Tooltip({ children }: { children: React.ReactNode }) {
+    return <span>{children}</span>;
+}
+function TooltipContent({ children }: { children: React.ReactNode }) {
+    return <div className="hidden">{children}</div>;
+}

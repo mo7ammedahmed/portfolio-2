@@ -1,9 +1,11 @@
 import { useLayoutEffect } from 'react';
 
-import type { PortfolioTheme } from '@/types';
+import type { Gradient, PortfolioTheme } from '@/types';
+import { getSolidColor, gradientToCss } from '@/lib/color-utils';
 
-type PaletteColorKey = Exclude<keyof PortfolioTheme, 'glass_effect_enabled'>;
+type PaletteColorKey = Exclude<keyof PortfolioTheme, 'glass_effect_enabled' | 'glass_blur' | 'glass_surface_opacity' | 'glass_border_opacity' | 'glass_saturation'>;
 
+// Map theme attributes to CSS custom property names (raw)
 const themeProperties: Record<PaletteColorKey, string> = {
     theme_dark_accent: '--dashboard-dark-accent',
     theme_light_accent: '--dashboard-light-accent',
@@ -15,6 +17,20 @@ const themeProperties: Record<PaletteColorKey, string> = {
     theme_light_surface: '--dashboard-light-surface',
     theme_light_foreground: '--dashboard-light-foreground',
     theme_light_muted: '--dashboard-light-muted',
+};
+
+// Solid variants (used for color-mix etc.)
+const solidProperties: Record<PaletteColorKey, string> = {
+    theme_dark_accent: '--dashboard-dark-accent-solid',
+    theme_light_accent: '--dashboard-light-accent-solid',
+    theme_dark_background: '--dashboard-dark-background-solid',
+    theme_dark_surface: '--dashboard-dark-surface-solid',
+    theme_dark_foreground: '--dashboard-dark-foreground-solid',
+    theme_dark_muted: '--dashboard-dark-muted-solid',
+    theme_light_background: '--dashboard-light-background-solid',
+    theme_light_surface: '--dashboard-light-surface-solid',
+    theme_light_foreground: '--dashboard-light-foreground-solid',
+    theme_light_muted: '--dashboard-light-muted-solid',
 };
 
 function contrastingText(hex: string): string {
@@ -98,45 +114,70 @@ export function useDashboardPalette(theme: PortfolioTheme | null): void {
 
         root.dataset.dashboardPalette = 'true';
 
+        // Set raw and solid custom properties for each palette field
         Object.entries(themeProperties).forEach(([attribute, property]) => {
+            const value = theme[attribute as PaletteColorKey];
+            // Raw value (could be string or gradient object)
             root.style.setProperty(
                 property,
-                theme[attribute as PaletteColorKey],
+                typeof value === 'string' ? value : gradientToCss(value as Gradient),
+            );
+            // Solid value (for color-mix)
+            root.style.setProperty(
+                solidProperties[attribute as PaletteColorKey],
+                getSolidColor(value),
             );
         });
-        root.style.setProperty(
-            '--dashboard-light-accent-foreground',
-            contrastingText(theme.theme_light_accent),
-        );
+
+        // Set text and muted foregrounds (extract solid color from gradient if needed)
         root.style.setProperty(
             '--dashboard-dark-accent-foreground',
-            contrastingText(theme.theme_dark_accent),
+            contrastingText(getSolidColor(theme.theme_dark_accent)),
         );
         root.style.setProperty(
-            '--dashboard-light-highlight',
-            readableAccent(
-                theme.theme_light_accent,
-                theme.theme_light_background,
-            ),
+            '--dashboard-light-accent-foreground',
+            contrastingText(getSolidColor(theme.theme_light_accent)),
         );
         root.style.setProperty(
             '--dashboard-dark-highlight',
             readableAccent(
-                theme.theme_dark_accent,
-                theme.theme_dark_background,
+                getSolidColor(theme.theme_dark_accent),
+                getSolidColor(theme.theme_dark_background),
             ),
         );
+        root.style.setProperty(
+            '--dashboard-light-highlight',
+            readableAccent(
+                getSolidColor(theme.theme_light_accent),
+                getSolidColor(theme.theme_light_background),
+            ),
+        );
+
+        // Glass effect custom properties
+        root.style.setProperty('--glass-blur', `${theme.glass_blur}rem`);
+        root.style.setProperty('--glass-opacity', `${theme.glass_surface_opacity}`);
+        root.style.setProperty('--glass-border-alpha', `${theme.glass_border_opacity}`);
+        root.style.setProperty('--glass-saturation', `${theme.glass_saturation}`);
 
         return () => {
             delete root.dataset.dashboardPalette;
 
+            // Remove raw properties
             Object.values(themeProperties).forEach((property) => {
+                root.style.removeProperty(property);
+            });
+            // Remove solid properties
+            Object.values(solidProperties).forEach((property) => {
                 root.style.removeProperty(property);
             });
             root.style.removeProperty('--dashboard-light-accent-foreground');
             root.style.removeProperty('--dashboard-dark-accent-foreground');
             root.style.removeProperty('--dashboard-light-highlight');
             root.style.removeProperty('--dashboard-dark-highlight');
+            root.style.removeProperty('--glass-blur');
+            root.style.removeProperty('--glass-opacity');
+            root.style.removeProperty('--glass-border-alpha');
+            root.style.removeProperty('--glass-saturation');
         };
     }, [theme]);
 }

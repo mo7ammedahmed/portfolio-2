@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Override;
@@ -33,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configurePortfolioPermissions();
+        $this->configureValidationRules();
     }
 
     /**
@@ -66,5 +68,51 @@ class AppServiceProvider extends ServiceProvider
                 fn (User $user): bool => $user->hasPortfolioPermission($permission),
             );
         }
+    }
+
+    protected function configureValidationRules(): void
+    {
+        Validator::extend('hex_color', function ($attribute, $value, $parameters, $validator) {
+            return is_string($value) && preg_match('/^#[0-9A-Fa-f]{6}$/', $value) === 1;
+        });
+
+        Validator::extend('palette_color', function ($attribute, $value, $parameters, $validator) {
+            // Accepts null? Not needed as fields are required.
+            if (is_string($value)) {
+                // Hex color validation
+                return preg_match('/^#[0-9A-Fa-f]{6}$/', $value) === 1;
+            }
+
+            if (! is_array($value)) {
+                return false;
+            }
+
+            if (! isset($value['type']) || ! in_array($value['type'], ['linear', 'radial'], true)) {
+                return false;
+            }
+
+            if (! isset($value['angle']) || ! is_numeric($value['angle']) || $value['angle'] < 0 || $value['angle'] > 360) {
+                return false;
+            }
+
+            if (! isset($value['stops']) || ! is_array($value['stops']) || count($value['stops']) < 2) {
+                return false;
+            }
+
+            foreach ($value['stops'] as $stop) {
+                if (! is_array($stop)
+                    || ! isset($stop['color']) || preg_match('/^#[0-9A-Fa-f]{6}$/', $stop['color']) !== 1
+                    || ! isset($stop['position']) || ! is_numeric($stop['position']) || $stop['position'] < 0 || $stop['position'] > 100
+                ) {
+                    return false;
+                }
+            }
+
+            $positions = collect($value['stops'])->pluck('position')->sort()->values();
+
+            return $positions->every(function ($pos, $key) use ($positions) {
+                return $key === 0 || $pos > $positions->get($key - 1);
+            });
+        });
     }
 }

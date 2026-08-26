@@ -24,6 +24,7 @@ import { resolveSkillIconUrl } from '@/lib/skill-icons';
 import { dashboard, login } from '@/routes';
 import { store as storeContactMessage } from '@/routes/contact';
 import type {
+    Gradient,
     Localized,
     PortfolioExperience,
     PortfolioProfile,
@@ -119,6 +120,39 @@ const displayExperienceYear = (
 
     return experience.started_at.slice(0, 4);
 };
+
+/**
+ * Get a solid color from a value that is either a hex string or a Gradient object.
+ * For gradients, returns the average of the stop colors (simple arithmetic mean of RGB).
+ */
+function getSolidColor(value: string | Gradient): string {
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    const stops = value.stops;
+
+    if (stops.length === 0) {
+        return '#000000';
+    }
+
+    let r = 0, g = 0, b = 0;
+
+    for (const stop of stops) {
+        const hex = stop.color.replace('#', '');
+        r += parseInt(hex.substring(0, 2), 16);
+        g += parseInt(hex.substring(2, 4), 16);
+        b += parseInt(hex.substring(4, 6), 16);
+    }
+
+    const count = stops.length;
+    r = Math.round(r / count);
+    g = Math.round(g / count);
+    b = Math.round(b / count);
+    const toHex = (n: number) => n.toString(16).padStart(2, '0');
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
 
 const copy = {
     en: {
@@ -592,26 +626,31 @@ export default function Welcome({
             behavior: reducedMotion ? 'auto' : 'smooth',
         });
     };
+    // Get solid colors for palette fields (handle gradients)
+    const getSolidBg = isDark ? profile.theme_dark_background : profile.theme_light_background;
+    const getSolidFg = isDark ? profile.theme_dark_foreground : profile.theme_light_foreground;
+    const getSolidSurface = isDark ? profile.theme_dark_surface : profile.theme_light_surface;
+    const getSolidMuted = isDark ? profile.theme_dark_muted : profile.theme_light_muted;
+    const getSolidAccent = isDark ? profile.theme_dark_accent : profile.theme_light_accent;
+
     const palette = isDark
         ? {
-              background: profile.theme_dark_background || '#070707',
-              foreground: profile.theme_dark_foreground || '#f4f4f1',
-              surface: profile.theme_dark_surface || '#0d0d0d',
-              muted: profile.theme_dark_muted || '#a4a4a0',
-              border: `${profile.theme_dark_foreground || '#f4f4f1'}1a`,
+              background: getSolidColor(getSolidBg) || '#070707',
+              foreground: getSolidColor(getSolidFg) || '#f4f4f1',
+              surface: getSolidColor(getSolidSurface) || '#0d0d0d',
+              muted: getSolidColor(getSolidMuted) || '#a4a4a0',
+              border: `${getSolidColor(getSolidFg) || '#f4f4f1'}1a`,
           }
         : {
-              background: profile.theme_light_background || '#f4f3ee',
-              foreground: profile.theme_light_foreground || '#0a0a0a',
-              surface: profile.theme_light_surface || '#ffffff',
-              muted: profile.theme_light_muted || '#686864',
-              border: `${profile.theme_light_foreground || '#0a0a0a'}1f`,
+              background: getSolidColor(getSolidBg) || '#f4f3ee',
+              foreground: getSolidColor(getSolidFg) || '#0a0a0a',
+              surface: getSolidColor(getSolidSurface) || '#ffffff',
+              muted: getSolidColor(getSolidMuted) || '#686864',
+              border: `${getSolidColor(getSolidFg) || '#0a0a0a'}1f`,
           };
-    const accent = isDark
-        ? profile.theme_dark_accent || '#d9ff43'
-        : profile.theme_light_accent || '#006c55';
+    const accentSolid = getSolidColor(getSolidAccent) || (isDark ? '#d9ff43' : '#006c55');
     const accentForeground =
-        hexToRgb(accent).reduce(
+        hexToRgb(accentSolid).reduce(
             (luminance, channel, index) =>
                 luminance + channel * [0.2126, 0.7152, 0.0722][index],
             0,
@@ -643,7 +682,7 @@ export default function Welcome({
                     '--portfolio-surface': palette.surface,
                     '--portfolio-muted': palette.muted,
                     '--portfolio-border': palette.border,
-                    '--portfolio-accent': accent,
+                    '--portfolio-accent': accentSolid,
                 } as CSSProperties
             }
         >
@@ -666,7 +705,7 @@ export default function Welcome({
             <div className="relative min-h-screen overflow-x-clip bg-[var(--portfolio-background)] text-[var(--portfolio-foreground)] transition-colors duration-500 md:rounded-[2rem]">
                 <ClientOnlyThreeScene
                     className="pointer-events-none fixed inset-0 size-full md:inset-2 md:h-[calc(100%-1rem)] md:w-[calc(100%-1rem)] md:rounded-[2rem]"
-                    accent={accent}
+                    accent={accentSolid}
                     isDark={isDark}
                 />
 
@@ -697,7 +736,7 @@ export default function Welcome({
                                 style={
                                     activeSection === target
                                         ? {
-                                              background: accent,
+                                              background: accentSolid,
                                               color: accentForeground,
                                           }
                                         : undefined
@@ -842,13 +881,13 @@ export default function Welcome({
                                         <DeconstructedPortrait
                                             src={profile.image_url}
                                             alt={name}
-                                            accent={accent}
+                                            accent={accentSolid}
                                         />
                                     ) : (
                                         <div className="relative aspect-[4/5] w-full max-w-[430px] border border-[var(--portfolio-border)] bg-[var(--portfolio-surface)] p-2">
                                             <MonogramPortrait
                                                 initials={initials}
-                                                accent={accent}
+                                                accent={accentSolid}
                                             />
                                         </div>
                                     )}
@@ -1108,7 +1147,7 @@ export default function Welcome({
                                             live: text.live,
                                             source: text.source,
                                         }}
-                                        accent={accent}
+                                        accent={accentSolid}
                                     />
                                 ))}
                                 <article
@@ -1446,13 +1485,13 @@ function ProjectCard({
     index,
     locale,
     labels,
-    accent,
+    accentSolid,
 }: {
     project: PortfolioProject;
     index: number;
     locale: 'en' | 'ar';
     labels: { live: string; source: string };
-    accent: string;
+    accentSolid: string;
 }) {
     const pick = (field: string): string => {
         const values = project as unknown as Record<string, unknown>;
@@ -1508,7 +1547,7 @@ function ProjectCard({
                     <ProjectArtwork
                         index={index}
                         title={title}
-                        accent={accent}
+                        accent={accentSolid}
                     />
                 )}
             </div>

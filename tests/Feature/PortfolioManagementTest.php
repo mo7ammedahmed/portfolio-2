@@ -42,6 +42,10 @@ function portfolioProfilePayload(): array
         'theme_light_foreground' => '#0a0a0a',
         'theme_light_muted' => '#686864',
         'glass_effect_enabled' => true,
+        'glass_blur' => 1.25,
+        'glass_surface_opacity' => 0.64,
+        'glass_border_opacity' => 0.22,
+        'glass_saturation' => 1.35,
         'is_available' => true,
         'is_visible' => true,
     ];

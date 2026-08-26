@@ -101,8 +101,6 @@
     --secondary-foreground: #f1f1ed;
     --muted: #1c1e1c;
     --muted-foreground: #9b9e98;
-    --accent: #d9ff43;
-    --accent-foreground: #0b0c0b;
     --destructive: #ef6758;
     --destructive-foreground: #190a08;
     --border: #2d302d;
@@ -120,42 +118,42 @@
 }
 
 :root[data-dashboard-palette='true'] {
-    --background: var(--dashboard-light-background);
+    --background: var(--dashboard-light-background-solid);
     --foreground: var(--dashboard-light-foreground);
-    --card: var(--dashboard-light-surface);
+    --card: var(--dashboard-light-surface-solid);
     --card-foreground: var(--dashboard-light-foreground);
-    --popover: var(--dashboard-light-surface);
+    --popover: var(--dashboard-light-surface-solid);
     --popover-foreground: var(--dashboard-light-foreground);
     --primary: var(--dashboard-light-accent);
     --primary-foreground: var(--dashboard-light-accent-foreground);
     --highlight: var(--dashboard-light-highlight);
     --secondary: color-mix(
         in srgb,
-        var(--dashboard-light-surface) 86%,
+        var(--dashboard-light-surface-solid) 86%,
         var(--dashboard-light-foreground)
     );
     --secondary-foreground: var(--dashboard-light-foreground);
     --muted: color-mix(
         in srgb,
-        var(--dashboard-light-surface) 82%,
+        var(--dashboard-light-surface-solid) 82%,
         var(--dashboard-light-foreground)
     );
     --muted-foreground: var(--dashboard-light-muted);
     --accent: color-mix(
         in srgb,
         var(--dashboard-light-accent) 20%,
-        var(--dashboard-light-surface)
+        var(--dashboard-light-surface-solid)
     );
     --accent-foreground: var(--dashboard-light-foreground);
     --border: color-mix(
         in srgb,
         var(--dashboard-light-foreground) 18%,
-        var(--dashboard-light-background)
+        var(--dashboard-light-background-solid)
     );
     --input: color-mix(
         in srgb,
         var(--dashboard-light-foreground) 30%,
-        var(--dashboard-light-background)
+        var(--dashboard-light-background-solid)
     );
     --ring: var(--dashboard-light-highlight);
     --chart-1: var(--dashboard-light-highlight);
@@ -167,14 +165,14 @@
     --chart-3: color-mix(
         in srgb,
         var(--dashboard-light-accent) 62%,
-        var(--dashboard-light-surface)
+        var(--dashboard-light-surface-solid)
     );
     --chart-4: var(--dashboard-light-foreground);
     --chart-5: var(--dashboard-light-muted);
     --sidebar: color-mix(
         in srgb,
-        var(--dashboard-light-surface) 68%,
-        var(--dashboard-light-background)
+        var(--dashboard-light-surface-solid) 68%,
+        var(--dashboard-light-background-solid)
     );
     --sidebar-foreground: var(--dashboard-light-foreground);
     --sidebar-primary: var(--dashboard-light-accent);
@@ -182,25 +180,25 @@
     --sidebar-accent: color-mix(
         in srgb,
         var(--dashboard-light-accent) 16%,
-        var(--dashboard-light-surface)
+        var(--dashboard-light-surface-solid)
     );
     --sidebar-accent-foreground: var(--dashboard-light-foreground);
     --sidebar-border: color-mix(
         in srgb,
         var(--dashboard-light-foreground) 16%,
-        var(--dashboard-light-background)
+        var(--dashboard-light-background-solid)
     );
     --sidebar-ring: var(--dashboard-light-highlight);
 }
 
 .dark[data-dashboard-palette='true'] {
-    --background: var(--dashboard-dark-background);
+    --background: var(--dashboard-dark-background-solid);
     --foreground: var(--dashboard-dark-foreground);
-    --card: var(--dashboard-dark-surface);
+    --card: var(--dashboard-dark-surface-solid);
     --card-foreground: var(--dashboard-dark-foreground);
     --popover: color-mix(
         in srgb,
-        var(--dashboard-dark-surface) 92%,
+        var(--dashboard-dark-surface-solid) 92%,
         var(--dashboard-dark-foreground)
     );
     --popover-foreground: var(--dashboard-dark-foreground);
@@ -209,31 +207,31 @@
     --highlight: var(--dashboard-dark-highlight);
     --secondary: color-mix(
         in srgb,
-        var(--dashboard-dark-surface) 84%,
+        var(--dashboard-dark-surface-solid) 84%,
         var(--dashboard-dark-foreground)
     );
     --secondary-foreground: var(--dashboard-dark-foreground);
     --muted: color-mix(
         in srgb,
-        var(--dashboard-dark-surface) 88%,
+        var(--dashboard-dark-surface-solid) 88%,
         var(--dashboard-dark-foreground)
     );
     --muted-foreground: var(--dashboard-dark-muted);
     --accent: color-mix(
         in srgb,
         var(--dashboard-dark-accent) 14%,
-        var(--dashboard-dark-surface)
+        var(--dashboard-dark-surface-solid)
     );
     --accent-foreground: var(--dashboard-dark-foreground);
     --border: color-mix(
         in srgb,
         var(--dashboard-dark-foreground) 16%,
-        var(--dashboard-dark-background)
+        var(--dashboard-dark-background-solid)
     );
     --input: color-mix(
         in srgb,
         var(--dashboard-dark-foreground) 28%,
-        var(--dashboard-dark-background)
+        var(--dashboard-dark-background-solid)
     );
     --ring: var(--dashboard-dark-highlight);
     --chart-1: var(--dashboard-dark-highlight);
@@ -245,14 +243,14 @@
     --chart-3: color-mix(
         in srgb,
         var(--dashboard-dark-accent) 60%,
-        var(--dashboard-dark-surface)
+        var(--dashboard-dark-surface-solid)
     );
     --chart-4: var(--dashboard-dark-foreground);
     --chart-5: var(--dashboard-dark-muted);
     --sidebar: color-mix(
         in srgb,
-        var(--dashboard-dark-background) 58%,
-        var(--dashboard-dark-surface)
+        var(--dashboard-dark-background-solid) 58%,
+        var(--dashboard-dark-surface-solid)
     );
     --sidebar-foreground: var(--dashboard-dark-foreground);
     --sidebar-primary: var(--dashboard-dark-accent);
@@ -260,13 +258,13 @@
     --sidebar-accent: color-mix(
         in srgb,
         var(--dashboard-dark-accent) 13%,
-        var(--dashboard-dark-surface)
+        var(--dashboard-dark-surface-solid)
     );
     --sidebar-accent-foreground: var(--dashboard-dark-foreground);
     --sidebar-border: color-mix(
         in srgb,
         var(--dashboard-dark-foreground) 14%,
-        var(--dashboard-dark-background)
+        var(--dashboard-dark-background-solid)
     );
     --sidebar-ring: var(--dashboard-dark-highlight);
 }
@@ -277,19 +275,19 @@
     }
 
     html {
-        scroll-behavior: smooth;
+        @apply scroll-smooth;
     }
 
     body {
         @apply bg-background text-foreground antialiased;
     }
 
-    :focus-visible {
-        @apply outline-2 outline-offset-2 outline-ring;
-    }
-
     ::selection {
         background: color-mix(in srgb, var(--primary) 35%, transparent);
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-ring;
     }
 }
 
@@ -396,9 +394,11 @@
             calc(var(--hero-progress, 0) * -1.4rem),
             calc(var(--hero-progress, 0) * -0.35rem),
             0
-        );
-        transition: color 250ms ease;
+        )
+        scale(calc(1 - var(--hero-progress, 0) * 0.025));
         will-change: transform;
+        color: var(--portfolio-foreground);
+        filter: contrast(1.08) brightness(0.8);
     }
 
     .portfolio-role-word:nth-child(even) {
@@ -659,7 +659,7 @@
         min-height: 36rem;
         place-items: center;
         overflow: hidden;
-        border: 1px solid var(--portfolio-border);
+        border: 1px var(--portfolio-border);
         background:
             radial-gradient(
                 circle at 50% 52%,
@@ -1214,7 +1214,6 @@
         transform: translateY(16px);
         filter: blur(8px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1372,6 +1371,11 @@
         background: var(--portfolio-accent);
     }
 
+    .portfolio-work-dots button[aria-current='true']::before {
+        height: 3px;
+        background: var(--portfolio-accent);
+    }
+
     .portfolio-work-dots button:focus-visible {
         outline: 2px solid var(--portfolio-accent);
         outline-offset: 2px;
@@ -1474,6 +1478,7 @@
     }
 }
 
+/* Glass effect */
 [data-glass='enabled'] {
     --portfolio-glass-surface: color-mix(
         in srgb,
@@ -1497,7 +1502,7 @@
         .portfolio-work-card
     ) {
     border-color: var(--portfolio-glass-border);
-    backdrop-filter: blur(1.25rem) saturate(135%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
     box-shadow:
         inset 0 1px 0
             color-mix(in srgb, var(--portfolio-foreground) 10%, transparent),
@@ -1520,9 +1525,10 @@
         var(--portfolio-background) 58%,
         transparent
     );
-    backdrop-filter: blur(0.9rem) saturate(125%);
+    backdrop-filter: blur(0.9rem) saturate(1.25);
 }
 
+/* Fallback for browsers without backdrop-filter */
 @supports not (backdrop-filter: blur(1rem)) {
     [data-glass='enabled']
         :is(

@@ -39,7 +39,6 @@ class ProfileFactory extends Factory
             'contact_auto_reply_body_template' => Profile::DEFAULT_AUTO_REPLY_BODY,
             'is_available' => true,
             'is_visible' => true,
-            'theme_accent' => '#d9ff43',
             'theme_dark_accent' => '#d9ff43',
             'theme_light_accent' => '#006c55',
             'theme_dark_background' => '#070707',
@@ -51,6 +50,10 @@ class ProfileFactory extends Factory
             'theme_light_foreground' => '#0a0a0a',
             'theme_light_muted' => '#686864',
             'glass_effect_enabled' => false,
+            'glass_blur' => 1.25,
+            'glass_surface_opacity' => 0.64,
+            'glass_border_opacity' => 0.22,
+            'glass_saturation' => 1.35,
         ];
     }
 }

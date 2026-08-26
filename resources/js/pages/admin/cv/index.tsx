@@ -28,7 +28,7 @@ export default function CvIndex({ cv }: Props) {
           description="Create, edit, and optimize your professional CV with real-time ATS scoring."
           action={
             <Button asChild>
-              <Link href={cvRoutes.create().url()}>
+              <Link href={cvRoutes.create()}>
                 Create new CV
                 <ArrowRight className="size-4" />
               </Link>
@@ -60,7 +60,7 @@ export default function CvIndex({ cv }: Props) {
                 </div>
                 <div className="flex items-center gap-3">
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={cvRoutes.edit({ cv: cv.id }).url()}>
+                    <Link href={cvRoutes.edit({ cv: cv.id })}>
                       Edit CV
                       <ArrowRight className="size-3.5" />
                     </Link>

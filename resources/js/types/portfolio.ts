@@ -3,18 +3,33 @@ export type Localized = {
     name_en: string;
 };
 
+export type Gradient = {
+    type: 'linear' | 'radial';
+    angle: number; // degrees 0-360
+    stops: GradientStop[];
+};
+
+export type GradientStop = {
+    color: string; // hex
+    position: number; // 0-100
+};
+
 export type PortfolioTheme = {
-    theme_dark_accent: string;
-    theme_light_accent: string;
-    theme_dark_background: string;
-    theme_dark_surface: string;
+    theme_dark_accent: string | Gradient;
+    theme_light_accent: string | Gradient;
+    theme_dark_background: string | Gradient;
+    theme_dark_surface: string | Gradient;
     theme_dark_foreground: string;
     theme_dark_muted: string;
-    theme_light_background: string;
-    theme_light_surface: string;
+    theme_light_background: string | Gradient;
+    theme_light_surface: string | Gradient;
     theme_light_foreground: string;
     theme_light_muted: string;
     glass_effect_enabled: boolean;
+    glass_blur: number;
+    glass_surface_opacity: number;
+    glass_border_opacity: number;
+    glass_saturation: number;
 };
 
 export type PortfolioProfile = Localized &

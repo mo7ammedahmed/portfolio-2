@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
+import { toast } from 'sonner';
 import {
   Field,
   FormSection,
@@ -31,7 +32,6 @@ import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 import cvRoutes from '@/routes/portfolio/cv';
 
 type ContactInfo = {
@@ -204,6 +204,9 @@ export default function CvForm({ cv }: Props) {
     }, 1500);
   };
 
+  // Floating save button logic
+  const isDirty = form && form.dirty ? Object.keys(form.dirty).length > 0 : false;
+
   const addExperience = () => {
     form.setData('experience', [
       ...form.data.experience,
@@ -326,7 +329,9 @@ export default function CvForm({ cv }: Props) {
   };
 
   const calculateSkillsSectionScore = (): number => {
-    if (form.data.skills.length === 0) return 0;
+    if (form.data.skills.length === 0) {
+return 0;
+}
 
     // Points for having skills
     let score = 5;
@@ -343,7 +348,9 @@ export default function CvForm({ cv }: Props) {
   };
 
   const calculateWorkExperienceScore = (): number => {
-    if (form.data.experience.length === 0) return 0;
+    if (form.data.experience.length === 0) {
+return 0;
+}
 
     // Points for having experience
     let score = form.data.experience.length >= 2 ? 5 : 3;
@@ -362,7 +369,9 @@ export default function CvForm({ cv }: Props) {
   };
 
   const calculateEducationScore = (): number => {
-    if (form.data.education.length === 0) return 0;
+    if (form.data.education.length === 0) {
+return 0;
+}
 
     // Points for having education
     let score = form.data.education.length >= 1 ? 5 : 0;
@@ -387,6 +396,7 @@ export default function CvForm({ cv }: Props) {
 
     // Summary length (ideal: 100-300 characters)
     const summaryLength = form.data.summary.length;
+
     if (summaryLength >= 100 && summaryLength <= 300) {
       score += 4;
     } else if (summaryLength >= 50) {
@@ -395,6 +405,7 @@ export default function CvForm({ cv }: Props) {
 
     // Experience count (ideal: 2-4 positions for most people)
     const expCount = form.data.experience.length;
+
     if (expCount >= 2 && expCount <= 4) {
       score += 3;
     } else if (expCount >= 1) {
@@ -403,6 +414,7 @@ export default function CvForm({ cv }: Props) {
 
     // Education count (ideal: 1-2 entries)
     const eduCount = form.data.education.length;
+
     if (eduCount >= 1 && eduCount <= 2) {
       score += 3;
     } else if (eduCount >= 1) {
@@ -413,7 +425,7 @@ export default function CvForm({ cv }: Props) {
   };
 
   const calculateQuantifiableScore = (): number => {
-    let score = 0;
+    const score = 0;
 
     // Check for numbers, percentages, dollar amounts in descriptions
     const allText = [
@@ -438,6 +450,7 @@ export default function CvForm({ cv }: Props) {
     let matches = 0;
     patterns.forEach(pattern => {
       const matchesFound = allText.match(pattern);
+
       if (matchesFound) {
         matches += matchesFound.length;
       }
@@ -1268,7 +1281,7 @@ export default function CvForm({ cv }: Props) {
             asChild
             disabled={isSaving}
           >
-            <Link href={cvRoutes.index().url()}>
+            <Link href={cvRoutes.index()}>
               <ArrowLeft className="size-4" />
               Back to CV List
             </Link>
@@ -1281,6 +1294,18 @@ export default function CvForm({ cv }: Props) {
             <Check className="size-4" />
           </Button>
         </div>
+
+        {/* Floating save button */}
+        {isDirty && (
+          <button
+            onClick={submit}
+            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 rounded-xl border bg-primary/90 px-4 py-2 text-xs font-semibold shadow-md backdrop-blur-md border-border/20 hover:bg-primary/80 transition-all duration-200"
+            aria-label="Save changes"
+          >
+            <Save className="size-4" />
+            Save changes
+          </button>
+        )}
       </form>
     </>
   );
