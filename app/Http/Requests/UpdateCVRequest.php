@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Models\CV;
@@ -23,7 +25,7 @@ class UpdateCVRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->user()?->portfolioOwnerId();
+        $this->user()?->portfolioOwnerId();
 
         return [
             'title' => ['required', 'string', 'max:200'],

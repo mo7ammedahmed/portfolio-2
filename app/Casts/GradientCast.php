@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
@@ -27,11 +29,17 @@ class GradientCast implements CastsAttributes
         if (is_string($value)) {
             // Try to parse as JSON gradient; if valid gradient array, return it.
             $decoded = json_decode($value, true, 512);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                // Validate gradient structure
-                if ($this->isValidGradient($decoded)) {
-                    return $decoded;
-                }
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                // Otherwise assume it's a hex color string.
+                return $value;
+            }
+            if (! is_array($decoded)) {
+                // Otherwise assume it's a hex color string.
+                return $value;
+            }
+            // Validate gradient structure
+            if ($this->isValidGradient($decoded)) {
+                return $decoded;
             }
 
             // Otherwise assume it's a hex color string.
@@ -96,8 +104,6 @@ class GradientCast implements CastsAttributes
 
         $positions = collect($gradient['stops'])->pluck('position')->sort()->values();
 
-        return $positions->every(function ($pos, $key) use ($positions) {
-            return $key === 0 || $pos > $positions->get($key - 1);
-        });
+        return $positions->every(fn ($pos, $key) => $key === 0 || $pos > $positions->get($key - 1));
     }
 }

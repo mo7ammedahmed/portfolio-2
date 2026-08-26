@@ -20,7 +20,7 @@ use Inertia\Response;
 class ContactMessageController extends Controller
 {
     public function __construct(
-        private RenderContactEmailTemplate $templateRenderer,
+        private readonly RenderContactEmailTemplate $templateRenderer,
     ) {}
 
     public function index(Request $request): Response

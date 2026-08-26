@@ -90,7 +90,7 @@ class PortfolioAnalyticsController extends Controller
         $sessionTotal = $currentSummary['sessions'];
 
         $profileColor = null;
-        if ($profileId) {
+        if ($profileId !== 0) {
             $profile = Profile::find($profileId);
             if ($profile) {
                 $profileColor = $profile->theme_light_accent;

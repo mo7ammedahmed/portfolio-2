@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
@@ -9,7 +11,6 @@ use App\Models\CV;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -151,15 +152,15 @@ class CVController extends Controller
         // This is a simplified version - in reality, this would be more complex
         $scores = [
             'contact_information' => $this->scoreContactInformation($cv),
-            'keyword_optimization' => rand(7, 10), // Placeholder
+            'keyword_optimization' => random_int(7, 10), // Placeholder
             'standard_headings' => 10, // We enforce standard headings
             'file_format_compatibility' => 10, // Our format is ATS-friendly
-            'skills_section_quality' => rand(7, 10), // Placeholder
-            'work_experience_format' => rand(7, 10), // Placeholder
-            'education_completeness' => rand(7, 10), // Placeholder
-            'length_appropriateness' => rand(7, 10), // Placeholder
+            'skills_section_quality' => random_int(7, 10), // Placeholder
+            'work_experience_format' => random_int(7, 10), // Placeholder
+            'education_completeness' => random_int(7, 10), // Placeholder
+            'length_appropriateness' => random_int(7, 10), // Placeholder
             'font_readability' => 10, // We control the output format
-            'quantifiable_achievements' => rand(5, 10), // Placeholder
+            'quantifiable_achievements' => random_int(5, 10), // Placeholder
         ];
 
         $total = array_sum($scores);

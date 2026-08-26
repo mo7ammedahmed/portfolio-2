@@ -194,8 +194,6 @@ class Profile extends Model
 
         $positions = collect($value['stops'])->pluck('position')->sort()->values();
 
-        return $positions->every(function ($pos, $key) use ($positions) {
-            return $key === 0 || $pos > $positions->get($key - 1);
-        });
+        return $positions->every(fn ($pos, $key) => $key === 0 || $pos > $positions->get($key - 1));
     }
 }

@@ -12,9 +12,11 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Override;
 
 class UpdateTrackingIntegrationRequest extends FormRequest
 {
+    #[Override]
     protected function prepareForValidation(): void
     {
         if (! $this->has('installation_method')) {
@@ -177,6 +179,7 @@ class UpdateTrackingIntegrationRequest extends FormRequest
     /**
      * @return array<string, string>
      */
+    #[Override]
     public function messages(): array
     {
         return [

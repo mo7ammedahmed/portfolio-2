@@ -248,12 +248,12 @@ enum TrackingPlatform: string
     {
         return match ($this) {
             self::GoogleTag => '/^(?:G|GT|AW|DC)-[A-Z0-9]+$/i',
-            self::GoogleAds => '/^AW-[0-9]{5,30}$/',
+            self::GoogleAds => '/^AW-\d{5,30}$/',
             self::GoogleTagManager => '/^GTM-[A-Z0-9]+$/i',
             self::GoogleSearchConsole => '/^[A-Z0-9_-]{20,200}$/i',
             self::MetaPixel,
             self::LinkedInInsight,
-            self::PinterestTag => '/^[0-9]{5,30}$/',
+            self::PinterestTag => '/^\d{5,30}$/',
             self::TikTokPixel,
             self::XPixel,
             self::MicrosoftClarity => '/^[A-Z0-9]{5,40}$/i',

@@ -67,7 +67,7 @@ class TrackPageView
         // Get the profile for the current user if authenticated, otherwise fallback to first visible profile
         $profile = $this->getProfile($request);
 
-        if (! $profile) {
+        if (! $profile instanceof Profile) {
             // If no profile, we cannot associate the session, so we skip recording.
             // But we still need to set the cache to prevent repeated attempts?
             // We'll set the cache and return.
@@ -191,11 +191,7 @@ class TrackPageView
         }
 
         // Skip analytics collector route
-        if (Str::contains($path, 'analytics/collect')) {
-            return true;
-        }
-
-        return false;
+        return Str::contains($path, 'analytics/collect');
     }
 
     /**

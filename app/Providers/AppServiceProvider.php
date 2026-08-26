@@ -72,9 +72,7 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureValidationRules(): void
     {
-        Validator::extend('hex_color', function ($attribute, $value, $parameters, $validator) {
-            return is_string($value) && preg_match('/^#[0-9A-Fa-f]{6}$/', $value) === 1;
-        });
+        Validator::extend('hex_color', fn ($attribute, $value, $parameters, $validator) => is_string($value) && preg_match('/^#[0-9A-Fa-f]{6}$/', $value) === 1);
 
         Validator::extend('palette_color', function ($attribute, $value, $parameters, $validator) {
             // Accepts null? Not needed as fields are required.
@@ -110,9 +108,7 @@ class AppServiceProvider extends ServiceProvider
 
             $positions = collect($value['stops'])->pluck('position')->sort()->values();
 
-            return $positions->every(function ($pos, $key) use ($positions) {
-                return $key === 0 || $pos > $positions->get($key - 1);
-            });
+            return $positions->every(fn ($pos, $key) => $key === 0 || $pos > $positions->get($key - 1));
         });
     }
 }
