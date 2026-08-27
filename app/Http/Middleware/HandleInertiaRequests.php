@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Profile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 use Override;
 
@@ -61,9 +63,15 @@ class HandleInertiaRequests extends Middleware
                 ?->only($themeAttributes)
             : null;
 
+        $profile = Profile::query()->first();
+        $profileImageUrl = $profile?->image
+            ? Storage::disk(config('filesystems.default'))->url($profile->image)
+            : null;
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'profileImageUrl' => $profileImageUrl,
             'auth' => [
                 'user' => $user ? [
                     ...$user->only([

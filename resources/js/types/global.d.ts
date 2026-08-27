@@ -14,6 +14,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             portfolioTheme: PortfolioTheme | null;
+            profileImageUrl: string | null;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };
