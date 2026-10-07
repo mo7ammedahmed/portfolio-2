@@ -1,0 +1,1558 @@
+import { Head, useForm } from '@inertiajs/react';
+import {
+    Braces,
+    Check,
+    MailCheck,
+    MonitorCog,
+    Moon,
+    Save,
+    Sun,
+} from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
+import {
+    Field,
+    FormSection,
+    Textarea,
+    TextInput,
+} from '@/components/admin/form-elements';
+import { PageHeading } from '@/components/admin/page-heading';
+import AlertError from '@/components/alert-error';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import FloatingSaveButton from '@/components/ui/FloatingSaveButton';
+import { Label } from '@/components/ui/label';
+import { getSolidColor } from '@/lib/color-utils';
+import { navigationStyle } from '@/lib/navigation-appearance';
+import { prepareImageUpload } from '@/lib/prepare-image-upload';
+import { update } from '@/routes/portfolio/profile';
+import type { Gradient, GradientStop } from '@/types';
+
+type ProfileData = {
+    id: number;
+    name_ar: string;
+    name_en: string;
+    role_ar: string;
+    role_en: string;
+    short_description_ar: string;
+    short_description_en: string;
+    description_ar: string;
+    description_en: string;
+    location_ar: string;
+    location_en: string;
+    linkedin: string | null;
+    github: string | null;
+    whatsapp: string | null;
+    mobile: string | null;
+    email: string;
+    contact_notification_email: string | null;
+    contact_notification_subject_template: string;
+    contact_notification_body_template: string;
+    contact_auto_reply_enabled: boolean;
+    contact_auto_reply_subject_template: string;
+    contact_auto_reply_body_template: string;
+    website: string | null;
+    resume_url: string | null;
+    is_available: boolean;
+    is_visible: boolean;
+    theme_dark_accent: string | Gradient;
+    theme_light_accent: string | Gradient;
+    theme_dark_background: string | Gradient;
+    theme_dark_surface: string | Gradient;
+    theme_dark_foreground: string;
+    theme_dark_muted: string;
+    theme_light_background: string | Gradient;
+    theme_light_surface: string | Gradient;
+    theme_light_foreground: string;
+    theme_light_muted: string;
+    nav_background: string;
+    nav_text: string;
+    nav_muted: string;
+    nav_active_background: string;
+    nav_active_text: string;
+    nav_border: string;
+    nav_glass_enabled: boolean;
+    nav_opacity: number;
+    nav_blur: number;
+    glass_effect_enabled: boolean;
+    glass_blur: number;
+    glass_surface_opacity: number;
+    glass_border_opacity: number;
+    glass_saturation: number;
+    image_url: string | null;
+};
+
+export default function EditProfile({
+    profile,
+}: {
+    profile: ProfileData | null;
+}) {
+    const form = useForm({
+        name_ar: profile?.name_ar ?? '',
+        name_en: profile?.name_en ?? '',
+        role_ar: profile?.role_ar ?? '',
+        role_en: profile?.role_en ?? '',
+        short_description_ar: profile?.short_description_ar ?? '',
+        short_description_en: profile?.short_description_en ?? '',
+        description_ar: profile?.description_ar ?? '',
+        description_en: profile?.description_en ?? '',
+        location_ar: profile?.location_ar ?? '',
+        location_en: profile?.location_en ?? '',
+        linkedin: profile?.linkedin ?? '',
+        github: profile?.github ?? '',
+        whatsapp: profile?.whatsapp ?? '',
+        mobile: profile?.mobile ?? '',
+        email: profile?.email ?? '',
+        contact_notification_email: profile?.contact_notification_email ?? '',
+        contact_notification_subject_template:
+            profile?.contact_notification_subject_template ??
+            'New portfolio enquiry: {subject}',
+        contact_notification_body_template:
+            profile?.contact_notification_body_template ??
+            'You received a new portfolio message.\n\nName: {name}\nEmail: {email}\nSubject: {subject}\n\n{message}',
+        contact_auto_reply_enabled: profile?.contact_auto_reply_enabled ?? true,
+        contact_auto_reply_subject_template:
+            profile?.contact_auto_reply_subject_template ??
+            'Thanks for your message about {subject}',
+        contact_auto_reply_body_template:
+            profile?.contact_auto_reply_body_template ??
+            'Hi {name},\n\nThanks for reaching out. I received your message and will get back to you soon.\n\nBest,\n{portfolio_name}',
+        website: profile?.website ?? '',
+        resume_url: profile?.resume_url ?? '',
+        is_available: profile?.is_available ?? true,
+        is_visible: profile?.is_visible ?? true,
+        theme_dark_accent: profile?.theme_dark_accent ?? '#d9ff43',
+        theme_light_accent: profile?.theme_light_accent ?? '#006c55',
+        theme_dark_background: profile?.theme_dark_background ?? '#070707',
+        theme_dark_surface: profile?.theme_dark_surface ?? '#0d0d0d',
+        theme_dark_foreground: profile?.theme_dark_foreground ?? '#f4f4f1',
+        theme_dark_muted: profile?.theme_dark_muted ?? '#a4a4a0',
+        theme_light_background: profile?.theme_light_background ?? '#f4f3ee',
+        theme_light_surface: profile?.theme_light_surface ?? '#ffffff',
+        theme_light_foreground: profile?.theme_light_foreground ?? '#0a0a0a',
+        theme_light_muted: profile?.theme_light_muted ?? '#686864',
+        nav_background: profile?.nav_background ?? '#0a0a0a',
+        nav_text: profile?.nav_text ?? '#f5f5f2',
+        nav_muted: profile?.nav_muted ?? '#a1a1aa',
+        nav_active_background: profile?.nav_active_background ?? '#006c55',
+        nav_active_text: profile?.nav_active_text ?? '#ffffff',
+        nav_border: profile?.nav_border ?? '#383838',
+        nav_glass_enabled: profile?.nav_glass_enabled ?? false,
+        nav_opacity: profile?.nav_opacity ?? 0.72,
+        nav_blur: profile?.nav_blur ?? 20,
+        glass_effect_enabled: profile?.glass_effect_enabled ?? false,
+        glass_blur: profile?.glass_blur ?? 1.25,
+        glass_surface_opacity: profile?.glass_surface_opacity ?? 0.64,
+        glass_border_opacity: profile?.glass_border_opacity ?? 0.22,
+        glass_saturation: profile?.glass_saturation ?? 1.35,
+        image: null as File | null,
+    });
+    const [isPreparingImage, setIsPreparingImage] = useState(false);
+    const [imageError, setImageError] = useState<string | null>(null);
+    const [imageStatus, setImageStatus] = useState<string | null>(null);
+    const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(
+        null,
+    );
+    const selectedImageUrlRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        const imageUrlRef = selectedImageUrlRef;
+
+        return () => {
+            if (imageUrlRef.current) {
+                URL.revokeObjectURL(imageUrlRef.current);
+            }
+        };
+    }, []);
+
+    const submit = (event?: FormEvent) => {
+        event?.preventDefault();
+
+        if (isPreparingImage) {
+            return;
+        }
+
+        form.transform((data) => ({ ...data, _method: 'put' }));
+        form.post(update.url(), {
+            forceFormData: true,
+            preserveScroll: true,
+        });
+    };
+
+    const selectImage = async (event: ChangeEvent<HTMLInputElement>) => {
+        const input = event.currentTarget;
+        const file = input.files?.[0] ?? null;
+
+        form.clearErrors('image');
+        setImageError(null);
+        setImageStatus(null);
+
+        if (!file) {
+            form.setData('image', null);
+            clearSelectedImage();
+
+            return;
+        }
+
+        setIsPreparingImage(true);
+
+        try {
+            const preparedImage = await prepareImageUpload(file);
+            const objectUrl = URL.createObjectURL(preparedImage);
+
+            clearSelectedImage();
+            selectedImageUrlRef.current = objectUrl;
+            setSelectedImageUrl(objectUrl);
+            form.setData('image', preparedImage);
+
+            if (preparedImage !== file) {
+                setImageStatus(
+                    `Optimized from ${formatFileSize(file.size)} to ${formatFileSize(preparedImage.size)}.`,
+                );
+            } else {
+                setImageStatus(`${formatFileSize(file.size)} ready to upload.`);
+            }
+        } catch (error) {
+            form.setData('image', null);
+            clearSelectedImage();
+            input.value = '';
+            setImageError(
+                error instanceof Error
+                    ? error.message
+                    : 'The image could not be prepared.',
+            );
+        } finally {
+            setIsPreparingImage(false);
+        }
+    };
+
+    const clearSelectedImage = () => {
+        if (selectedImageUrlRef.current) {
+            URL.revokeObjectURL(selectedImageUrlRef.current);
+            selectedImageUrlRef.current = null;
+        }
+
+        setSelectedImageUrl(null);
+    };
+
+    const isSaving = form.processing || isPreparingImage;
+    const previewUrl = selectedImageUrl ?? profile?.image_url;
+
+    return (
+        <>
+            <Head title="Edit portfolio profile" />
+            <form
+                onSubmit={submit}
+                className="mx-auto w-full max-w-6xl p-5 sm:p-8"
+            >
+                <PageHeading
+                    eyebrow="Public identity"
+                    title="Profile"
+                    description="The positioning, biography, and contact details shown across your public portfolio."
+                    action={
+                        <Button disabled={isSaving}>
+                            <Save className="size-4" />
+                            {isPreparingImage
+                                ? 'Preparing image…'
+                                : form.processing
+                                  ? 'Saving…'
+                                  : 'Save profile'}
+                        </Button>
+                    }
+                />
+                {Object.keys(form.errors).length > 0 && (
+                    <div className="mt-6">
+                        <AlertError
+                            errors={Object.values(form.errors)}
+                            title="Please review the profile fields."
+                        />
+                    </div>
+                )}
+
+                <FormSection
+                    title="شريط التنقل / Navigation bar"
+                    description="ألوان مستقلة عن ثيم الصفحة، مع معاينة مباشرة وخيار المظهر الزجاجي."
+                >
+                    <div className="sm:col-span-2">
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {(
+                                [
+                                    ['nav_background', 'الخلفية / Background'],
+                                    [
+                                        'nav_text',
+                                        'النص عند المرور / Hover text',
+                                    ],
+                                    [
+                                        'nav_muted',
+                                        'النص والأيقونات / Text & icons',
+                                    ],
+                                    [
+                                        'nav_active_background',
+                                        'خلفية العنصر النشط / Active background',
+                                    ],
+                                    [
+                                        'nav_active_text',
+                                        'نص العنصر النشط / Active text',
+                                    ],
+                                    ['nav_border', 'الحدود والفواصل / Border'],
+                                ] as const
+                            ).map(([key, label]) => (
+                                <Field
+                                    key={key}
+                                    label={label}
+                                    error={form.errors[key]}
+                                >
+                                    <input
+                                        type="color"
+                                        aria-label={label}
+                                        value={form.data[key]}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                key,
+                                                event.target.value,
+                                            )
+                                        }
+                                        className="h-10 w-full cursor-pointer rounded border"
+                                    />
+                                </Field>
+                            ))}
+                        </div>
+                        <label className="mt-5 flex items-center gap-3">
+                            <Checkbox
+                                checked={form.data.nav_glass_enabled}
+                                onCheckedChange={(checked) =>
+                                    form.setData(
+                                        'nav_glass_enabled',
+                                        checked === true,
+                                    )
+                                }
+                            />
+                            <span>
+                                مظهر زجاجي لشريط التنقل / Glass navigation
+                            </span>
+                        </label>
+                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                            <Field
+                                label={`عتامة الخلفية / Opacity: ${Math.round(form.data.nav_opacity * 100)}%`}
+                                error={form.errors.nav_opacity}
+                            >
+                                <input
+                                    type="range"
+                                    aria-label="Navigation opacity"
+                                    min="0.1"
+                                    max="1"
+                                    step="0.01"
+                                    disabled={!form.data.nav_glass_enabled}
+                                    value={form.data.nav_opacity}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'nav_opacity',
+                                            Number(event.target.value),
+                                        )
+                                    }
+                                    className="w-full"
+                                />
+                            </Field>
+                            <Field
+                                label={`تمويه الخلفية / Blur: ${form.data.nav_blur}px`}
+                                error={form.errors.nav_blur}
+                            >
+                                <input
+                                    type="range"
+                                    aria-label="Navigation blur"
+                                    min="0"
+                                    max="40"
+                                    step="1"
+                                    disabled={!form.data.nav_glass_enabled}
+                                    value={form.data.nav_blur}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'nav_blur',
+                                            Number(event.target.value),
+                                        )
+                                    }
+                                    className="w-full"
+                                />
+                            </Field>
+                        </div>
+                        <div className="mt-6 flex justify-center overflow-x-auto rounded-xl bg-gradient-to-br from-sky-300 via-violet-300 to-amber-200 p-6">
+                            <nav
+                                aria-label="Navigation appearance preview"
+                                className="portfolio-primary-nav flex items-center gap-1 rounded-full border p-1.5"
+                                data-nav-glass={
+                                    form.data.nav_glass_enabled
+                                        ? 'enabled'
+                                        : 'disabled'
+                                }
+                                style={navigationStyle(form.data)}
+                            >
+                                <a
+                                    href="#"
+                                    onClick={(event) => event.preventDefault()}
+                                    aria-current="location"
+                                    className="rounded-full px-4 py-2"
+                                >
+                                    الرئيسية
+                                </a>
+                                <a
+                                    href="#"
+                                    onClick={(event) => event.preventDefault()}
+                                    className="rounded-full px-4 py-2"
+                                >
+                                    الأعمال
+                                </a>
+                                <a
+                                    href="#"
+                                    onClick={(event) => event.preventDefault()}
+                                    className="rounded-full px-4 py-2"
+                                >
+                                    تواصل
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </FormSection>
+
+                <FormSection
+                    title="Identity"
+                    description="Use a clear role and concise value proposition in both languages."
+                >
+                    <Field label="Name · English" error={form.errors.name_en}>
+                        <TextInput
+                            value={form.data.name_en}
+                            onChange={(e) =>
+                                form.setData('name_en', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field label="الاسم · العربية" error={form.errors.name_ar}>
+                        <TextInput
+                            dir="rtl"
+                            value={form.data.name_ar}
+                            onChange={(e) =>
+                                form.setData('name_ar', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field label="Role · English" error={form.errors.role_en}>
+                        <TextInput
+                            value={form.data.role_en}
+                            onChange={(e) =>
+                                form.setData('role_en', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field label="الدور · العربية" error={form.errors.role_ar}>
+                        <TextInput
+                            dir="rtl"
+                            value={form.data.role_ar}
+                            onChange={(e) =>
+                                form.setData('role_ar', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Short pitch · English"
+                        error={form.errors.short_description_en}
+                    >
+                        <Textarea
+                            value={form.data.short_description_en}
+                            onChange={(e) =>
+                                form.setData(
+                                    'short_description_en',
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="نبذة مختصرة · العربية"
+                        error={form.errors.short_description_ar}
+                    >
+                        <Textarea
+                            dir="rtl"
+                            value={form.data.short_description_ar}
+                            onChange={(e) =>
+                                form.setData(
+                                    'short_description_ar',
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Biography · English"
+                        error={form.errors.description_en}
+                    >
+                        <Textarea
+                            className="min-h-40"
+                            value={form.data.description_en}
+                            onChange={(e) =>
+                                form.setData('description_en', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="السيرة · العربية"
+                        error={form.errors.description_ar}
+                    >
+                        <Textarea
+                            dir="rtl"
+                            className="min-h-40"
+                            value={form.data.description_ar}
+                            onChange={(e) =>
+                                form.setData('description_ar', e.target.value)
+                            }
+                        />
+                    </Field>
+                </FormSection>
+
+                <FormSection
+                    title="Contact email delivery"
+                    description="Choose where enquiries are delivered and personalize both email templates."
+                >
+                    <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 sm:col-span-2">
+                        <div className="flex items-start gap-3">
+                            <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/30 bg-background text-highlight">
+                                <MailCheck className="size-4" />
+                            </span>
+                            <div>
+                                <p className="text-sm font-semibold">
+                                    Two emails, one conversation
+                                </p>
+                                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                    You receive the full enquiry and the visitor
+                                    receives an automatic acknowledgement when
+                                    auto-reply is enabled.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="hidden sm:block" aria-hidden="true" />
+                    <Field
+                        label="Inbox email"
+                        error={form.errors.contact_notification_email}
+                        hint="Leave blank to use your public profile email."
+                    >
+                        <TextInput
+                            type="email"
+                            value={form.data.contact_notification_email}
+                            placeholder={form.data.email || 'you@example.com'}
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_notification_email',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Owner notification subject"
+                        error={
+                            form.errors.contact_notification_subject_template
+                        }
+                    >
+                        <TextInput
+                            value={
+                                form.data.contact_notification_subject_template
+                            }
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_notification_subject_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Owner notification body"
+                        error={form.errors.contact_notification_body_template}
+                    >
+                        <Textarea
+                            className="min-h-40 font-mono text-sm"
+                            value={form.data.contact_notification_body_template}
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_notification_body_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <div className="sm:col-span-2">
+                        <Toggle
+                            label="Send an automatic reply to visitors"
+                            checked={form.data.contact_auto_reply_enabled}
+                            onChange={(checked) =>
+                                form.setData(
+                                    'contact_auto_reply_enabled',
+                                    checked,
+                                )
+                            }
+                        />
+                    </div>
+                    <Field
+                        label="Auto-reply subject"
+                        error={form.errors.contact_auto_reply_subject_template}
+                    >
+                        <TextInput
+                            disabled={!form.data.contact_auto_reply_enabled}
+                            value={
+                                form.data.contact_auto_reply_subject_template
+                            }
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_auto_reply_subject_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Auto-reply body"
+                        error={form.errors.contact_auto_reply_body_template}
+                    >
+                        <Textarea
+                            disabled={!form.data.contact_auto_reply_enabled}
+                            className="min-h-40 font-mono text-sm"
+                            value={form.data.contact_auto_reply_body_template}
+                            onChange={(event) =>
+                                form.setData(
+                                    'contact_auto_reply_body_template',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <div className="rounded-xl border bg-card p-4 sm:col-span-2">
+                        <p className="flex items-center gap-2 text-sm font-semibold">
+                            <Braces className="size-4 text-highlight" />
+                            Available placeholders
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
+                            {[
+                                '{name}',
+                                '{email}',
+                                '{subject}',
+                                '{message}',
+                                '{portfolio_name}',
+                                '{portfolio_email}',
+                            ].map((placeholder) => (
+                                <code
+                                    key={placeholder}
+                                    className="rounded-md border bg-background px-2 py-1"
+                                >
+                                    {placeholder}
+                                </code>
+                            ))}
+                        </div>
+                    </div>
+                </FormSection>
+
+                <FormSection
+                    title="Contact"
+                    description="Public ways for people to find and reach you."
+                >
+                    <Field label="Email" error={form.errors.email}>
+                        <TextInput
+                            type="email"
+                            value={form.data.email}
+                            onChange={(e) =>
+                                form.setData('email', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field label="Mobile" error={form.errors.mobile}>
+                        <TextInput
+                            value={form.data.mobile}
+                            onChange={(e) =>
+                                form.setData('mobile', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Location · English"
+                        error={form.errors.location_en}
+                    >
+                        <TextInput
+                            value={form.data.location_en}
+                            onChange={(e) =>
+                                form.setData('location_en', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="الموقع · العربية"
+                        error={form.errors.location_ar}
+                    >
+                        <TextInput
+                            dir="rtl"
+                            value={form.data.location_ar}
+                            onChange={(e) =>
+                                form.setData('location_ar', e.target.value)
+                            }
+                        />
+                    </Field>
+                    {(
+                        [
+                            'website',
+                            'linkedin',
+                            'github',
+                            'whatsapp',
+                            'resume_url',
+                        ] as const
+                    ).map((key) => (
+                        <Field
+                            key={key}
+                            label={key.replace('_', ' ')}
+                            error={form.errors[key]}
+                        >
+                            <TextInput
+                                type="url"
+                                value={form.data[key]}
+                                onChange={(e) =>
+                                    form.setData(key, e.target.value)
+                                }
+                            />
+                        </Field>
+                    ))}
+                </FormSection>
+
+                <FormSection
+                    title="Presentation"
+                    description="Control your portrait and publishing status."
+                >
+                    <Field
+                        label="Portrait"
+                        error={imageError ?? form.errors.image}
+                        hint={
+                            imageStatus ??
+                            'JPG, PNG, or WebP. Large photos are optimized automatically.'
+                        }
+                    >
+                        <TextInput
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={isPreparingImage}
+                            onChange={selectImage}
+                        />
+                    </Field>
+                    <Toggle
+                        label="Available for work"
+                        checked={form.data.is_available}
+                        onChange={(checked) =>
+                            form.setData('is_available', checked)
+                        }
+                    />
+                    <Toggle
+                        label="Publish portfolio"
+                        checked={form.data.is_visible}
+                        onChange={(checked) =>
+                            form.setData('is_visible', checked)
+                        }
+                    />
+                    {previewUrl && (
+                        <div className="sm:col-span-2">
+                            <img
+                                src={previewUrl}
+                                alt={
+                                    selectedImageUrl
+                                        ? 'Selected profile preview'
+                                        : 'Current profile'
+                                }
+                                className="h-32 w-32 rounded-2xl border object-cover"
+                            />
+                        </div>
+                    )}
+                </FormSection>
+
+                <FormSection
+                    title="Portfolio palettes"
+                    description="Publish the colors used by the public portfolio and dashboard in both light and dark mode."
+                >
+                    <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 sm:col-span-2">
+                        <div className="flex items-start gap-3">
+                            <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/30 bg-background text-highlight">
+                                <MonitorCog className="size-4" />
+                            </span>
+                            <div>
+                                <p className="text-sm font-semibold">
+                                    Appearance stays local
+                                </p>
+                                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                    Light, dark, or system preference stays on
+                                    each device. The color palettes below are
+                                    global and update the public portfolio and
+                                    every dashboard user when you save.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                        <div className="space-y-4">
+                            {/* Glass Effect Configuration */}
+                            <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+                                <div className="flex items-start gap-3">
+                                    <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-primary/30 bg-background text-highlight">
+                                        <MonitorCog className="size-4" />
+                                    </span>
+                                    <div>
+                                        <h3 className="font-editorial text-xl">
+                                            Glass Effect
+                                        </h3>
+                                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                            Configure the glass surface effect
+                                            across the public portfolio.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-4 space-y-3">
+                                    <div className="flex items-center">
+                                        <Label htmlFor="glass-effect-enabled">
+                                            Enable glass effect
+                                        </Label>
+                                        <Checkbox
+                                            id="glass-effect-enabled"
+                                            checked={
+                                                form.data.glass_effect_enabled
+                                            }
+                                            onCheckedChange={(value) =>
+                                                form.setData(
+                                                    'glass_effect_enabled',
+                                                    Boolean(value),
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    {!form.data.glass_effect_enabled ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            When enabled, the glass effect will
+                                            be applied using the settings below.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div>
+                                                    <Label htmlFor="glass-blur">
+                                                        Blur intensity (px)
+                                                    </Label>
+                                                    <input
+                                                        id="glass-blur"
+                                                        type="range"
+                                                        min="0"
+                                                        max="50"
+                                                        step="0.05"
+                                                        value={
+                                                            form.data.glass_blur
+                                                        }
+                                                        onChange={(e) =>
+                                                            form.setData(
+                                                                'glass_blur',
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0px</span>
+                                                        <span>50px</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current:{' '}
+                                                        {form.data.glass_blur}px
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="glass-surface-opacity">
+                                                        Surface opacity
+                                                    </Label>
+                                                    <input
+                                                        id="glass-surface-opacity"
+                                                        type="range"
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                        value={
+                                                            form.data
+                                                                .glass_surface_opacity
+                                                        }
+                                                        onChange={(e) =>
+                                                            form.setData(
+                                                                'glass_surface_opacity',
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0%</span>
+                                                        <span>100%</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current:{' '}
+                                                        {(
+                                                            form.data
+                                                                .glass_surface_opacity *
+                                                            100
+                                                        ).toFixed(0)}
+                                                        %
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div>
+                                                    <Label htmlFor="glass-border-opacity">
+                                                        Border highlight opacity
+                                                    </Label>
+                                                    <input
+                                                        id="glass-border-opacity"
+                                                        type="range"
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                        value={
+                                                            form.data
+                                                                .glass_border_opacity
+                                                        }
+                                                        onChange={(e) =>
+                                                            form.setData(
+                                                                'glass_border_opacity',
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0%</span>
+                                                        <span>100%</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current:{' '}
+                                                        {(
+                                                            form.data
+                                                                .glass_border_opacity *
+                                                            100
+                                                        ).toFixed(0)}
+                                                        %
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="glass-saturation">
+                                                        Saturation boost
+                                                    </Label>
+                                                    <input
+                                                        id="glass-saturation"
+                                                        type="range"
+                                                        min="0"
+                                                        max="3"
+                                                        step="0.01"
+                                                        value={
+                                                            form.data
+                                                                .glass_saturation
+                                                        }
+                                                        onChange={(e) =>
+                                                            form.setData(
+                                                                'glass_saturation',
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs">
+                                                        <span>0%</span>
+                                                        <span>300%</span>
+                                                    </div>
+                                                    <div className="mt-1 text-sm">
+                                                        Current:{' '}
+                                                        {(
+                                                            form.data
+                                                                .glass_saturation *
+                                                            100
+                                                        ).toFixed(0)}
+                                                        %
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <fieldset className="rounded-2xl border bg-card p-4 sm:col-span-2 sm:p-5">
+                        <legend className="sr-only">Dark mode palette</legend>
+                        <div className="flex items-start gap-3 border-b pb-4">
+                            <span className="grid size-10 shrink-0 place-items-center rounded-xl border bg-[#090909] text-white">
+                                <Moon className="size-4" />
+                            </span>
+                            <div>
+                                <h3 className="font-editorial text-xl">
+                                    Dark mode
+                                </h3>
+                                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                    Colors used when a visitor chooses the dark
+                                    appearance.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                            {(
+                                [
+                                    ['theme_dark_accent', 'Accent'],
+                                    ['theme_dark_background', 'Background'],
+                                    ['theme_dark_surface', 'Surface'],
+                                ] as const
+                            ).map(([key, label]) => (
+                                <Field
+                                    key={key}
+                                    label={label}
+                                    error={form.errors[key]}
+                                >
+                                    <PaletteField
+                                        label={`${label}`}
+                                        value={form.data[key]}
+                                        onChange={(value) =>
+                                            form.setData(
+                                                key,
+                                                value as string | Gradient,
+                                            )
+                                        }
+                                    />
+                                </Field>
+                            ))}
+                            {(
+                                [
+                                    ['theme_dark_foreground', 'Text'],
+                                    ['theme_dark_muted', 'Muted text'],
+                                ] as const
+                            ).map(([key, label]) => (
+                                <Field
+                                    key={key}
+                                    label={label}
+                                    error={form.errors[key]}
+                                >
+                                    <ThemeColorControl
+                                        label={`${label}`}
+                                        value={form.data[key]}
+                                        onChange={(value) =>
+                                            form.setData(key, value)
+                                        }
+                                    />
+                                </Field>
+                            ))}
+                        </div>
+
+                        <div
+                            className="mt-5 rounded-xl border p-4"
+                            style={{
+                                background: getSolidColor(
+                                    form.data.theme_dark_background,
+                                ),
+                                color: form.data.theme_dark_foreground,
+                            }}
+                        >
+                            <div
+                                className="flex min-h-28 items-end justify-between gap-5 rounded-lg p-4"
+                                style={{
+                                    background: getSolidColor(
+                                        form.data.theme_dark_surface,
+                                    ),
+                                }}
+                            >
+                                <div>
+                                    <p
+                                        className="text-xs font-medium tracking-widest"
+                                        style={{
+                                            color: form.data.theme_dark_muted,
+                                        }}
+                                    >
+                                        DARK PREVIEW
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold">
+                                        Your portfolio, your atmosphere.
+                                    </p>
+                                </div>
+                                <span
+                                    className="size-9 shrink-0 rounded-full"
+                                    style={{
+                                        background: getSolidColor(
+                                            form.data.theme_dark_accent,
+                                        ),
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset className="rounded-2xl border bg-card p-4 sm:col-span-2 sm:p-5">
+                        <legend className="sr-only">Light mode palette</legend>
+                        <div className="flex items-start gap-3 border-b pb-4">
+                            <span className="grid size-10 shrink-0 place-items-center rounded-xl border bg-white text-black">
+                                <Sun className="size-4" />
+                            </span>
+                            <div>
+                                <h3 className="font-editorial text-xl">
+                                    Light mode
+                                </h3>
+                                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                    Colors used when a visitor chooses the light
+                                    appearance.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                            {(
+                                [
+                                    ['theme_light_accent', 'Accent'],
+                                    ['theme_light_background', 'Background'],
+                                    ['theme_light_surface', 'Surface'],
+                                ] as const
+                            ).map(([key, label]) => (
+                                <Field
+                                    key={key}
+                                    label={label}
+                                    error={form.errors[key]}
+                                >
+                                    <PaletteField
+                                        label={`${label}`}
+                                        value={form.data[key]}
+                                        onChange={(value) =>
+                                            form.setData(
+                                                key,
+                                                value as string | Gradient,
+                                            )
+                                        }
+                                    />
+                                </Field>
+                            ))}
+                            {(
+                                [
+                                    ['theme_light_foreground', 'Text'],
+                                    ['theme_light_muted', 'Muted text'],
+                                ] as const
+                            ).map(([key, label]) => (
+                                <Field
+                                    key={key}
+                                    label={label}
+                                    error={form.errors[key]}
+                                >
+                                    <ThemeColorControl
+                                        label={`${label}`}
+                                        value={form.data[key]}
+                                        onChange={(value) =>
+                                            form.setData(key, value)
+                                        }
+                                    />
+                                </Field>
+                            ))}
+                        </div>
+
+                        <div
+                            className="mt-5 rounded-xl border p-4"
+                            style={{
+                                background: getSolidColor(
+                                    form.data.theme_light_background,
+                                ),
+                                color: form.data.theme_light_foreground,
+                            }}
+                        >
+                            <div
+                                className="flex min-h-28 items-end justify-between gap-5 rounded-lg p-4"
+                                style={{
+                                    background: getSolidColor(
+                                        form.data.theme_light_surface,
+                                    ),
+                                }}
+                            >
+                                <div>
+                                    <p
+                                        className="text-xs font-medium tracking-widest"
+                                        style={{
+                                            color: form.data.theme_light_muted,
+                                        }}
+                                    >
+                                        LIGHT PREVIEW
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold">
+                                        Changes publish when you save.
+                                    </p>
+                                </div>
+                                <span
+                                    className="size-9 shrink-0 rounded-full"
+                                    style={{
+                                        background: getSolidColor(
+                                            form.data.theme_light_accent,
+                                        ),
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </fieldset>
+                </FormSection>
+
+                <div className="flex justify-end pt-8">
+                    <Button size="lg" disabled={isSaving}>
+                        <Check className="size-4" />
+                        {isPreparingImage
+                            ? 'Preparing image…'
+                            : 'Save all changes'}
+                    </Button>
+                </div>
+
+                <FloatingSaveButton form={form} onSubmit={submit} />
+            </form>
+        </>
+    );
+}
+
+function Toggle({
+    label,
+    checked,
+    onChange,
+}: {
+    label: string;
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+}) {
+    const id = useId();
+
+    return (
+        <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
+            <Checkbox
+                id={id}
+                checked={checked}
+                onCheckedChange={(value) => onChange(Boolean(value))}
+            />
+            <Label htmlFor={id}>{label}</Label>
+        </div>
+    );
+}
+
+function formatFileSize(bytes: number) {
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+// PaletteField component for solid/gradient toggle and editor
+function PaletteField({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: string | Gradient;
+    onChange: (value: string | Gradient) => void;
+}) {
+    const isGradient = typeof value !== 'string' && value !== null;
+    const gradient: Gradient = isGradient
+        ? (value as Gradient)
+        : {
+              type: 'linear',
+              angle: 0,
+              stops: [
+                  { color: value as string, position: 0 },
+                  { color: value as string, position: 100 },
+              ],
+          };
+
+    // When toggling modes, preserve color stops
+    const handleToggle = (checked: boolean) => {
+        if (!checked) {
+            // Switching to solid: use first stop's color as solid
+            const solidColor = gradient.stops[0].color;
+            onChange(solidColor);
+        } else {
+            // Switching to gradient: keep current gradient (already set)
+            onChange(gradient);
+        }
+    };
+
+    // Update gradient stops when color or position changes
+    const updateStop = (
+        index: number,
+        field: keyof GradientStop,
+        val: string | number,
+    ) => {
+        const newGradient: Gradient = {
+            ...gradient,
+            stops: gradient.stops.map((stop, i) =>
+                i === index ? { ...stop, [field]: val } : stop,
+            ),
+        };
+        onChange(newGradient);
+    };
+
+    const addStop = () => {
+        const newStop = {
+            color: '#ffffff',
+            position: 50,
+        };
+        const newStops = [...gradient.stops, newStop].sort(
+            (a, b) => a.position - b.position,
+        );
+        onChange({ ...gradient, stops: newStops });
+    };
+
+    const removeStop = (index: number) => {
+        if (gradient.stops.length <= 2) {
+            return;
+        } // keep at least 2 stops
+
+        const newStops = gradient.stops.filter((_, i) => i !== index);
+        onChange({ ...gradient, stops: newStops });
+    };
+
+    // Convert gradient to CSS string
+    const gradientToCss = (grad: Gradient): string => {
+        if (grad.type === 'linear') {
+            return `linear-gradient(${grad.angle}deg, ${grad.stops
+                .map((s) => `${s.color} ${s.position}%`)
+                .join(', ')})`;
+        } else {
+            // radial gradient: we ignore angle, use default shape
+            return `radial-gradient(${grad.stops
+                .map((s) => `${s.color} ${s.position}%`)
+                .join(', ')})`;
+        }
+    };
+
+    return (
+        <>
+            <div className="flex items-start gap-4">
+                <div className="flex items-center gap-2">
+                    <Tooltip>
+                        <span className="cursor-help text-muted-foreground">
+                            {/* Help icon */}
+                        </span>
+                        <TooltipContent>
+                            Solid color or gradient?
+                        </TooltipContent>
+                    </Tooltip>
+                    <Toggle
+                        label={isGradient ? 'Gradient' : 'Solid'}
+                        checked={isGradient}
+                        onChange={handleToggle}
+                    />
+                </div>
+                {isGradient ? (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                            <Label htmlFor={`label}`}>Type</Label>
+                            <select
+                                id={`label}`}
+                                value={gradient.type}
+                                onChange={(e) => {
+                                    onChange({
+                                        ...gradient,
+                                        type: e.target.value as
+                                            'linear' | 'radial',
+                                    });
+                                }}
+                                className="rounded border"
+                            >
+                                <option value="linear">Linear</option>
+                                <option value="radial">Radial</option>
+                            </select>
+                        </div>
+                        {gradient.type === 'linear' && (
+                            <div className="flex items-center gap-3">
+                                <Label htmlFor={`${label}-angle`}>
+                                    Angle (°)
+                                </Label>
+                                <input
+                                    id={`${label}-angle`}
+                                    type="range"
+                                    min="0"
+                                    max="360"
+                                    step="1"
+                                    value={gradient.angle}
+                                    onChange={(e) => {
+                                        onChange({
+                                            ...gradient,
+                                            angle: parseFloat(e.target.value),
+                                        });
+                                    }}
+                                    className="w-[150px]"
+                                />
+                                <span className="text-xs">
+                                    {gradient.angle}°
+                                </span>
+                            </div>
+                        )}
+                        <div className="space-y-2">
+                            <div className="font-medium">Stops</div>
+                            <div className="space-y-2">
+                                {gradient.stops.map((stop, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="flex items-start gap-4 rounded border p-3"
+                                    >
+                                        <div className="flex-1">
+                                            <Label
+                                                htmlFor={`${label}-stop-${idx}-color`}
+                                            >
+                                                Color
+                                            </Label>
+                                            <input
+                                                id={`${label}-stop-${idx}-color`}
+                                                type="color"
+                                                value={stop.color}
+                                                onChange={(e) => {
+                                                    updateStop(
+                                                        idx,
+                                                        'color',
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                            />
+                                            <input
+                                                id={`${label}-stop-${idx}-hex`}
+                                                type="text"
+                                                value={stop.color}
+                                                onChange={(e) => {
+                                                    updateStop(
+                                                        idx,
+                                                        'color',
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                                className="mt-1 block w-full text-center font-mono"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Label
+                                                htmlFor={`${label}-stop-${idx}-pos`}
+                                            >
+                                                Position
+                                            </Label>
+                                            <input
+                                                id={`${label}-stop-${idx}-pos`}
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                step="0.1"
+                                                value={stop.position}
+                                                onChange={(e) => {
+                                                    updateStop(
+                                                        idx,
+                                                        'position',
+                                                        parseFloat(
+                                                            e.target.value,
+                                                        ),
+                                                    );
+                                                }}
+                                                className="w-full"
+                                            />
+                                            <div className="mt-1 flex justify-between text-xs">
+                                                <span>{stop.position}%</span>
+                                                <button
+                                                    onClick={() =>
+                                                        removeStop(idx)
+                                                    }
+                                                    className="rounded border text-xs hover:bg-primary/20"
+                                                    aria-label="Remove stop"
+                                                >
+                                                    –
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <div
+                                                className={`h-6 w-6 rounded border`}
+                                                style={{
+                                                    backgroundColor: stop.color,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="flex justify-center">
+                                    <button
+                                        onClick={addStop}
+                                        className="rounded border px-3 py-1 hover:bg-primary/20"
+                                    >
+                                        + Add stop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Preview */}
+                        <div className="mt-3">
+                            <div className="h-10 w-full overflow-hidden rounded border">
+                                <div
+                                    className="h-full w-full"
+                                    style={{
+                                        background: gradientToCss(gradient),
+                                    }}
+                                />
+                            </div>
+                            <p className="mt-1 text-center text-xs text-muted-foreground">
+                                {gradientToCss(gradient)}
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <ThemeColorControl
+                        label={label}
+                        value={value as string}
+                        onChange={onChange}
+                    />
+                )}
+            </div>
+        </>
+    );
+}
+
+// Reuse existing ThemeColorControl from earlier (we'll copy it)
+function ThemeColorControl({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <div className="flex gap-3">
+            <input
+                aria-label={`${label} color picker`}
+                type="color"
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className="h-10 w-14 shrink-0 cursor-pointer rounded-md border bg-card p-1"
+            />
+            <TextInput
+                aria-label={`${label} hex value`}
+                value={value}
+                maxLength={7}
+                spellCheck={false}
+                onChange={(event) => onChange(event.target.value)}
+                className="font-mono uppercase"
+            />
+        </div>
+    );
+}
+
+// Simple tooltip component (placeholder)
+function Tooltip({ children }: { children: React.ReactNode }) {
+    return <span>{children}</span>;
+}
+function TooltipContent({ children }: { children: React.ReactNode }) {
+    return <div className="hidden">{children}</div>;
+}

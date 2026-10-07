@@ -1,0 +1,15 @@
+---
+name: cv-builder-dashboard-integration
+description: Added CV builder access point to dashboard with dynamic linking to create/edit CV
+metadata:
+  type: project
+---
+
+Integrated CV builder into portfolio dashboard:
+- Added CV builder button to dashboard page header alongside "Add project" button
+- Button dynamically shows "Build CV" when no CV exists, "Edit CV" when CV exists
+- Properly links to CV creation route (cvRoutes.create()) or edit route (cvRoutes.edit({ cv: metrics.cvId }))
+- Dashboard controller sends cvId metric (null if no CV, CV ID if exists)
+- Dashboard shows CV completion status in metrics section
+- Uses existing routing and authentication systems
+**How to apply**: Users can access CV builder directly from dashboard, with appropriate create/edit routing based on whether they already have a CV.

@@ -1,0 +1,177 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Dashboard;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCVRequest;
+use App\Http\Requests\UpdateCVRequest;
+use App\Models\CV;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class CVController extends Controller
+{
+    /**
+     * Display a listing of the user's CV(s).
+     */
+    public function index(Request $request): Response
+    {
+        Gate::authorize('viewAny', CV::class);
+
+        $cv = $request->user()->cv; // Assuming we have a one-to-one relationship
+
+        return Inertia::render('admin/cv/index', [
+            'cv' => $cv ? [
+                'id' => $cv->id,
+                'title' => $cv->title,
+                'ats_total' => $cv->ats_total,
+                'ats_scores' => $cv->ats_scores,
+                'updated_at' => $cv->updated_at,
+            ] : null,
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new CV.
+     */
+    public function create(Request $request): Response
+    {
+        Gate::authorize('create', CV::class);
+
+        return Inertia::render('admin/cv/form', [
+            'cv' => null,
+        ]);
+    }
+
+    /**
+     * Store a newly created CV in storage.
+     */
+    public function store(StoreCVRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $cv = $request->user()->cv()->create($data);
+
+        // Calculate ATS scores
+        $this->calculateATSScores($cv);
+
+        return to_route('portfolio.cv.index')
+            ->with('success', 'CV created.');
+    }
+
+    /**
+     * Show the form for editing the specified CV.
+     */
+    public function edit(Request $request, CV $cv): Response
+    {
+        Gate::authorize('update', $cv);
+
+        return Inertia::render('admin/cv/form', [
+            'cv' => [
+                'id' => $cv->id,
+                'title' => $cv->title,
+                'summary' => $cv->summary,
+                'contact_info' => $cv->contact_info,
+                'experience' => $cv->experience,
+                'education' => $cv->education,
+                'skills' => $cv->skills,
+                'certifications' => $cv->certifications,
+                'languages' => $cv->languages,
+                'additional_sections' => $cv->additional_sections,
+                'ats_scores' => $cv->ats_scores,
+                'ats_total' => $cv->ats_total,
+            ],
+        ]);
+    }
+
+    /**
+     * Update the specified CV in storage.
+     */
+    public function update(UpdateCVRequest $request, CV $cv): RedirectResponse
+    {
+        Gate::authorize('update', $cv);
+
+        $data = $request->validated();
+
+        $cv->update($data);
+
+        // Recalculate ATS scores
+        $this->calculateATSScores($cv);
+
+        return to_route('portfolio.cv.index')
+            ->with('success', 'CV updated.');
+    }
+
+    /**
+     * Remove the specified CV from storage.
+     */
+    public function destroy(Request $request, CV $cv): RedirectResponse
+    {
+        Gate::authorize('delete', $cv);
+
+        $cv->delete();
+
+        return to_route('portfolio.cv.index')
+            ->with('success', 'CV deleted.');
+    }
+
+    /**
+     * Calculate ATS scores for a CV.
+     */
+    protected function calculateATSScores(CV $cv): void
+    {
+        // This is a simplified version - in reality, this would be more complex
+        $scores = [
+            'contact_information' => $this->scoreContactInformation($cv),
+            'keyword_optimization' => random_int(7, 10), // Placeholder
+            'standard_headings' => 10, // We enforce standard headings
+            'file_format_compatibility' => 10, // Our format is ATS-friendly
+            'skills_section_quality' => random_int(7, 10), // Placeholder
+            'work_experience_format' => random_int(7, 10), // Placeholder
+            'education_completeness' => random_int(7, 10), // Placeholder
+            'length_appropriateness' => random_int(7, 10), // Placeholder
+            'font_readability' => 10, // We control the output format
+            'quantifiable_achievements' => random_int(5, 10), // Placeholder
+        ];
+
+        $total = array_sum($scores);
+
+        $cv->update([
+            'ats_scores' => $scores,
+            'ats_total' => $total,
+        ]);
+    }
+
+    /**
+     * Score contact information completeness.
+     */
+    protected function scoreContactInformation(CV $cv): int
+    {
+        $contactInfo = $cv->contact_info ?? [];
+        $requiredFields = ['email', 'phone', 'location'];
+        $optionalFields = ['linkedin', 'github', 'website'];
+
+        $score = 0;
+
+        // Check required fields (6 points max)
+        foreach ($requiredFields as $field) {
+            if (! empty($contactInfo[$field])) {
+                $score += 2;
+            }
+        }
+
+        // Check optional fields (4 points max)
+        foreach ($optionalFields as $field) {
+            if (! empty($contactInfo[$field])) {
+                $score += 1;
+            }
+        }
+
+        return min($score, 10);
+    }
+}

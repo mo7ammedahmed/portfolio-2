@@ -1,0 +1,204 @@
+diff --git a/app/Http/Controllers/PortfolioController.php b/app/Http/Controllers/PortfolioController.php
+index 115dfb1..896d052 100644
+--- a/app/Http/Controllers/PortfolioController.php
++++ b/app/Http/Controllers/PortfolioController.php
+@@ -52,7 +52,7 @@ public function __invoke(): Response
+                     'is_featured',
+                 ]),
+                 'image_url' => $project->image
+-                    ? Storage::disk('public')->url($project->image)
++                    ? Storage::disk(config('filesystems.default'))->url($project->image)
+                     : null,
+                 'category' => $project->category?->only([
+                     'id',
+@@ -113,7 +113,7 @@ public function __invoke(): Response
+                     'proficiency',
+                 ]),
+                 'image_url' => $skill->image
+-                    ? Storage::disk('public')->url($skill->image)
++                    ? Storage::disk(config('filesystems.default'))->url($skill->image)
+                     : null,
+             ]);
+ 
+@@ -160,7 +160,7 @@ public function __invoke(): Response
+                     'theme_light_muted',
+                 ]),
+                 'image_url' => $profile->image
+-                    ? Storage::disk('public')->url($profile->image)
++                    ? Storage::disk(config('filesystems.default'))->url($profile->image)
+                     : null,
+             ],
+             'projects' => $projects,
+diff --git a/app/Http/Controllers/ProfileController.php b/app/Http/Controllers/ProfileController.php
+index d49ab4c..b6ce3b9 100644
+--- a/app/Http/Controllers/ProfileController.php
++++ b/app/Http/Controllers/ProfileController.php
+@@ -54,7 +54,7 @@ public function edit(): Response
+                     'theme_light_muted',
+                 ]),
+                 'image_url' => $profile->image
+-                    ? Storage::disk('public')->url($profile->image)
++                    ? Storage::disk(config('filesystems.default'))->url($profile->image)
+                     : null,
+             ] : null,
+         ]);
+@@ -73,7 +73,7 @@ public function update(UpdateProfileRequest $request): RedirectResponse
+         $data = $request->safe()->except('image');
+ 
+         if ($request->hasFile('image')) {
+-            $newImagePath = $request->file('image')->store('portfolio/profile', 'public');
++            $newImagePath = $request->file('image')->store('portfolio/profile', config('filesystems.default'));
+ 
+             if (! is_string($newImagePath)) {
+                 return back()->withErrors([
+@@ -87,7 +87,7 @@ public function update(UpdateProfileRequest $request): RedirectResponse
+         $portfolioAccount->profile()->updateOrCreate([], $data);
+ 
+         if ($newImagePath && $profile?->image && $profile->image !== $newImagePath) {
+-            Storage::disk('public')->delete($profile->image);
++            Storage::disk(config('filesystems.default'))->delete($profile->image);
+         }
+ 
+         return to_route('portfolio.profile.edit')
+diff --git a/app/Http/Controllers/ProjectController.php b/app/Http/Controllers/ProjectController.php
+index ff42e10..cc31379 100644
+--- a/app/Http/Controllers/ProjectController.php
++++ b/app/Http/Controllers/ProjectController.php
+@@ -67,7 +67,7 @@ public function index(Request $request): Response
+                     'created_at',
+                 ]),
+                 'image_url' => $project->image
+-                    ? Storage::disk('public')->url($project->image)
++                    ? Storage::disk(config('filesystems.default'))->url($project->image)
+                     : null,
+                 'category' => $project->category?->only(['id', 'name_en', 'color']),
+             ]);
+@@ -93,7 +93,7 @@ public function store(StoreProjectRequest $request): RedirectResponse
+         $data = $request->safe()->except(['image', 'skill_ids']);
+ 
+         if ($request->hasFile('image')) {
+-            $data['image'] = $request->file('image')->store('portfolio/projects', 'public');
++            $data['image'] = $request->file('image')->store('portfolio/projects', config('filesystems.default'));
+         }
+ 
+         $project = $request->user()->portfolioAccount()->projects()->create($data);
+@@ -126,7 +126,7 @@ public function edit(Request $request, Project $project): Response
+                 ]),
+                 'skill_ids' => $project->skills->pluck('id')->all(),
+                 'image_url' => $project->image
+-                    ? Storage::disk('public')->url($project->image)
++                    ? Storage::disk(config('filesystems.default'))->url($project->image)
+                     : null,
+             ],
+             ...$this->formOptions($request),
+@@ -139,10 +139,10 @@ public function update(UpdateProjectRequest $request, Project $project): Redirec
+ 
+         if ($request->hasFile('image')) {
+             if ($project->image) {
+-                Storage::disk('public')->delete($project->image);
++                Storage::disk(config('filesystems.default'))->delete($project->image);
+             }
+ 
+-            $data['image'] = $request->file('image')->store('portfolio/projects', 'public');
++            $data['image'] = $request->file('image')->store('portfolio/projects', config('filesystems.default'));
+         }
+ 
+         $project->update($data);
+@@ -157,7 +157,7 @@ public function destroy(Project $project): RedirectResponse
+         Gate::authorize('delete', $project);
+ 
+         if ($project->image) {
+-            Storage::disk('public')->delete($project->image);
++            Storage::disk(config('filesystems.default'))->delete($project->image);
+         }
+ 
+         $project->delete();
+diff --git a/app/Http/Controllers/PwaManifestController.php b/app/Http/Controllers/PwaManifestController.php
+index 95aac66..f637f5b 100644
+--- a/app/Http/Controllers/PwaManifestController.php
++++ b/app/Http/Controllers/PwaManifestController.php
+@@ -20,7 +20,7 @@ public function __invoke(): JsonResponse
+             ? "{$profile->name_en} — Portfolio"
+             : config('app.name', 'Portfolio');
+        $iconUrl = $profile?->image
+-    ? url(Storage::disk('public')->url($profile->image))
++    ? url(Storage::disk(config('filesystems.default'))->url($profile->image))
+     : '';
+ 
+         $backgroundColor = $profile?->theme_dark_background ?: '#070707';
+diff --git a/app/Http/Controllers/SkillController.php b/app/Http/Controllers/SkillController.php
+index 5e3ee93..d444237 100644
+--- a/app/Http/Controllers/SkillController.php
++++ b/app/Http/Controllers/SkillController.php
+@@ -37,7 +37,7 @@ public function index(Request $request): Response
+                         'sort_order',
+                     ]),
+                     'image_url' => $skill->image
+-                        ? Storage::disk('public')->url($skill->image)
++                        ? Storage::disk(config('filesystems.default'))->url($skill->image)
+                         : null,
+                 ]),
+         ]);
+@@ -56,7 +56,7 @@ public function store(StoreSkillRequest $request): RedirectResponse
+         $imagePath = null;
+ 
+         if ($request->hasFile('image')) {
+-            $imagePath = $request->file('image')->store('portfolio/skills', 'public');
++            $imagePath = $request->file('image')->store('portfolio/skills', config('filesystems.default'));
+ 
+             if (! is_string($imagePath)) {
+                 return back()->withErrors([
+@@ -71,7 +71,7 @@ public function store(StoreSkillRequest $request): RedirectResponse
+             $request->user()->portfolioAccount()->skills()->create($data);
+         } catch (Throwable $exception) {
+             if ($imagePath) {
+-                Storage::disk('public')->delete($imagePath);
++                Storage::disk(config('filesystems.default'))->delete($imagePath);
+             }
+ 
+             throw $exception;
+@@ -101,7 +101,7 @@ public function edit(Skill $skill): Response
+                     'sort_order',
+                 ]),
+                 'image_url' => $skill->image
+-                    ? Storage::disk('public')->url($skill->image)
++                    ? Storage::disk(config('filesystems.default'))->url($skill->image)
+                     : null,
+             ],
+         ]);
+@@ -114,7 +114,7 @@ public function update(UpdateSkillRequest $request, Skill $skill): RedirectRespo
+         $newImagePath = null;
+ 
+         if ($request->hasFile('image')) {
+-            $newImagePath = $request->file('image')->store('portfolio/skills', 'public');
++            $newImagePath = $request->file('image')->store('portfolio/skills', config('filesystems.default'));
+ 
+             if (! is_string($newImagePath)) {
+                 return back()->withErrors([
+@@ -131,7 +131,7 @@ public function update(UpdateSkillRequest $request, Skill $skill): RedirectRespo
+             $skill->update($data);
+         } catch (Throwable $exception) {
+             if ($newImagePath) {
+-                Storage::disk('public')->delete($newImagePath);
++                Storage::disk(config('filesystems.default'))->delete($newImagePath);
+             }
+ 
+             throw $exception;
+@@ -142,7 +142,7 @@ public function update(UpdateSkillRequest $request, Skill $skill): RedirectRespo
+             && $oldImagePath !== $newImagePath
+             && ($newImagePath || $request->boolean('remove_image'))
+         ) {
+-            Storage::disk('public')->delete($oldImagePath);
++            Storage::disk(config('filesystems.default'))->delete($oldImagePath);
+         }
+ 
+         return to_route('portfolio.skills.index')
+@@ -154,7 +154,7 @@ public function destroy(Skill $skill): RedirectResponse
+         Gate::authorize('delete', $skill);
+ 
+         if ($skill->image) {
+-            Storage::disk('public')->delete($skill->image);
++            Storage::disk(config('filesystems.default'))->delete($skill->image);
+         }
+ 
+         $skill->delete();

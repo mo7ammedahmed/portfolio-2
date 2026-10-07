@@ -1,0 +1,264 @@
+.studio-auth {
+    --background: #f7f7f2;
+    --foreground: #17392f;
+    --primary: #165841;
+    --primary-foreground: #fff;
+    --muted-foreground: #64726a;
+    --muted: #e9eee7;
+    --border: #d5ded4;
+    --input: #c8d3c8;
+    --ring: #247956;
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-accent: #e1eadc;
+    --color-accent-foreground: #17392f;
+    --color-highlight: #165841;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 100svh;
+    color: var(--foreground);
+    background: var(--background);
+    font-family: 'Instrument Sans', 'IBM Plex Sans Arabic', sans-serif;
+}
+.studio-auth[lang='ar'] {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+.studio-auth :focus-visible {
+    outline: 2px solid #368266;
+    outline-offset: 4px;
+}
+.studio-auth-art {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    overflow: hidden;
+    padding: clamp(28px, 4vw, 64px);
+    color: #eff8e8;
+    background: #102f26;
+}
+.studio-auth-art::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 75% 42%, #5f8b5555, transparent 55%);
+}
+.studio-auth-brand {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: fit-content;
+    font-size: 15px;
+}
+.studio-auth-brand [role='img'] {
+    background: #cbe5a5;
+    color: #17392f;
+}
+.studio-auth-brand small {
+    display: block;
+    margin-top: 4px;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: #b3c8b9;
+}
+.studio-auth-sculpture {
+    position: relative;
+    height: clamp(230px, 32vh, 330px);
+    margin: 28px 0;
+    display: grid;
+    place-items: center;
+}
+.studio-auth-sculpture i {
+    position: absolute;
+    width: clamp(190px, 24vw, 330px);
+    aspect-ratio: 1;
+    border: 1px solid #b6d99288;
+    border-radius: 28%;
+    box-shadow: inset 0 0 60px #aed58e0a;
+    transform: rotate(-25deg) skew(8deg);
+}
+.studio-auth-sculpture i:nth-child(2) {
+    transform: rotate(15deg) skew(-12deg);
+    border-color: #d4efb644;
+}
+.studio-auth-sculpture i:nth-child(3) {
+    transform: rotate(55deg) skew(14deg);
+    border-color: #b6d99255;
+}
+.studio-auth-sculpture span {
+    font-size: clamp(110px, 14vw, 190px);
+    color: #c7e4a2;
+    font-weight: 200;
+    line-height: 1;
+    animation: studio-turn 80s linear infinite;
+}
+@keyframes studio-turn {
+    to {
+        transform: rotate(360deg);
+    }
+}
+.studio-auth-statement {
+    position: relative;
+    margin-top: auto;
+}
+.studio-auth-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+}
+.studio-auth-statement .studio-auth-eyebrow {
+    color: #bad395;
+}
+.studio-auth-statement h2 {
+    margin: 20px 0;
+    font-size: clamp(38px, 4.2vw, 66px);
+    line-height: 1.03;
+    letter-spacing: -0.055em;
+    font-weight: 500;
+}
+.studio-auth-statement > p:last-child {
+    color: #bbcdbf;
+    font-size: 14px;
+    line-height: 1.8;
+    max-width: 36ch;
+}
+.studio-auth-art-footer {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid #d4efb622;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: #abc1b1;
+}
+.studio-auth-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 36px clamp(24px, 4vw, 64px) 24px;
+}
+.studio-auth-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+}
+.studio-auth-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #53685a;
+}
+.studio-auth-mobile-brand {
+    display: none;
+}
+.studio-auth-content {
+    width: 100%;
+    max-width: 390px;
+    margin: auto;
+    padding: 55px 0;
+}
+.studio-auth-heading {
+    margin-bottom: 32px;
+}
+.studio-auth-heading .studio-auth-eyebrow {
+    color: #486e53;
+}
+.studio-auth-heading h1 {
+    font-size: clamp(36px, 3.5vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.05em;
+    font-weight: 550;
+    margin: 20px 0 12px;
+}
+.studio-auth-heading > p:last-child {
+    color: #68776e;
+    font-size: 14px;
+    line-height: 1.7;
+}
+.studio-auth-content input:not([type='checkbox']) {
+    min-height: 48px;
+    border-radius: 10px;
+    background: #fff9;
+    color: #17392f;
+}
+.studio-auth-content button[data-slot='button'] {
+    min-height: 46px;
+    border-radius: 10px;
+}
+.studio-auth-content button[type='submit'] {
+    box-shadow: 0 6px 16px #1658411a;
+}
+.studio-auth-content [data-slot='label'] {
+    font-size: 12px;
+}
+.studio-auth-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 10px;
+    color: #78877c;
+    border-top: 1px solid #d9e0d4;
+    padding-top: 20px;
+}
+.studio-auth[lang='ar'] :is(h1, h2) {
+    letter-spacing: 0;
+    line-height: 1.4;
+}
+.studio-auth[lang='ar'] .studio-auth-eyebrow {
+    letter-spacing: 0;
+}
+@media (max-width: 800px) {
+    .studio-auth {
+        grid-template-columns: 1fr;
+    }
+    .studio-auth-art {
+        display: none;
+    }
+    .studio-auth-panel {
+        min-height: 100svh;
+        padding: 24px;
+    }
+    .studio-auth-top {
+        justify-content: space-between;
+    }
+    .studio-auth-mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 12px;
+    }
+    .studio-auth-mobile-brand [role='img'] {
+        background: #17392f;
+        color: #d9edbd;
+    }
+    .studio-auth-content {
+        padding: 48px 0;
+    }
+}
+@media (max-width: 380px) {
+    .studio-auth-top {
+        flex-wrap: wrap;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .studio-auth-sculpture span {
+        animation: none;
+    }
+}

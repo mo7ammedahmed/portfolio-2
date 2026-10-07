@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#070707" />
+        <title>Portfolio — Offline</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                display: grid;
+                min-height: 100vh;
+                margin: 0;
+                place-items: center;
+                background: #070707;
+                color: #f4f4f1;
+                font-family: ui-sans-serif, system-ui, sans-serif;
+            }
+            main {
+                width: min(38rem, calc(100% - 2rem));
+                border: 1px solid #ffffff1a;
+                padding: clamp(2rem, 7vw, 4rem);
+            }
+            span {
+                color: #d9ff43;
+                font:
+                    700 0.72rem ui-monospace,
+                    monospace;
+                letter-spacing: 0.16em;
+            }
+            h1 {
+                max-width: 9ch;
+                margin: 2rem 0 1rem;
+                font-size: clamp(3rem, 11vw, 6rem);
+                line-height: 0.88;
+                letter-spacing: -0.07em;
+            }
+            p {
+                max-width: 30rem;
+                color: #a4a4a0;
+                line-height: 1.7;
+            }
+            button {
+                margin-top: 1.5rem;
+                border: 0;
+                background: #f4f4f1;
+                padding: 0.85rem 1rem;
+                color: #070707;
+                font-weight: 700;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <span>CONNECTION / OFFLINE</span>
+            <h1>The signal dropped.</h1>
+            <p>
+                The portfolio will reconnect as soon as your network is
+                available.
+            </p>
+            <button onclick="location.reload()">Try again</button>
+        </main>
+    </body>
+</html>
