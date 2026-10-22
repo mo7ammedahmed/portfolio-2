@@ -36,7 +36,8 @@ class ExperienceController extends Controller
                         'is_visible',
                         'sort_order',
                     ]),
-                    'started_at' => $experience->started_at->toDateString(),
+                    'display_year' => $experience->display_year,
+                    'started_at' => $experience->started_at?->toDateString(),
                     'ended_at' => $experience->ended_at?->toDateString(),
                 ]),
         ]);
@@ -79,7 +80,8 @@ class ExperienceController extends Controller
                     'is_visible',
                     'sort_order',
                 ]),
-                'started_at' => $experience->started_at->toDateString(),
+                'display_year' => $experience->display_year,
+                'started_at' => $experience->started_at?->toDateString(),
                 'ended_at' => $experience->ended_at?->toDateString(),
             ],
         ]);

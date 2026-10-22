@@ -13,10 +13,11 @@ use Illuminate\Support\Carbon;
 use Override;
 
 /**
- * @property Carbon $started_at
+ * @property Carbon|null $started_at
  * @property Carbon|null $ended_at
  */
 #[Fillable([
+    'display_year',
     'name_ar',
     'name_en',
     'company_ar',
@@ -46,6 +47,7 @@ class Experience extends Model
     protected function casts(): array
     {
         return [
+            'display_year' => 'integer',
             'started_at' => 'date',
             'ended_at' => 'date',
             'is_current' => 'boolean',

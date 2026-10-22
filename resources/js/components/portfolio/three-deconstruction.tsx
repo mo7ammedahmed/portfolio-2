@@ -29,6 +29,9 @@ type ThreeDeconstructionProps = {
     accent: string;
     className?: string;
     isDark: boolean;
+    scale?: number;
+    cycles?: number;
+    pointerEnabled?: boolean;
 };
 
 type ScenePart = {
@@ -38,6 +41,9 @@ type ScenePart = {
     originRotation: Euler;
     destinationRotation: Euler;
     drift: number;
+    monogramPosition: Vector3;
+    monogramRotation: Euler;
+    monogramScale: Vector3;
 };
 
 const clamp = (value: number, minimum = 0, maximum = 1): number =>
@@ -56,6 +62,9 @@ export function ThreeDeconstruction({
     accent,
     className = '',
     isDark,
+    scale = 1,
+    cycles = 3,
+    pointerEnabled = true,
 }: ThreeDeconstructionProps) {
     const hostRef = useRef<HTMLDivElement>(null);
 
@@ -126,6 +135,36 @@ export function ThreeDeconstruction({
 
         const parts: ScenePart[] = [];
         const partCount = window.innerWidth < 640 ? 7 : 12;
+        // Seven strokes form MA. Desktop splits the longer strokes into tiles.
+        const strokes = [
+            [-1.65, -0.85, -1.65, 0.85],
+            [-1.65, 0.85, -0.95, -0.1],
+            [-0.95, -0.1, -0.25, 0.85],
+            [-0.25, 0.85, -0.25, -0.85],
+            [0.25, -0.85, 0.95, 0.85],
+            [0.95, 0.85, 1.65, -0.85],
+            [0.54, -0.16, 1.36, -0.16],
+        ];
+        const tiles = strokes.flatMap(([x1, y1, x2, y2], index) => {
+            const count = partCount === 12 && index < 5 ? 2 : 1;
+
+            return Array.from({ length: count }, (_, tile) => {
+                const middle = (tile + 0.5) / count;
+
+                return {
+                    position: new Vector3(
+                        MathUtils.lerp(x1, x2, middle),
+                        MathUtils.lerp(y1, y2, middle),
+                        0,
+                    ),
+                    rotation: new Euler(0, 0, Math.atan2(y2 - y1, x2 - x1)),
+                    length: Math.hypot(x2 - x1, y2 - y1) / count - 0.025,
+                };
+            });
+        });
+        let assembly = 0;
+        const heroInfluence = 1;
+        const pointer = { x: 0, y: 0 };
 
         for (let index = 0; index < partCount; index += 1) {
             const angle = (index / partCount) * Math.PI * 2;
@@ -175,6 +214,13 @@ export function ThreeDeconstruction({
                 originRotation,
                 destinationRotation,
                 drift: 0.25 + index * 0.045,
+                monogramPosition: tiles[index].position,
+                monogramRotation: tiles[index].rotation,
+                monogramScale: new Vector3(
+                    tiles[index].length / width,
+                    0.13 / height,
+                    1,
+                ),
             });
         }
 
@@ -250,17 +296,16 @@ export function ThreeDeconstruction({
         let previousTime = performance.now();
 
         const updateScrollProgress = () => {
-            if (reducedMotion.matches) {
-                targetProgress = 0;
-
-                return;
-            }
-
             const travel = Math.max(
                 document.documentElement.scrollHeight - window.innerHeight,
                 1,
             );
             targetProgress = clamp(window.scrollY / travel);
+            assembly = reducedMotion.matches
+                ? 1
+                : easeInOutCubic(
+                      (1 - Math.cos(targetProgress * Math.PI * 2 * cycles)) / 2,
+                  );
         };
 
         const resize = () => {
@@ -275,7 +320,30 @@ export function ThreeDeconstruction({
             camera.aspect = width / height;
             camera.position.set(width < 720 ? 0 : 0.65, 0.05, 8.5);
             camera.updateProjectionMatrix();
+            updateScrollProgress();
         };
+
+        const onPointerMove = (event: PointerEvent) => {
+            if (
+                !pointerEnabled ||
+                event.pointerType !== 'mouse' ||
+                reducedMotion.matches
+            ) {
+                return;
+            }
+
+            pointer.x = (event.clientX / window.innerWidth - 0.5) * 0.12;
+            pointer.y = (event.clientY / window.innerHeight - 0.5) * 0.08;
+        };
+        const resetPointer = () => {
+            pointer.x = 0;
+            pointer.y = 0;
+        };
+        let displayedAssembly = assembly;
+        let tiltX = 0;
+        let tiltY = 0;
+        const unitScale = new Vector3(1, 1, 1);
+        const heroPosition = new Vector3();
 
         const renderFrame = (time: number) => {
             const delta = Math.min((time - previousTime) / 1000, 0.05);
@@ -287,7 +355,21 @@ export function ThreeDeconstruction({
 
             const deconstruction = Math.sin(currentProgress * Math.PI);
             const progress = easeInOutCubic(deconstruction);
-            const idle = reducedMotion.matches ? 0 : elapsed;
+            const idle = reducedMotion.matches
+                ? 0
+                : elapsed * (1 - heroInfluence) + assembly * 2;
+            const damping = reducedMotion.matches
+                ? 1
+                : 1 - Math.exp(-delta * 12);
+            displayedAssembly = MathUtils.lerp(
+                displayedAssembly,
+                assembly,
+                damping,
+            );
+            tiltX = MathUtils.lerp(tiltX, pointer.x, damping);
+            tiltY = MathUtils.lerp(tiltY, pointer.y, damping);
+            host.dataset.maAssembly = displayedAssembly.toFixed(3);
+            host.dataset.maInfluence = heroInfluence.toFixed(3);
 
             parts.forEach((part, index) => {
                 part.mesh.position.lerpVectors(
@@ -316,6 +398,46 @@ export function ThreeDeconstruction({
                         progress,
                     ),
                 );
+                heroPosition.lerpVectors(
+                    part.origin,
+                    part.monogramPosition,
+                    displayedAssembly,
+                );
+                part.mesh.position.lerp(heroPosition, heroInfluence);
+                part.mesh.rotation.set(
+                    MathUtils.lerp(
+                        part.mesh.rotation.x,
+                        MathUtils.lerp(
+                            part.originRotation.x,
+                            part.monogramRotation.x,
+                            displayedAssembly,
+                        ),
+                        heroInfluence,
+                    ),
+                    MathUtils.lerp(
+                        part.mesh.rotation.y,
+                        MathUtils.lerp(
+                            part.originRotation.y,
+                            part.monogramRotation.y,
+                            displayedAssembly,
+                        ),
+                        heroInfluence,
+                    ),
+                    MathUtils.lerp(
+                        part.mesh.rotation.z,
+                        MathUtils.lerp(
+                            part.originRotation.z,
+                            part.monogramRotation.z,
+                            displayedAssembly,
+                        ),
+                        heroInfluence,
+                    ),
+                );
+                part.mesh.scale.lerpVectors(
+                    unitScale,
+                    part.monogramScale,
+                    displayedAssembly * heroInfluence,
+                );
             });
 
             core.rotation.x = idle * 0.08 + progress * 1.25;
@@ -334,6 +456,36 @@ export function ThreeDeconstruction({
                 Math.sin(currentProgress * Math.PI * 2) * 0.42;
             sculpture.position.x =
                 Math.sin(currentProgress * Math.PI * 3) * 0.28;
+            // The backdrop never changes the project section's scroll or card transforms.
+            sculpture.rotation.x = MathUtils.lerp(
+                sculpture.rotation.x,
+                tiltY,
+                heroInfluence,
+            );
+            sculpture.rotation.y = MathUtils.lerp(
+                sculpture.rotation.y,
+                tiltX,
+                heroInfluence,
+            );
+            sculpture.rotation.z = MathUtils.lerp(
+                -0.12,
+                0,
+                displayedAssembly * heroInfluence,
+            );
+            sculpture.position.multiplyScalar(1 - heroInfluence);
+            sculpture.scale.setScalar(
+                MathUtils.lerp(
+                    1,
+                    Math.min(1, camera.aspect * 1.5),
+                    heroInfluence,
+                ) * scale,
+            );
+            lineMaterial.opacity =
+                (isDark ? 0.28 : 0.18) *
+                (1 - displayedAssembly * heroInfluence);
+            orbitMaterial.opacity =
+                (isDark ? 0.2 : 0.14) *
+                (1 - displayedAssembly * heroInfluence * 0.85);
 
             const positionAttribute = pointGeometry.getAttribute(
                 'position',
@@ -405,6 +557,10 @@ export function ThreeDeconstruction({
         window.addEventListener('scroll', updateScrollProgress, {
             passive: true,
         });
+        window.addEventListener('pointermove', onPointerMove, {
+            passive: true,
+        });
+        window.addEventListener('blur', resetPointer);
         document.addEventListener('visibilitychange', handleVisibility);
         reducedMotion.addEventListener('change', handleMotionPreference);
         resize();
@@ -416,6 +572,8 @@ export function ThreeDeconstruction({
             visibilityObserver.disconnect();
             resizeObserver.disconnect();
             window.removeEventListener('scroll', updateScrollProgress);
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('blur', resetPointer);
             document.removeEventListener('visibilitychange', handleVisibility);
             reducedMotion.removeEventListener('change', handleMotionPreference);
 
@@ -436,7 +594,7 @@ export function ThreeDeconstruction({
             renderer.forceContextLoss();
             renderer.domElement.remove();
         };
-    }, [accent, isDark]);
+    }, [accent, isDark, scale, cycles, pointerEnabled]);
 
     return (
         <div

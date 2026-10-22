@@ -16,7 +16,8 @@ type ExperienceRow = {
     name_ar: string;
     company_en: string;
     location_en: string;
-    started_at: string;
+    started_at: string | null;
+    display_year: number | null;
     ended_at: string | null;
     is_current: boolean;
     is_visible: boolean;
@@ -70,11 +71,17 @@ export default function ExperiencesIndex({
                                                 </p>
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {experience.started_at.slice(
+                                                {experience.started_at?.slice(
                                                     0,
                                                     7,
-                                                )}{' '}
-                                                —{' '}
+                                                ) ??
+                                                    experience.display_year}{' '}
+                                                {(experience.started_at ||
+                                                    experience.display_year) &&
+                                                (experience.is_current ||
+                                                    experience.ended_at)
+                                                    ? ' — '
+                                                    : ''}
                                                 {experience.is_current
                                                     ? 'Present'
                                                     : experience.ended_at?.slice(

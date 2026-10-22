@@ -234,203 +234,36 @@ export default function CvForm({ cv }: Props) {
 
     const isSaving = form.processing;
 
-    const calculateKeywordScore = (): number => {
-        // Simple keyword score based on presence of common professional terms
-        const allText = [
-            form.data.summary,
-            ...form.data.experience.map((exp) => exp.description),
-            ...form.data.education.map((edu) => edu.description),
-            form.data.additional_sections,
-        ]
-            .join(' ')
-            .toLowerCase();
-
-        const keywords = [
-            'experience',
-            'management',
-            'leadership',
-            'developed',
-            'created',
-            'improved',
-            'increased',
-            'reduced',
-            'managed',
-            'led',
-            'designed',
-            'implemented',
-            'analyzed',
-            'solutions',
-            'project',
-            'team',
-        ];
-
-        let matches = 0;
-        keywords.forEach((keyword) => {
-            if (allText.includes(keyword)) {
-                matches++;
-            }
-        });
-
-        // Score based on keyword density (capped at 10)
-        return Math.min(10, Math.floor((matches / keywords.length) * 10));
-    };
-
-    const calculateSkillsSectionScore = (): number => {
-        if (form.data.skills.length === 0) {
-            return 0;
-        }
-
-        // Points for having skills
-        let score = 5;
-
-        // Bonus for proficiency levels
-        const proficientSkills = form.data.skills.filter(
-            (s) => s.proficiency >= 3,
-        );
-        score += Math.min(3, proficientSkills.length);
-
-        // Bonus for variety (different skills)
-        const uniqueSkills = new Set(
-            form.data.skills.map((s) => s.name.toLowerCase()),
-        ).size;
-        score += Math.min(2, uniqueSkills);
-
-        return Math.min(10, score);
-    };
-
-    const calculateWorkExperienceScore = (): number => {
-        if (form.data.experience.length === 0) {
-            return 0;
-        }
-
-        // Points for having experience
-        let score = form.data.experience.length >= 2 ? 5 : 3;
-
-        // Bonus for complete entries
-        const completeEntries = form.data.experience.filter(
-            (exp) =>
-                exp.title && exp.company && exp.start_date && exp.description,
-        ).length;
-        score += Math.min(3, completeEntries);
-
-        // Bonus for reverse chronological order (simplified check)
-        // In a real app, we'd check dates more thoroughly
-        score += 2; // Assume good order since we're collecting data properly
-
-        return Math.min(10, score);
-    };
-
-    const calculateEducationScore = (): number => {
-        if (form.data.education.length === 0) {
-            return 0;
-        }
-
-        // Points for having education
-        let score = form.data.education.length >= 1 ? 5 : 0;
-
-        // Bonus for complete entries
-        const completeEntries = form.data.education.filter(
-            (edu) => edu.institution && edu.degree && edu.start_date,
-        ).length;
-        score += Math.min(3, completeEntries);
-
-        // Bonus for relevant details
-        const detailedEntries = form.data.education.filter(
-            (edu) => edu.description && edu.description.length > 20,
-        ).length;
-        score += Math.min(2, detailedEntries);
-
-        return Math.min(10, score);
-    };
-
-    const calculateLengthScore = (): number => {
-        let score = 0;
-
-        // Summary length (ideal: 100-300 characters)
-        const summaryLength = form.data.summary.length;
-
-        if (summaryLength >= 100 && summaryLength <= 300) {
-            score += 4;
-        } else if (summaryLength >= 50) {
-            score += 2;
-        }
-
-        // Experience count (ideal: 2-4 positions for most people)
-        const expCount = form.data.experience.length;
-
-        if (expCount >= 2 && expCount <= 4) {
-            score += 3;
-        } else if (expCount >= 1) {
-            score += 1;
-        }
-
-        // Education count (ideal: 1-2 entries)
-        const eduCount = form.data.education.length;
-
-        if (eduCount >= 1 && eduCount <= 2) {
-            score += 3;
-        } else if (eduCount >= 1) {
-            score += 1;
-        }
-
-        return Math.min(10, score);
-    };
-
-    const calculateQuantifiableScore = (): number => {
-        // Check for numbers, percentages, dollar amounts in descriptions
-        const allText = [
-            ...form.data.experience.map((exp) => exp.description),
-            ...form.data.education.map((edu) => edu.description),
-            form.data.summary,
-        ].join(' ');
-
-        // Patterns for quantifiable achievements
-        const patterns = [
-            /\d+%/g, // Percentages
-            /\$\d+/g, // Dollar amounts
-            /\d+\+/g, // Numbers with plus (e.g., "5+ years")
-            /\d+\s*(years?|yrs)/g, // Years of experience
-            /\d+\s*[km]?\/year/g, // Per year metrics
-            /increased.*\d+/i, // Increased by X
-            /reduced.*\d+/i, // Reduced by X
-            /managed.*\d+/i, // Managed X
-            /led.*\d+/i, // Led X people
-        ];
-
-        let matches = 0;
-        patterns.forEach((pattern) => {
-            const matchesFound = allText.match(pattern);
-
-            if (matchesFound) {
-                matches += matchesFound.length;
-            }
-        });
-
-        // Score based on number of quantifiable achievements
-        // Cap at 10 for 5+ quantifiable achievements
-        return Math.min(10, Math.floor(matches / 2));
-    };
-
-    const scoreBreakdown: Record<string, number> = {
-        contact_information: Math.min(
-            10,
-            (form.data.contact_info.email ? 2 : 0) +
-                (form.data.contact_info.phone ? 2 : 0) +
-                (form.data.contact_info.location ? 2 : 0) +
-                (form.data.contact_info.linkedin ? 1 : 0) +
-                (form.data.contact_info.github ? 1 : 0) +
-                (form.data.contact_info.website ? 1 : 0),
+    const present = (value: unknown) =>
+        typeof value === 'string' && value.trim().length > 0;
+    const checks = {
+        professional_title: present(form.data.title),
+        summary: present(form.data.summary),
+        email: present(form.data.contact_info.email),
+        phone: present(form.data.contact_info.phone),
+        location: present(form.data.contact_info.location),
+        skills: form.data.skills.some((item) => present(item.name)),
+        work_experience: form.data.experience.some(
+            (item) => present(item.title) && present(item.company),
         ),
-        keyword_optimization: calculateKeywordScore(),
-        standard_headings: 10, // We use standard headings
-        file_format_compatibility: 10, // Our format is ATS-friendly
-        skills_section_quality: Math.min(10, calculateSkillsSectionScore()),
-        work_experience_format: Math.min(10, calculateWorkExperienceScore()),
-        education_completeness: Math.min(10, calculateEducationScore()),
-        length_appropriateness: Math.min(10, calculateLengthScore()),
-        font_readability: 10, // We control the output format
-        quantifiable_achievements: Math.min(10, calculateQuantifiableScore()),
+        experience_dates: form.data.experience.some(
+            (item) =>
+                present(item.start_date) &&
+                (present(item.end_date) || item.current),
+        ),
+        experience_descriptions: form.data.experience.some((item) =>
+            present(item.description),
+        ),
+        education: form.data.education.some(
+            (item) => present(item.institution) && present(item.degree),
+        ),
     };
+    const scoreBreakdown: Record<string, number> = Object.fromEntries(
+        Object.entries(checks).map(([key, complete]) => [
+            key,
+            complete ? 10 : 0,
+        ]),
+    );
 
     const atsScore = Object.values(scoreBreakdown).reduce(
         (sum, score) => sum + score,
@@ -448,7 +281,7 @@ export default function CvForm({ cv }: Props) {
                 <PageHeading
                     eyebrow="Career tools"
                     title="CV Builder"
-                    description="Create, edit, and optimize your professional CV with real-time ATS scoring."
+                    description="Build your professional CV with a live content checklist."
                     action={
                         <Button disabled={isSaving}>
                             {isCalculatingScore
@@ -513,8 +346,7 @@ export default function CvForm({ cv }: Props) {
                             className="min-h-[120px]"
                         />
                         <p className="mt-2 text-xs text-muted-foreground">
-                            Ideal length: 100-300 characters for optimal ATS
-                            scoring
+                            Keep your summary concise and relevant to the role.
                         </p>
                     </Field>
                 </FormSection>
@@ -1703,14 +1535,12 @@ export default function CvForm({ cv }: Props) {
                 {/* ATS Score Display */}
                 {atsScore !== null && (
                     <FormSection
-                        title="ATS Score"
-                        description="How well your CV is optimized for Applicant Tracking Systems."
+                        title="Content completeness"
+                        description="A checklist of the information included in your CV."
                     >
                         <div className="mb-4 text-sm text-muted-foreground">
-                            ATS systems scan your CV for keywords, formatting,
-                            and content quality. Scores above 80 are excellent,
-                            60-79 are good, 40-59 need improvement, and below 40
-                            may not pass initial screening.
+                            Each completed item adds ten points. This checklist
+                            does not predict hiring outcomes or ATS acceptance.
                         </div>
                         <div className="grid gap-4">
                             <div className="text-center">
@@ -1724,6 +1554,8 @@ export default function CvForm({ cv }: Props) {
                                             cx="24"
                                             cy="24"
                                             r="22"
+                                            pathLength="100"
+                                            fill="none"
                                             strokeWidth="3"
                                         />
                                     </svg>
@@ -1738,6 +1570,8 @@ export default function CvForm({ cv }: Props) {
                                             r="22"
                                             strokeWidth="3"
                                             stroke="currentColor"
+                                            pathLength="100"
+                                            fill="none"
                                             style={{
                                                 strokeDasharray: `${atsScore}, 100`,
                                             }}
@@ -1749,12 +1583,12 @@ export default function CvForm({ cv }: Props) {
                                 </div>
                                 <p className="mt-2 text-xs text-muted-foreground">
                                     {atsScore >= 80
-                                        ? 'Excellent ATS compatibility'
+                                        ? 'Most content is complete'
                                         : atsScore >= 60
-                                          ? 'Good ATS compatibility'
+                                          ? 'Good progress'
                                           : atsScore >= 40
-                                            ? 'Fair ATS compatibility'
-                                            : 'Needs improvement for ATS'}
+                                            ? 'Some sections need attention'
+                                            : 'Add more details to your CV'}
                                 </p>
                             </div>
                             <div className="space-y-2 text-xs">

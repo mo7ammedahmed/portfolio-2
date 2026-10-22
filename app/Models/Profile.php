@@ -81,6 +81,7 @@ use Override;
     'nav_glass_enabled',
     'nav_opacity',
     'nav_blur',
+    'animation_enabled', 'animation_opacity', 'animation_scale', 'animation_cycles', 'animation_pointer', 'animation_mobile',
     'glass_effect_enabled',
     'glass_blur',
     'glass_surface_opacity',
@@ -110,6 +111,7 @@ class Profile extends Model
         'nav_glass_enabled' => false,
         'nav_opacity' => 0.72,
         'nav_blur' => 20,
+        'animation_enabled' => true, 'animation_opacity' => 0.85, 'animation_scale' => 1, 'animation_cycles' => 3, 'animation_pointer' => true, 'animation_mobile' => true,
 
         'contact_notification_subject_template' => self::DEFAULT_NOTIFICATION_SUBJECT,
         'contact_notification_body_template' => self::DEFAULT_NOTIFICATION_BODY,
@@ -167,6 +169,7 @@ class Profile extends Model
             'nav_glass_enabled' => 'boolean',
             'nav_opacity' => 'float',
             'nav_blur' => 'integer',
+            'animation_enabled' => 'boolean', 'animation_opacity' => 'float', 'animation_scale' => 'float', 'animation_cycles' => 'integer', 'animation_pointer' => 'boolean', 'animation_mobile' => 'boolean',
             'glass_effect_enabled' => 'boolean',
             // Custom casts for gradient fields
             'theme_dark_accent' => GradientCast::class,

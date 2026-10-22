@@ -2,6 +2,11 @@
 
 use App\Models\User;
 
+test('settings entry redirects to profile for authenticated users', function () {
+    $this->actingAs(User::factory()->create())->get('/settings')->assertRedirect(route('profile.edit'));
+    $this->post('/settings')->assertStatus(405);
+});
+
 test('profile page is displayed', function () {
     $user = User::factory()->create();
 

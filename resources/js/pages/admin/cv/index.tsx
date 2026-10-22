@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ArrowRight, Monitor, XCircle } from 'lucide-react';
 import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
@@ -24,11 +24,17 @@ export default function CvIndex({ cv }: Props) {
                 <PageHeading
                     eyebrow="Career tools"
                     title="CV Builder"
-                    description="Create, edit, and optimize your professional CV with real-time ATS scoring."
+                    description="Manage your professional CV and review its content completeness."
                     action={
                         <Button asChild>
-                            <Link href={cvRoutes.create()}>
-                                Create new CV
+                            <Link
+                                href={
+                                    cv
+                                        ? cvRoutes.edit({ cv: cv.id })
+                                        : cvRoutes.create()
+                                }
+                            >
+                                {cv ? 'Edit CV' : 'Create new CV'}
                                 <ArrowRight className="size-4" />
                             </Link>
                         </Button>
@@ -79,8 +85,10 @@ export default function CvIndex({ cv }: Props) {
                                                     'Are you sure you want to delete your CV? This action cannot be undone.',
                                                 )
                                             ) {
-                                                alert(
-                                                    'Delete functionality would be implemented here',
+                                                router.delete(
+                                                    cvRoutes.destroy.url({
+                                                        cv: cv.id,
+                                                    }),
                                                 );
                                             }
                                         }}
@@ -104,7 +112,7 @@ export default function CvIndex({ cv }: Props) {
 
                                     <div>
                                         <h4 className="mb-2 font-medium">
-                                            ATS Score
+                                            Content completeness
                                         </h4>
                                         <div className="flex items-center gap-3">
                                             <div className="relative h-32 w-32">
@@ -117,6 +125,8 @@ export default function CvIndex({ cv }: Props) {
                                                         cx="32"
                                                         cy="32"
                                                         r="30"
+                                                        pathLength="100"
+                                                        fill="none"
                                                         strokeWidth="4"
                                                     />
                                                 </svg>
@@ -131,6 +141,8 @@ export default function CvIndex({ cv }: Props) {
                                                         r="30"
                                                         strokeWidth="4"
                                                         stroke="currentColor"
+                                                        pathLength="100"
+                                                        fill="none"
                                                         style={{
                                                             strokeDasharray: `${cv.ats_total}, 100`,
                                                         }}
@@ -142,7 +154,7 @@ export default function CvIndex({ cv }: Props) {
                                             </div>
                                             <div className="space-y-2 text-xs">
                                                 <p className="font-medium">
-                                                    ATS Compatibility
+                                                    Content checklist
                                                 </p>
                                                 <p className="text-muted-foreground">
                                                     {cv.ats_total >= 80
@@ -188,7 +200,7 @@ export default function CvIndex({ cv }: Props) {
                                                                 className="absolute top-0 left-0 h-2 bg-highlight"
                                                                 role="presentation"
                                                                 style={{
-                                                                    width: `${score}%`,
+                                                                    width: `${score * 10}%`,
                                                                 }}
                                                             />
                                                         </div>
@@ -204,40 +216,28 @@ export default function CvIndex({ cv }: Props) {
                             </div>
                         </section>
 
-                        <section className="overflow-hidden rounded-xl border bg-card">
-                            <div className="flex items-center justify-between border-b px-5 py-4">
-                                <div>
-                                    <h3 className="font-semibold">
-                                        Preview & Export
-                                    </h3>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        View how your CV will look to employers
-                                        and download it.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="px-5 pt-4 pb-6">
-                                {/* In a real implementation, this would show a live preview of the CV */}
-                                <div className="py-8 text-center">
-                                    <Monitor className="mb-4 size-8 text-muted-foreground/50" />
-                                    <h4 className="mb-2 font-medium">
-                                        CV Preview
-                                    </h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        Your CV preview will appear here. Click
-                                        "Edit CV" to build your professional
-                                        resume.
-                                    </p>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="mt-4"
-                                    >
-                                        Download PDF
-                                    </Button>
-                                </div>
-                            </div>
+                        <section className="rounded-xl border bg-card p-5">
+                            <h3 className="font-semibold">
+                                Preview &amp; export
+                            </h3>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                Open a printable CV, then choose Save as PDF in
+                                your browser’s print dialog.
+                            </p>
+                            <Button variant="outline" className="mt-4" asChild>
+                                <a
+                                    href={cvRoutes.preview.url({ cv: cv.id })}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Preview / Save as PDF
+                                </a>
+                            </Button>
+                            <p className="mt-4 text-xs text-muted-foreground">
+                                The checklist measures completed content. It
+                                does not predict hiring outcomes or ATS
+                                acceptance.
+                            </p>
                         </section>
                     </div>
                 )}

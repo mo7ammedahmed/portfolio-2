@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -68,6 +69,7 @@ class ProfileController extends Controller
                     'nav_glass_enabled',
                     'nav_opacity',
                     'nav_blur',
+                    'animation_enabled', 'animation_opacity', 'animation_scale', 'animation_cycles', 'animation_pointer', 'animation_mobile',
                     'glass_effect_enabled',
                     'glass_blur',
                     'glass_surface_opacity',
@@ -113,7 +115,15 @@ class ProfileController extends Controller
             $data['image'] = $newImagePath;
         }
 
-        $portfolioAccount->profile()->updateOrCreate([], $data);
+        try {
+            $portfolioAccount->profile()->updateOrCreate([], $data);
+        } catch (Throwable $exception) {
+            if ($newImagePath) {
+                Storage::disk(config('filesystems.default'))->delete($newImagePath);
+            }
+
+            throw $exception;
+        }
 
         if ($newImagePath && $profile?->image && $profile->image !== $newImagePath) {
             Storage::disk(config('filesystems.default'))->delete($profile->image);

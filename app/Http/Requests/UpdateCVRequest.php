@@ -15,7 +15,9 @@ class UpdateCVRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->can('update', CV::class) ?? false;
+        $cv = $this->route('cv');
+
+        return $cv instanceof CV && ($this->user()?->can('update', $cv) ?? false);
     }
 
     /**

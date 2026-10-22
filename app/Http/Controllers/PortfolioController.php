@@ -133,7 +133,7 @@ class PortfolioController extends Controller
                     'location_en',
                     'is_current',
                 ]),
-                'started_at' => $experience->started_at->format('Y-m'),
+                'started_at' => $experience->started_at?->format('Y-m') ?? (string) $experience->display_year,
                 'ended_at' => $experience->ended_at?->format('Y-m'),
             ]);
 
@@ -173,6 +173,7 @@ class PortfolioController extends Controller
 
         $earliestExperience = $user->experiences()
             ->where('is_visible', true)
+            ->whereNotNull('started_at')
             ->oldest('started_at')
             ->first(['started_at']);
 
@@ -233,6 +234,7 @@ class PortfolioController extends Controller
                     'nav_glass_enabled',
                     'nav_opacity',
                     'nav_blur',
+                    'animation_enabled', 'animation_opacity', 'animation_scale', 'animation_cycles', 'animation_pointer', 'animation_mobile',
                     'glass_effect_enabled',
                 ]),
                 'image_url' => $profile->image
@@ -249,7 +251,7 @@ class PortfolioController extends Controller
                 'years' => $earliestExperience
                     ? max(
                         1,
-                        (int) $earliestExperience->started_at->diffInYears(now()),
+                        (int) $earliestExperience->started_at?->diffInYears(now()),
                     )
                     : 0,
                 'skills' => $skills->count(),

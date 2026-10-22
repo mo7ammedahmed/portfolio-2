@@ -61,6 +61,20 @@ php artisan portfolio:import --owner=123 --overwrite
 
 ## Add a project
 
+`php artisan migrate` then `php artisan db:seed` imports both the six real projects
+from `database/content/projects.php` and the three bilingual career entries from
+`database/content/experiences.php`. Set `PORTFOLIO_SEED_OWNER_ID` to the existing
+owner outside the local preview workflow. Neither command resets passwords or deletes content.
+
+Career entries use stable, owner-scoped `seed_key` values; repeated seeding preserves
+dashboard edits, including renamed titles. A unique older title/company match is
+adopted without overwriting it; ambiguous matches stop with an error.
+Fid Marketing is labeled 2025, Future Voice 2024, and Independent is current.
+Exact dates and locations were not supplied, so new records leave those empty.
+The dashboard supports a year-only value; unknown dates are excluded from duration calculations.
+To seed only careers, run `php artisan db:seed --class=ExperienceSeeder` with the owner configured.
+To seed only projects, use `ProjectSeeder` or the `portfolio:import` command above.
+
 1. Add a record to `database/content/projects.php` with a new stable `seed_key` and `slug`.
 2. Supply both names/summaries, contribution, verified optional story fields, category, technologies, ordering and visibility.
 3. Add a genuine JPEG screenshot under `database/content/images/` and set its `cover` path. A null cover is permitted; the UI renders a text fallback.
@@ -85,6 +99,17 @@ Deployment remains a separate action. Back up the database/media, run additive m
 
 Public pages use `/` and `/work/{slug}`. `/sitemap.xml` includes only visible projects for the first visible profile, matching the homepage. Locale is persisted by the `portfolio_locale` cookie. The service worker caches only explicitly listed public static files and never HTML, Inertia payloads or authenticated data.
 
+
+## MA scroll animation
+
+Dashboard → Profile → **أنيميشن MA / Scroll animation** controls the public background:
+enable/disable, opacity (0.1–1), size (0.5–1.5), assembly cycles per page (1–6),
+mouse pointer response, and mobile availability. Save the profile to apply changes.
+Run `php artisan migrate` to add these settings to an existing installation.
+The background is shared by the homepage and project case studies, follows the active
+theme, and uses native scroll position for mouse and touch. Scrolling backward reverses
+the movement. Project-card animations and their scroll triggers are unchanged.
+Reduced-motion preferences show a static MA; WebGL failure retains a CSS fallback.
 
 ## Independent navigation appearance
 

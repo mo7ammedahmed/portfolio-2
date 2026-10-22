@@ -16,8 +16,9 @@ import {
     Sun,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import type { ComponentType, CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { MarketingIntegrations } from '@/components/portfolio/marketing-integrations';
+import { PublicAnimation } from '@/components/portfolio/public-animation';
 import { PortfolioSeo } from '@/components/portfolio/seo';
 import { ShaderFlow } from '@/components/portfolio/shader-flow';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -50,36 +51,6 @@ type Props = {
         categories: number;
     };
 };
-
-type ThreeSceneProps = {
-    accent: string;
-    className?: string;
-    isDark: boolean;
-};
-
-function ClientOnlyThreeScene(props: ThreeSceneProps) {
-    const [Scene, setScene] = useState<ComponentType<ThreeSceneProps> | null>(
-        null,
-    );
-
-    useEffect(() => {
-        let mounted = true;
-
-        void import('@/components/portfolio/three-deconstruction').then(
-            (module) => {
-                if (mounted) {
-                    setScene(() => module.ThreeDeconstruction);
-                }
-            },
-        );
-
-        return () => {
-            mounted = false;
-        };
-    }, []);
-
-    return Scene ? <Scene {...props} /> : null;
-}
 
 const hexToRgb = (hex: string): [number, number, number] => {
     const normalized = hex.replace('#', '');
@@ -712,7 +683,8 @@ export default function Welcome({
             </a>
 
             <div className="relative min-h-screen overflow-x-clip bg-[var(--portfolio-background)] text-[var(--portfolio-foreground)] transition-colors duration-500 md:rounded-[2rem]">
-                <ClientOnlyThreeScene
+                <PublicAnimation
+                    profile={profile}
                     className="pointer-events-none fixed inset-0 size-full md:inset-2 md:h-[calc(100%-1rem)] md:w-[calc(100%-1rem)] md:rounded-[2rem]"
                     accent={accentSolid}
                     isDark={isDark}

@@ -8,6 +8,7 @@ use App\Services\ImportPortfolioProjects;
 use App\Services\SavePortfolioProject;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -15,6 +16,27 @@ function projectManifest(): array
 {
     return array_map(fn (array $item): array => [...$item, 'cover' => null], require database_path('content/projects.php'));
 }
+
+test('a failed project deletion preserves cover and gallery files', function () {
+    Storage::fake('public');
+    config(['filesystems.default' => 'public']);
+    $owner = User::factory()->create();
+    $project = Project::factory()->for($owner)->create(['image' => 'cover.jpg']);
+    $project->images()->create(['path' => 'gallery.jpg', 'alt_en' => 'Gallery', 'alt_ar' => 'صورة', 'sort_order' => 0]);
+    Storage::disk('public')->put('cover.jpg', 'cover');
+    Storage::disk('public')->put('gallery.jpg', 'gallery');
+    $event = 'eloquent.deleting: '.Project::class;
+    Event::listen($event, fn () => throw new RuntimeException('Simulated deletion failure'));
+    try {
+        $this->withoutExceptionHandling();
+        expect(fn () => $this->actingAs($owner)->delete(route('portfolio.projects.destroy', $project)))
+            ->toThrow(RuntimeException::class, 'Simulated deletion failure');
+    } finally {
+        Event::forget($event);
+    }
+    expect($project->fresh())->not->toBeNull();
+    Storage::disk('public')->assertExists(['cover.jpg', 'gallery.jpg']);
+});
 
 test('six projects import repeatedly while preserving dashboard changes and unrelated work', function () {
     Storage::fake('public');
@@ -88,6 +110,7 @@ test('import requires an owner and never creates accounts', function () {
 });
 
 test('case studies and sitemap only expose the active visible portfolio', function () {
+    expect(file_exists(public_path('sitemap.xml')))->toBeFalse();
     $owner = User::factory()->create();
     Profile::factory()->for($owner)->create(['is_visible' => true]);
     $project = Project::factory()->for($owner)->create(['is_visible' => true]);

@@ -24,10 +24,12 @@ class DatabaseSeeder extends Seeder
             }
 
             app(ImportPortfolioProjects::class)->run($owner, require database_path('content/projects.php'));
+            app(ExperienceSeeder::class)->seedFor($owner);
 
             return;
         }
 
         $this->call(ProjectSeeder::class);
+        $this->call(ExperienceSeeder::class);
     }
 }
