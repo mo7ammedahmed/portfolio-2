@@ -71,6 +71,7 @@ class ProfileController extends Controller
                     'nav_blur',
                     'animation_enabled', 'animation_opacity', 'animation_scale', 'animation_cycles', 'animation_pointer', 'animation_mobile',
                     'glass_effect_enabled',
+                    'glass_border_enabled', 'glass_light_opacity', 'glass_dark_opacity',
                     'glass_blur',
                     'glass_surface_opacity',
                     'glass_border_opacity',

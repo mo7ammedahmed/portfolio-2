@@ -74,6 +74,9 @@ class StoreProfileRequest extends FormRequest
             'animation_pointer' => ['sometimes', 'required', 'boolean'],
             'animation_mobile' => ['sometimes', 'required', 'boolean'],
             'glass_effect_enabled' => ['required', 'boolean'],
+            'glass_border_enabled' => ['sometimes', 'required', 'boolean'],
+            'glass_light_opacity' => ['sometimes', 'nullable', 'numeric', 'between:0.1,1'],
+            'glass_dark_opacity' => ['sometimes', 'nullable', 'numeric', 'between:0.1,1'],
             // Glass configuration fields
             'glass_blur' => ['required', 'numeric', 'between:0,50'],
             'glass_surface_opacity' => ['required', 'numeric', 'between:0,1'],

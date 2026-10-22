@@ -1,5 +1,32 @@
 # Portfolio content and import guide
 
+## Chat-assisted content management
+
+This checkout and the authenticated Laravel Cloud console support requests in this
+Codex conversation. There is no unauthenticated HTTP editing endpoint and this does
+not automatically connect other ChatGPT conversations. Access requires the trusted
+workspace or Cloud account; credentials must never be pasted into chat.
+
+`php artisan portfolio:projects list --owner=ID` lists current content as JSON.
+Use `show --owner=ID --project=ID` before editing. Then use `update` with the same
+owner/project, `--expected` equal to the returned `updated_at`, and `--data` containing
+only changed fields as JSON. Run with `--dry-run` first, then without it. A stale
+version or another owner's project fails. `create` accepts bilingual project data;
+deletion, account changes, file paths and arbitrary fields are not supported.
+Commands operate on the environment where they run: local changes do not modify
+production. Execute through Laravel Cloud Commands when production is intended.
+
+Projects support a primary repository URL plus ten labeled additional repositories.
+All URLs are validated; missing repository arrays preserve current data.
+The homepage's Full project details button opens the complete case study in place.
+
+`php artisan portfolio:repair-covers --owner=ID --dry-run` previews restoration of
+missing seeded covers from the bundled photographs. Remove `--dry-run` to restore.
+Existing files and all editorial fields are preserved; unknown projects are skipped.
+
+Glass surfaces use the active portfolio surface/foreground colors, with separate
+light/dark opacity settings and a border toggle in Profile → Portfolio palettes.
+
 ## Content sources and attribution
 
 The owner confirmed full development of Aether School OS, Al Noor School, Speed Rocket, Anwan Print and Portfolio, and **backend development only** for Shawerma Krakow. All six start as `in_progress`; a working public URL is not evidence of completion.

@@ -118,6 +118,7 @@ class ProjectController extends Controller
                     'description_en',
                     'url',
                     'repository_url',
+                    'repositories',
                     'is_featured',
                     'is_visible',
                     'sort_order',
