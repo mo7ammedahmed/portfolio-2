@@ -43,6 +43,12 @@ export type PortfolioProfile = Localized &
         nav_glass_enabled: boolean;
         nav_opacity: number;
         nav_blur: number;
+        animation_enabled?: boolean;
+        animation_opacity?: number;
+        animation_scale?: number;
+        animation_cycles?: number;
+        animation_pointer?: boolean;
+        animation_mobile?: boolean;
 
         role_ar: string;
         role_en: string;

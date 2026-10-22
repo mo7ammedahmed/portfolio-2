@@ -6,6 +6,7 @@ import { MarketingIntegrations } from '@/components/portfolio/marketing-integrat
 import { useAppearance } from '@/hooks/use-appearance';
 import { gradientToCss } from '@/lib/color-utils';
 import type { Gradient, PortfolioProfile, TrackingIntegration } from '@/types';
+import { PublicAnimation } from './public-animation';
 import { PortfolioSeo } from './seo';
 
 export type Locale = 'ar' | 'en';
@@ -66,17 +67,22 @@ export function PublicLayout({
 
     return (
         <div
-            className="folio"
+            className="folio relative isolate"
             dir={ar ? 'rtl' : 'ltr'}
             lang={locale}
             style={palette}
         >
             <PortfolioSeo />
+            <PublicAnimation
+                profile={profile}
+                isDark={dark}
+                accent={color(profile[`theme_${mode}_accent`], '#006c55')}
+            />
             <MarketingIntegrations integrations={trackingIntegrations} />
             <a className="folio-skip" href="#main-content">
                 {ar ? 'انتقل إلى المحتوى' : 'Skip to content'}
             </a>
-            <header className="folio-header">
+            <header className="folio-header relative z-10">
                 <Link href="/" className="folio-brand">
                     {localized(profile, 'name', locale)}
                     <span>
@@ -112,8 +118,10 @@ export function PublicLayout({
                     </button>
                 </div>
             </header>
-            <main id="main-content">{children}</main>
-            <footer className="folio-footer">
+            <main id="main-content" className="relative z-10">
+                {children}
+            </main>
+            <footer className="folio-footer relative z-10">
                 <span>
                     © {new Date().getFullYear()}{' '}
                     {localized(profile, 'name', locale)}

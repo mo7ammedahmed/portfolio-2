@@ -8,6 +8,7 @@ use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -412,4 +413,46 @@ test('navigation rejects invalid colors and glass ranges', function () {
         ...portfolioProfilePayload(), 'nav_background' => 'url(example)', 'nav_glass_enabled' => 'bad',
         'nav_opacity' => 1.5, 'nav_blur' => 41,
     ])->assertSessionHasErrors(['nav_background', 'nav_glass_enabled', 'nav_opacity', 'nav_blur']);
+});
+
+test('animation settings persist and are shared on home and project pages', function () {
+    $owner = User::factory()->create();
+    $settings = ['animation_enabled' => false, 'animation_opacity' => 0.45, 'animation_scale' => 0.8, 'animation_cycles' => 5, 'animation_pointer' => false, 'animation_mobile' => false];
+    $this->actingAs($owner)->put(route('portfolio.profile.update'), [...portfolioProfilePayload(), ...$settings])->assertSessionHasNoErrors();
+    $project = Project::factory()->for($owner)->create(['is_visible' => true]);
+    foreach (['/', '/work/'.$project->slug, route('portfolio.profile.edit')] as $url) {
+        $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('profile.animation_enabled', false)->where('profile.animation_opacity', 0.45)
+            ->where('profile.animation_scale', 0.8)->where('profile.animation_cycles', 5)
+            ->where('profile.animation_pointer', false)->where('profile.animation_mobile', false));
+    }
+    $this->put(route('portfolio.profile.update'), portfolioProfilePayload())->assertSessionHasNoErrors();
+    expect($owner->profile()->firstOrFail()->animation_cycles)->toBe(5);
+});
+
+test('animation settings reject invalid ranges and switches', function () {
+    $this->actingAs(User::factory()->create())->put(route('portfolio.profile.update'), [
+        ...portfolioProfilePayload(), 'animation_opacity' => 2, 'animation_scale' => -1,
+        'animation_cycles' => 99, 'animation_enabled' => 'yes', 'animation_mobile' => 'yes', 'animation_pointer' => 'yes',
+    ])->assertSessionHasErrors(['animation_opacity', 'animation_scale', 'animation_cycles', 'animation_enabled', 'animation_mobile', 'animation_pointer']);
+});
+
+test('failed profile saves remove new uploads and preserve the existing portrait', function () {
+    Storage::fake('public');
+    config(['filesystems.default' => 'public']);
+    $owner = User::factory()->create();
+    Storage::disk('public')->put('portfolio/profile/original.jpg', 'original');
+    $profile = Profile::factory()->for($owner)->create(['image' => 'portfolio/profile/original.jpg']);
+    $event = 'eloquent.updating: '.Profile::class;
+    Event::listen($event, fn () => throw new RuntimeException('Simulated database failure'));
+    try {
+        $this->withoutExceptionHandling();
+        expect(fn () => $this->actingAs($owner)->put(route('portfolio.profile.update'), [
+            ...portfolioProfilePayload(), 'image' => UploadedFile::fake()->image('replacement.jpg'),
+        ]))->toThrow(RuntimeException::class, 'Simulated database failure');
+    } finally {
+        Event::forget($event);
+    }
+    expect($profile->fresh()->image)->toBe('portfolio/profile/original.jpg')
+        ->and(Storage::disk('public')->allFiles())->toBe(['portfolio/profile/original.jpg']);
 });

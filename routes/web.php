@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('experiences', ExperienceController::class)->except('show');
         Route::resource('categories', CategoryController::class)->except('show');
         Route::resource('skills', SkillController::class)->except('show');
+        Route::get('cv/{cv}/preview', [CVController::class, 'preview'])->name('cv.preview');
         Route::resource('cv', CVController::class)->except(['show']);
     });
 });

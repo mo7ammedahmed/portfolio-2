@@ -153,11 +153,11 @@ class SkillController extends Controller
     {
         Gate::authorize('delete', $skill);
 
-        if ($skill->image) {
-            Storage::disk(config('filesystems.default'))->delete($skill->image);
-        }
-
+        $image = $skill->image;
         $skill->delete();
+        if ($image) {
+            Storage::disk(config('filesystems.default'))->delete($image);
+        }
 
         return to_route('portfolio.skills.index')
             ->with('success', 'Skill deleted.');

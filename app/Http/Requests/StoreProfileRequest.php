@@ -67,6 +67,12 @@ class StoreProfileRequest extends FormRequest
             'nav_glass_enabled' => ['sometimes', 'required', 'boolean'],
             'nav_opacity' => ['sometimes', 'required', 'numeric', 'between:0.1,1'],
             'nav_blur' => ['sometimes', 'required', 'integer', 'between:0,40'],
+            'animation_enabled' => ['sometimes', 'required', 'boolean'],
+            'animation_opacity' => ['sometimes', 'required', 'numeric', 'between:0.1,1'],
+            'animation_scale' => ['sometimes', 'required', 'numeric', 'between:0.5,1.5'],
+            'animation_cycles' => ['sometimes', 'required', 'integer', 'between:1,6'],
+            'animation_pointer' => ['sometimes', 'required', 'boolean'],
+            'animation_mobile' => ['sometimes', 'required', 'boolean'],
             'glass_effect_enabled' => ['required', 'boolean'],
             // Glass configuration fields
             'glass_blur' => ['required', 'numeric', 'between:0,50'],

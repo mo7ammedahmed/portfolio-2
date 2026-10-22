@@ -22,7 +22,8 @@ type ExperienceData = {
     description_en: string;
     location_ar: string;
     location_en: string;
-    started_at: string;
+    started_at: string | null;
+    display_year: number | null;
     ended_at: string | null;
     is_current: boolean;
     is_visible: boolean;
@@ -45,6 +46,7 @@ export default function ExperienceForm({
         location_ar: experience?.location_ar ?? '',
         location_en: experience?.location_en ?? '',
         started_at: experience?.started_at ?? '',
+        display_year: experience?.display_year?.toString() ?? '',
         ended_at: experience?.ended_at ?? '',
         is_current: experience?.is_current ?? false,
         is_visible: experience?.is_visible ?? true,
@@ -184,7 +186,24 @@ export default function ExperienceForm({
                             }
                         />
                     </Field>
-                    <Field label="Start date" error={form.errors.started_at}>
+                    <Field
+                        label="Year / السنة (when exact dates are unknown)"
+                        error={form.errors.display_year}
+                    >
+                        <TextInput
+                            type="number"
+                            min={1900}
+                            max={2100}
+                            value={form.data.display_year}
+                            onChange={(e) =>
+                                form.setData('display_year', e.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label="Start date (optional)"
+                        error={form.errors.started_at}
+                    >
                         <TextInput
                             type="date"
                             value={form.data.started_at}

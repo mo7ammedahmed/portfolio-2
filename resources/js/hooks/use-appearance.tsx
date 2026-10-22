@@ -26,7 +26,12 @@ const setCookie = (name: string, value: string, days = 365): void => {
     }
 
     const maxAge = days * 24 * 60 * 60;
-    document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
+
+    try {
+        document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
+    } catch {
+        // Themes remain usable when the browser blocks persistence.
+    }
 };
 
 const getStoredAppearance = (): Appearance => {
@@ -34,7 +39,29 @@ const getStoredAppearance = (): Appearance => {
         return 'system';
     }
 
-    return (localStorage.getItem('appearance') as Appearance) || 'system';
+    const valid = (value: string | null | undefined): value is Appearance =>
+        value === 'light' || value === 'dark' || value === 'system';
+
+    try {
+        const cookie = document.cookie
+            .split('; ')
+            .find((item) => item.startsWith('appearance='))
+            ?.split('=')[1];
+
+        if (valid(cookie)) {
+            return cookie;
+        }
+
+        const stored = localStorage.getItem('appearance');
+
+        if (valid(stored)) {
+            return stored;
+        }
+    } catch {
+        // Blocked storage must not prevent the application from mounting.
+    }
+
+    return 'system';
 };
 
 const isDarkMode = (appearance: Appearance): boolean => {
@@ -78,11 +105,6 @@ export function initializeTheme(): void {
         return;
     }
 
-    if (!localStorage.getItem('appearance')) {
-        localStorage.setItem('appearance', 'system');
-        setCookie('appearance', 'system');
-    }
-
     currentAppearance = getStoredAppearance();
     applyTheme(currentAppearance);
 
@@ -105,7 +127,11 @@ export function useAppearance(): UseAppearanceReturn {
         currentAppearance = mode;
 
         // Store in localStorage for client-side persistence...
-        localStorage.setItem('appearance', mode);
+        try {
+            localStorage.setItem('appearance', mode);
+        } catch {
+            // Keep the in-memory selection when storage is unavailable.
+        }
 
         // Store in cookie for SSR...
         setCookie('appearance', mode);

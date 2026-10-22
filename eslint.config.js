@@ -106,6 +106,7 @@ export default [
         ignores: [
             'vendor',
             'node_modules',
+            'storage/**',
             'public',
             'bootstrap/ssr',
             'tailwind.config.js',

@@ -147,14 +147,12 @@ class ProjectController extends Controller
     {
         Gate::authorize('delete', $project);
 
+        $paths = $project->images->pluck('path')->all();
         if ($project->image) {
-            Storage::disk(config('filesystems.default'))->delete($project->image);
-        }
-
-        foreach ($project->images as $image) {
-            Storage::disk(config('filesystems.default'))->delete($image->path);
+            $paths[] = $project->image;
         }
         $project->delete();
+        Storage::disk(config('filesystems.default'))->delete($paths);
 
         return to_route('portfolio.projects.index')
             ->with('success', 'Project deleted.');

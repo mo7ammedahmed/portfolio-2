@@ -74,6 +74,12 @@ type ProfileData = {
     nav_glass_enabled: boolean;
     nav_opacity: number;
     nav_blur: number;
+    animation_enabled: boolean;
+    animation_opacity: number;
+    animation_scale: number;
+    animation_cycles: number;
+    animation_pointer: boolean;
+    animation_mobile: boolean;
     glass_effect_enabled: boolean;
     glass_blur: number;
     glass_surface_opacity: number;
@@ -140,6 +146,12 @@ export default function EditProfile({
         nav_glass_enabled: profile?.nav_glass_enabled ?? false,
         nav_opacity: profile?.nav_opacity ?? 0.72,
         nav_blur: profile?.nav_blur ?? 20,
+        animation_enabled: profile?.animation_enabled ?? true,
+        animation_opacity: profile?.animation_opacity ?? 0.85,
+        animation_scale: profile?.animation_scale ?? 1,
+        animation_cycles: profile?.animation_cycles ?? 3,
+        animation_pointer: profile?.animation_pointer ?? true,
+        animation_mobile: profile?.animation_mobile ?? true,
         glass_effect_enabled: profile?.glass_effect_enabled ?? false,
         glass_blur: profile?.glass_blur ?? 1.25,
         glass_surface_opacity: profile?.glass_surface_opacity ?? 0.64,
@@ -268,6 +280,89 @@ export default function EditProfile({
                         />
                     </div>
                 )}
+
+                <FormSection
+                    title="أنيميشن MA / Scroll animation"
+                    description="خلفية متحركة عبر الموقع مرتبطة بالتمرير بالماوس واللمس. حركة بطاقات المشاريع مستقلة عن هذه الإعدادات."
+                >
+                    {(
+                        [
+                            [
+                                'animation_enabled',
+                                'تفعيل الأنيميشن / Enable animation',
+                            ],
+                            [
+                                'animation_mobile',
+                                'تشغيل على الهاتف / Enable on mobile',
+                            ],
+                            [
+                                'animation_pointer',
+                                'تفاعل مع مؤشر الماوس / Pointer interaction',
+                            ],
+                        ] as const
+                    ).map(([key, label]) => (
+                        <label key={key} className="flex items-center gap-3">
+                            <Checkbox
+                                checked={form.data[key]}
+                                onCheckedChange={(value) =>
+                                    form.setData(key, value === true)
+                                }
+                            />
+                            <span>{label}</span>
+                            {form.errors[key] && (
+                                <span className="text-destructive">
+                                    {form.errors[key]}
+                                </span>
+                            )}
+                        </label>
+                    ))}
+                    {(
+                        [
+                            [
+                                'animation_opacity',
+                                'الشفافية / Opacity',
+                                0.1,
+                                1,
+                                0.05,
+                            ],
+                            ['animation_scale', 'الحجم / Size', 0.5, 1.5, 0.05],
+                            [
+                                'animation_cycles',
+                                'مرات التجمع خلال الصفحة / Assembly cycles',
+                                1,
+                                6,
+                                1,
+                            ],
+                        ] as const
+                    ).map(([key, label, min, max, step]) => (
+                        <Field
+                            key={key}
+                            label={`${label}: ${form.data[key]}`}
+                            error={form.errors[key]}
+                        >
+                            <input
+                                aria-label={label}
+                                type="range"
+                                className="w-full"
+                                min={min}
+                                max={max}
+                                step={step}
+                                value={form.data[key]}
+                                onChange={(event) =>
+                                    form.setData(
+                                        key,
+                                        Number(event.target.value),
+                                    )
+                                }
+                            />
+                        </Field>
+                    ))}
+                    <p className="text-sm text-muted-foreground">
+                        الألوان تتبع ثيم الموقع. عند تفعيل تقليل الحركة في
+                        الجهاز يظهر MA بشكل ثابت. احفظ التغييرات لتطبيقها على
+                        الموقع.
+                    </p>
+                </FormSection>
 
                 <FormSection
                     title="شريط التنقل / Navigation bar"

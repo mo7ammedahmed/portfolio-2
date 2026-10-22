@@ -28,9 +28,11 @@ fs.mkdirSync(output, { recursive: true });
                     await page.locator('.portfolio-project-plate').first().waitFor({ timeout: 60000 });
                     assert.equal(await page.locator('.portfolio-project-plate').count(), 6);
                     assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
+                    assert.equal(await page.locator('html').evaluate(el => el.classList.contains('dark')), theme === 'dark');
 
                     for (const img of await page.locator('.portfolio-project-plate img').all()) {
                         await img.scrollIntoViewIfNeeded();
+                        await page.waitForFunction(el => el.complete && el.naturalWidth > 0, await img.elementHandle());
                         await img.evaluate(el => el.decode());
                     }
 
@@ -55,6 +57,10 @@ fs.mkdirSync(output, { recursive: true });
 
         const context = await browser.newContext();
         const page = await context.newPage();
+        const sitemap = await context.request.get(`${base}/sitemap.xml`);
+        assert.equal(sitemap.status(), 200);
+        assert.ok((await sitemap.text()).includes('/work/aether-school-os'));
+        assert.ok(!(await sitemap.text()).includes('#work'));
         await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 180000 });
         await page.getByRole('button', { name: 'التبديل إلى العربية' }).click();
         await page.waitForFunction(() => document.documentElement.lang === 'ar');
@@ -70,6 +76,32 @@ fs.mkdirSync(output, { recursive: true });
         await page.getByText('Message sent. I’ll get back to you soon.', { exact: true }).waitFor();
         results.push({ contact: true, localePersistence: true });
         await context.close();
+
+        const restricted = await browser.newContext({ viewport: { width: 390, height: 844 } });
+        await restricted.addCookies([{ name: 'appearance', value: 'dark', url: base }]);
+        await restricted.addInitScript(() => {
+            Object.defineProperty(window, 'localStorage', {
+                get() {
+                    throw new DOMException('Blocked', 'SecurityError');
+                },
+            });
+            const original = HTMLCanvasElement.prototype.getContext;
+            HTMLCanvasElement.prototype.getContext = function (kind, ...args) {
+                return String(kind).includes('webgl') ? null : original.call(this, kind, ...args);
+            };
+        });
+        const restrictedPage = await restricted.newPage();
+        const restrictedErrors = [];
+        restrictedPage.on('pageerror', error => restrictedErrors.push(error.message));
+        await restrictedPage.goto(base, { waitUntil: 'domcontentloaded' });
+        await restrictedPage.locator('.portfolio-project-plate').first().waitFor();
+        assert.equal(await restrictedPage.locator('html').evaluate(el => el.classList.contains('dark')), true);
+        await restrictedPage.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
+        await restrictedPage.locator('input[type=email]').waitFor();
+        assert.equal(await restrictedPage.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        assert.deepEqual(restrictedErrors, []);
+        await restricted.close();
+        results.push({ sitemap: true, blockedStorage: true, webglFallback: true, loginMobile: true });
     } finally {
         fs.writeFileSync(`${output}/results.json`, JSON.stringify(results, null, 2));
         await browser.close();
