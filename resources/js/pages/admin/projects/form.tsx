@@ -41,6 +41,7 @@ type ProjectData = {
     description_en: string;
     url: string | null;
     repository_url: string | null;
+    repositories: { label: string; url: string }[] | null;
     is_featured: boolean;
     is_visible: boolean;
     sort_order: number;
@@ -80,6 +81,8 @@ export default function ProjectForm({
         skill_ids: project?.skill_ids ?? ([] as number[]),
         url: project?.url ?? '',
         repository_url: project?.repository_url ?? '',
+        repositories:
+            project?.repositories ?? ([] as { label: string; url: string }[]),
         is_featured: project?.is_featured ?? false,
         is_visible: project?.is_visible ?? true,
         sort_order: project?.sort_order ?? 0,
@@ -92,6 +95,7 @@ export default function ProjectForm({
             ...data,
             category_id: data.category_id || null,
             gallery_present: true,
+            repositories_present: true,
             skill_ids_present: true,
             ...(editing ? { _method: 'put' } : {}),
         }));
@@ -493,6 +497,111 @@ export default function ProjectForm({
                             }
                         />
                     </Field>
+                    <div className="space-y-4 md:col-span-2">
+                        <h3 className="font-medium">
+                            مستودعات إضافية / Additional repositories
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                            Frontend, backend, mobile — give each repository a
+                            clear label. The primary URL above stays available.
+                        </p>
+                        {form.data.repositories.map((repository, index) => (
+                            <div
+                                key={index}
+                                className="grid gap-3 rounded-xl border p-4 sm:grid-cols-[1fr_2fr_auto]"
+                            >
+                                <Field
+                                    label={`Repository ${index + 1} name`}
+                                    error={
+                                        form.errors[
+                                            `repositories.${index}.label`
+                                        ]
+                                    }
+                                >
+                                    <TextInput
+                                        value={repository.label}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'repositories',
+                                                form.data.repositories.map(
+                                                    (item, i) =>
+                                                        i === index
+                                                            ? {
+                                                                  ...item,
+                                                                  label: event
+                                                                      .target
+                                                                      .value,
+                                                              }
+                                                            : item,
+                                                ),
+                                            )
+                                        }
+                                    />
+                                </Field>
+                                <Field
+                                    label={`Repository ${index + 1} URL`}
+                                    error={
+                                        form.errors[`repositories.${index}.url`]
+                                    }
+                                >
+                                    <TextInput
+                                        type="url"
+                                        dir="ltr"
+                                        value={repository.url}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'repositories',
+                                                form.data.repositories.map(
+                                                    (item, i) =>
+                                                        i === index
+                                                            ? {
+                                                                  ...item,
+                                                                  url: event
+                                                                      .target
+                                                                      .value,
+                                                              }
+                                                            : item,
+                                                ),
+                                            )
+                                        }
+                                    />
+                                </Field>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    aria-label={`Remove repository ${index + 1}`}
+                                    onClick={() =>
+                                        form.setData(
+                                            'repositories',
+                                            form.data.repositories.filter(
+                                                (_, i) => i !== index,
+                                            ),
+                                        )
+                                    }
+                                >
+                                    Remove
+                                </Button>
+                            </div>
+                        ))}
+                        {form.errors.repositories && (
+                            <p className="text-sm text-destructive">
+                                {form.errors.repositories}
+                            </p>
+                        )}
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={form.data.repositories.length >= 10}
+                            onClick={() =>
+                                form.setData('repositories', [
+                                    ...form.data.repositories,
+                                    { label: '', url: '' },
+                                ])
+                            }
+                        >
+                            إضافة مستودع / Add repository
+                        </Button>
+                    </div>
                     <Field label="Cover image" error={form.errors.image}>
                         <TextInput
                             type="file"

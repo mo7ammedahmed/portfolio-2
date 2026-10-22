@@ -26,6 +26,9 @@ export type PortfolioTheme = {
     theme_light_foreground: string;
     theme_light_muted: string;
     glass_effect_enabled: boolean;
+    glass_border_enabled?: boolean;
+    glass_light_opacity?: number | null;
+    glass_dark_opacity?: number | null;
     glass_blur: number;
     glass_surface_opacity: number;
     glass_border_opacity: number;
@@ -95,6 +98,7 @@ export type PortfolioProject = Localized & {
     image_url: string | null;
     url: string | null;
     repository_url: string | null;
+    repositories?: { label: string; url: string }[] | null;
     is_featured: boolean;
     category: (Localized & { id: number; color: string }) | null;
     skills: Localized[];

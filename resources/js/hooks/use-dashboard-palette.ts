@@ -10,6 +10,9 @@ type PaletteColorKey = Exclude<
     | 'glass_surface_opacity'
     | 'glass_border_opacity'
     | 'glass_saturation'
+    | 'glass_border_enabled'
+    | 'glass_light_opacity'
+    | 'glass_dark_opacity'
 >;
 
 // Map theme attributes to CSS custom property names (raw)

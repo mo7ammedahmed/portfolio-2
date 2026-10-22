@@ -81,6 +81,9 @@ type ProfileData = {
     animation_pointer: boolean;
     animation_mobile: boolean;
     glass_effect_enabled: boolean;
+    glass_border_enabled: boolean;
+    glass_light_opacity: number | null;
+    glass_dark_opacity: number | null;
     glass_blur: number;
     glass_surface_opacity: number;
     glass_border_opacity: number;
@@ -153,6 +156,15 @@ export default function EditProfile({
         animation_pointer: profile?.animation_pointer ?? true,
         animation_mobile: profile?.animation_mobile ?? true,
         glass_effect_enabled: profile?.glass_effect_enabled ?? false,
+        glass_border_enabled: profile?.glass_border_enabled ?? true,
+        glass_light_opacity:
+            profile?.glass_light_opacity ??
+            profile?.glass_surface_opacity ??
+            0.8,
+        glass_dark_opacity:
+            profile?.glass_dark_opacity ??
+            profile?.glass_surface_opacity ??
+            0.64,
         glass_blur: profile?.glass_blur ?? 1.25,
         glass_surface_opacity: profile?.glass_surface_opacity ?? 0.64,
         glass_border_opacity: profile?.glass_border_opacity ?? 0.22,
@@ -919,6 +931,80 @@ export default function EditProfile({
                                                 )
                                             }
                                         />
+                                    </div>
+                                    <div className="my-5 space-y-4">
+                                        <p className="text-sm text-muted-foreground">
+                                            الزجاج يستخدم ألوان Surface
+                                            وForeground من لوحة الوضع النشط
+                                            أدناه. / Glass follows the active
+                                            portfolio palette.
+                                        </p>
+                                        <label className="flex items-center gap-3">
+                                            <Checkbox
+                                                checked={
+                                                    form.data
+                                                        .glass_border_enabled
+                                                }
+                                                onCheckedChange={(value) =>
+                                                    form.setData(
+                                                        'glass_border_enabled',
+                                                        value === true,
+                                                    )
+                                                }
+                                            />
+                                            <span>
+                                                إظهار حدود الزجاج / Show glass
+                                                borders
+                                            </span>
+                                        </label>
+                                        {(['light', 'dark'] as const).map(
+                                            (mode) => (
+                                                <Field
+                                                    key={mode}
+                                                    label={
+                                                        mode === 'light'
+                                                            ? 'شفافية سطح الوضع الفاتح / Light surface opacity'
+                                                            : 'شفافية سطح الوضع الداكن / Dark surface opacity'
+                                                    }
+                                                    error={
+                                                        form.errors[
+                                                            `glass_${mode}_opacity`
+                                                        ]
+                                                    }
+                                                >
+                                                    <input
+                                                        type="range"
+                                                        className="w-full"
+                                                        aria-label={`${mode} glass opacity`}
+                                                        min={0.1}
+                                                        max={1}
+                                                        step={0.05}
+                                                        value={
+                                                            form.data[
+                                                                `glass_${mode}_opacity`
+                                                            ]
+                                                        }
+                                                        onChange={(event) =>
+                                                            form.setData(
+                                                                `glass_${mode}_opacity`,
+                                                                Number(
+                                                                    event.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                    />
+                                                    <span className="text-sm">
+                                                        {Math.round(
+                                                            form.data[
+                                                                `glass_${mode}_opacity`
+                                                            ] * 100,
+                                                        )}
+                                                        %
+                                                    </span>
+                                                </Field>
+                                            ),
+                                        )}
                                     </div>
                                     {!form.data.glass_effect_enabled ? (
                                         <p className="text-sm text-muted-foreground">

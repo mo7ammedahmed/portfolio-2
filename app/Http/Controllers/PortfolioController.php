@@ -93,6 +93,7 @@ class PortfolioController extends Controller
                     'description_en',
                     'url',
                     'repository_url',
+                    'repositories',
                     'is_featured',
                 ]),
                 'images' => $project->images->map(fn (ProjectImage $image): array => [
@@ -236,6 +237,8 @@ class PortfolioController extends Controller
                     'nav_blur',
                     'animation_enabled', 'animation_opacity', 'animation_scale', 'animation_cycles', 'animation_pointer', 'animation_mobile',
                     'glass_effect_enabled',
+                    'glass_blur', 'glass_surface_opacity', 'glass_border_opacity', 'glass_saturation',
+                    'glass_border_enabled', 'glass_light_opacity', 'glass_dark_opacity',
                 ]),
                 'image_url' => $profile->image
                     ? Storage::disk(config('filesystems.default'))->url($profile->image)

@@ -16,7 +16,7 @@
 ## Verification
 
 - Baseline: 148 PHP tests passed before review changes.
-- Final PHP suite, including animation settings: 157 tests, 969 assertions passed.
+- Final PHP suite, including animation settings, multiple repositories and console editing: 160 tests, 1002 assertions passed.
 - PHPStan, Pint, TypeScript, ESLint and Prettier passed.
 - Three service-worker tests passed, including private/Inertia cache exclusions.
 - Production client build succeeded.
@@ -24,6 +24,14 @@
 - Local contact submission, language persistence, sitemap, mobile login, blocked localStorage and WebGL fallback passed.
 
 ## Scope and remaining limits
+
+The follow-up adds theme-aware glass settings, border controls, in-page project
+details, a shared case-study presentation, multiple repositories, owner-scoped
+console content commands with stale-update protection, and missing-cover recovery.
+TypeScript and the production build passed; PHPStan passed with a 512 MB CLI limit.
+The initial default 128 MB PHPStan run exhausted memory. Local browser inspection
+confirmed the full project dialog and restored cover. Deployment verification is
+separate from these local checks.
 
 The checks above describe local verification before release. Deployment status must be confirmed separately in Laravel Cloud. Existing portfolio content, credentials and project-section animations were preserved. This release includes the safe experience seeder and the site-wide, scroll-linked MA background with dashboard controls; mouse and touch scrolling, including reverse scrolling, passed browser checks.
 

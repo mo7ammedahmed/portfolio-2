@@ -25,6 +25,7 @@ use Override;
     'image',
     'url',
     'repository_url',
+    'repositories',
     'is_featured',
     'is_visible',
     'sort_order',
@@ -77,6 +78,7 @@ class Project extends Model
     protected function casts(): array
     {
         return [
+            'repositories' => 'array',
             'is_featured' => 'boolean',
             'is_visible' => 'boolean',
             'sort_order' => 'integer',

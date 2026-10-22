@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { MarketingIntegrations } from '@/components/portfolio/marketing-integrations';
 import { useAppearance } from '@/hooks/use-appearance';
 import { gradientToCss } from '@/lib/color-utils';
+import { glassStyle } from '@/lib/glass-appearance';
 import type { Gradient, PortfolioProfile, TrackingIntegration } from '@/types';
 import { PublicAnimation } from './public-animation';
 import { PortfolioSeo } from './seo';
@@ -59,6 +60,12 @@ export function PublicLayout({
         '--folio-muted':
             profile[`theme_${mode}_muted`] || (dark ? '#b0b5b0' : '#555d57'),
         '--folio-accent': color(profile[`theme_${mode}_accent`], '#006c55'),
+        '--portfolio-surface': color(
+            profile[`theme_${mode}_surface`],
+            dark ? '#141414' : '#ffffff',
+        ),
+        '--portfolio-foreground': profile[`theme_${mode}_foreground`],
+        ...glassStyle(profile, dark),
     } as CSSProperties;
     const switchLocale = () => {
         document.cookie = `portfolio_locale=${ar ? 'en' : 'ar'}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
@@ -71,6 +78,10 @@ export function PublicLayout({
             dir={ar ? 'rtl' : 'ltr'}
             lang={locale}
             style={palette}
+            data-glass={profile.glass_effect_enabled ? 'enabled' : 'disabled'}
+            data-glass-border={
+                profile.glass_border_enabled === false ? 'disabled' : 'enabled'
+            }
         >
             <PortfolioSeo />
             <PublicAnimation

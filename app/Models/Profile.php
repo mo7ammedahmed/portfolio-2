@@ -83,6 +83,7 @@ use Override;
     'nav_blur',
     'animation_enabled', 'animation_opacity', 'animation_scale', 'animation_cycles', 'animation_pointer', 'animation_mobile',
     'glass_effect_enabled',
+    'glass_border_enabled', 'glass_light_opacity', 'glass_dark_opacity',
     'glass_blur',
     'glass_surface_opacity',
     'glass_border_opacity',
@@ -171,6 +172,9 @@ class Profile extends Model
             'nav_blur' => 'integer',
             'animation_enabled' => 'boolean', 'animation_opacity' => 'float', 'animation_scale' => 'float', 'animation_cycles' => 'integer', 'animation_pointer' => 'boolean', 'animation_mobile' => 'boolean',
             'glass_effect_enabled' => 'boolean',
+            'glass_border_enabled' => 'boolean',
+            'glass_light_opacity' => 'float',
+            'glass_dark_opacity' => 'float',
             // Custom casts for gradient fields
             'theme_dark_accent' => GradientCast::class,
             'theme_light_accent' => GradientCast::class,

@@ -18,11 +18,15 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { MarketingIntegrations } from '@/components/portfolio/marketing-integrations';
+import { ProjectImage } from '@/components/portfolio/project-details';
+import { ProjectQuickView } from '@/components/portfolio/project-quick-view';
 import { PublicAnimation } from '@/components/portfolio/public-animation';
 import { PortfolioSeo } from '@/components/portfolio/seo';
 import { ShaderFlow } from '@/components/portfolio/shader-flow';
 import { useAppearance } from '@/hooks/use-appearance';
+import { glassStyle } from '@/lib/glass-appearance';
 import { navigationStyle } from '@/lib/navigation-appearance';
+import { projectRepositories } from '@/lib/project-repositories';
 import { resolveSkillIconUrl } from '@/lib/skill-icons';
 import { dashboard, login } from '@/routes';
 import { store as storeContactMessage } from '@/routes/contact';
@@ -657,6 +661,9 @@ export default function Welcome({
             ref={portfolioRef}
             dir={rtl ? 'rtl' : 'ltr'}
             data-glass={profile.glass_effect_enabled ? 'enabled' : 'disabled'}
+            data-glass-border={
+                profile.glass_border_enabled === false ? 'disabled' : 'enabled'
+            }
             className="min-h-screen bg-[var(--portfolio-background)] p-0 font-sans antialiased transition-colors duration-500 md:p-2"
             style={
                 {
@@ -666,6 +673,7 @@ export default function Welcome({
                     '--portfolio-muted': palette.muted,
                     '--portfolio-border': palette.border,
                     '--portfolio-accent': accentSolid,
+                    ...glassStyle(profile, isDark),
                 } as CSSProperties
             }
         >
@@ -1510,12 +1518,9 @@ function ProjectCard({
                 }`}
             >
                 {project.image_url ? (
-                    <img
+                    <ProjectImage
                         src={project.image_url}
                         alt={title}
-                        loading="lazy"
-                        width={1440}
-                        height={1000}
                         className="size-full object-cover"
                     />
                 ) : (
@@ -1545,13 +1550,7 @@ function ProjectCard({
                           ? 'قيد التطوير'
                           : 'In development'}
                 </p>
-                <Link
-                    className="mt-5 inline-flex items-center gap-2 text-sm underline underline-offset-4"
-                    href={`/work/${project.slug}`}
-                >
-                    {locale === 'ar' ? 'اقرأ دراسة الحالة' : 'Read case study'}{' '}
-                    <ArrowUpRight className="size-4" />
-                </Link>
+                <ProjectQuickView project={project} locale={locale} />
                 <div className="mt-7 border-t border-[var(--portfolio-border)] pt-5">
                     <p className="font-mono text-[9px] tracking-[0.16em] text-[var(--portfolio-muted)] uppercase">
                         Stack / tools
@@ -1567,7 +1566,7 @@ function ProjectCard({
                         ))}
                     </div>
                 </div>
-                {(project.url || project.repository_url) && (
+                {(project.url || projectRepositories(project).length > 0) && (
                     <div className="mt-auto flex flex-wrap gap-4 pt-7">
                         {project.url && (
                             <ExternalLink
@@ -1575,12 +1574,13 @@ function ProjectCard({
                                 label={labels.live}
                             />
                         )}
-                        {project.repository_url && (
+                        {projectRepositories(project).map((repository) => (
                             <ExternalLink
-                                href={project.repository_url}
-                                label={labels.source}
+                                key={repository.url}
+                                href={repository.url}
+                                label={repository.label}
                             />
-                        )}
+                        ))}
                     </div>
                 )}
             </div>

@@ -14,6 +14,9 @@ class StoreProjectRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
+        if ($this->boolean('repositories_present') && ! $this->has('repositories')) {
+            $this->merge(['repositories' => []]);
+        }
         if ($this->boolean('gallery_present') && ! $this->has('gallery')) {
             $this->merge(['gallery' => []]);
         }
@@ -72,6 +75,10 @@ class StoreProjectRequest extends FormRequest
             'image' => ['nullable', File::image()->max('6mb')],
             'url' => ['nullable', 'url:http,https', 'max:500'],
             'repository_url' => ['nullable', 'url:http,https', 'max:500'],
+            'repositories' => ['sometimes', 'array', 'max:10'],
+            'repositories.*' => ['array:label,url'],
+            'repositories.*.label' => ['required', 'string', 'max:100'],
+            'repositories.*.url' => ['required', 'url:http,https', 'max:500', 'distinct'],
             'is_featured' => ['required', 'boolean'],
             'is_visible' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0', 'max:10000'],
