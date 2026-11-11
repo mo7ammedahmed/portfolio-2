@@ -14,7 +14,15 @@ import {
     Tablet,
     Users,
 } from 'lucide-react';
-import type { ComponentType, SVGProps } from 'react';
+import type {
+    ComponentType,
+    KeyboardEvent,
+    PointerEvent,
+    ReactNode,
+    SVGProps,
+} from 'react';
+import { useState } from 'react';
+import { CountUp, formatDuration } from '@/components/admin/motion';
 import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
@@ -118,19 +126,19 @@ export default function Dashboard({
     const summaryCards = [
         {
             label: 'Unique visitors',
-            value: analytics.summary.visitors.toLocaleString(),
+            value: <CountUp value={analytics.summary.visitors} />,
             note: `+${analytics.summary.visitorsToday} today`,
             icon: Users,
         },
         {
             label: 'Sessions',
-            value: analytics.summary.sessions.toLocaleString(),
+            value: <CountUp value={analytics.summary.sessions} />,
             note: 'all time',
             icon: Activity,
         },
         {
             label: 'Page views',
-            value: analytics.summary.pageViews.toLocaleString(),
+            value: <CountUp value={analytics.summary.pageViews} />,
             note: `${(
                 analytics.summary.pageViews /
                 Math.max(analytics.summary.sessions, 1)
@@ -139,7 +147,12 @@ export default function Dashboard({
         },
         {
             label: 'Average time',
-            value: formatDuration(analytics.summary.averageDuration),
+            value: (
+                <CountUp
+                    value={analytics.summary.averageDuration}
+                    format="duration"
+                />
+            ),
             note: 'per session',
             icon: Clock3,
         },
@@ -154,14 +167,14 @@ export default function Dashboard({
                     title="Control room"
                     description="Manage your portfolio, shape its visual system, and understand how people engage with your work."
                     action={
-                        <>
+                        <div className="flex flex-wrap gap-3">
                             <Button asChild>
                                 <Link href={projectCreate()}>
                                     Add project
                                     <ArrowRight className="size-4" />
                                 </Link>
                             </Button>
-                            <Button asChild className="ml-3">
+                            <Button asChild>
                                 <Link
                                     href={
                                         metrics.cvId
@@ -175,7 +188,7 @@ export default function Dashboard({
                                     <ArrowRight className="size-4" />
                                 </Link>
                             </Button>
-                        </>
+                        </div>
                     }
                 />
 
@@ -224,7 +237,7 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="studio-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         {summaryCards.map((card) => (
                             <MetricCard key={card.label} {...card} />
                         ))}
@@ -268,7 +281,7 @@ export default function Dashboard({
                             </div>
                             <div className="mt-6 space-y-5">
                                 {analytics.topPages.length ? (
-                                    analytics.topPages.map((page) => {
+                                    analytics.topPages.map((page, index) => {
                                         const maximum =
                                             analytics.topPages[0]?.views ?? 1;
 
@@ -287,8 +300,9 @@ export default function Dashboard({
                                                 </div>
                                                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
                                                     <div
-                                                        className="h-full rounded-full bg-highlight"
+                                                        className="studio-bar h-full rounded-full bg-highlight"
                                                         style={{
+                                                            animationDelay: `${0.35 + index * 0.045}s`,
                                                             width: `${Math.max(
                                                                 8,
                                                                 (page.views /
@@ -413,18 +427,21 @@ export default function Dashboard({
                             Portfolio content
                         </h2>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="studio-stagger grid gap-4 md:grid-cols-3">
                         {contentCards.map((card, index) => (
                             <div
                                 key={card.label}
-                                className="relative overflow-hidden rounded-xl border bg-card p-6"
+                                className="studio-lift relative overflow-hidden rounded-xl border bg-card p-6"
                             >
                                 <span className="absolute top-5 right-5 font-mono text-xs text-muted-foreground">
                                     0{index + 1}
                                 </span>
                                 <card.icon className="size-5 text-highlight" />
                                 <strong className="mt-8 block font-editorial text-5xl">
-                                    {card.value}
+                                    <CountUp
+                                        value={card.value}
+                                        duration={900}
+                                    />
                                 </strong>
                                 <div className="mt-2 flex items-baseline justify-between">
                                     <span className="font-semibold">
@@ -530,12 +547,12 @@ function MetricCard({
     icon: Icon,
 }: {
     label: string;
-    value: string;
+    value: ReactNode;
     note: string;
     icon: ComponentType<SVGProps<SVGSVGElement>>;
 }) {
     return (
-        <div className="rounded-xl border bg-card p-5">
+        <div className="studio-lift rounded-xl border bg-card p-5">
             <div className="flex items-center justify-between">
                 <Icon className="size-4 text-highlight" />
                 <span className="text-xs text-muted-foreground">{note}</span>
@@ -575,14 +592,76 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
     const area = `${visitorLine} L ${x(points.length - 1)} ${
         paddingTop + plotHeight
     } L ${x(0)} ${paddingTop + plotHeight} Z`;
+    const [hover, setHover] = useState<number | null>(null);
+    const focused = hover === null ? null : points[hover];
+    const scrub = (event: PointerEvent<SVGSVGElement>) => {
+        const box = event.currentTarget.getBoundingClientRect();
+        const ratio =
+            ((event.clientX - box.left) / box.width) * width - paddingX;
+        const index = Math.round(
+            (ratio / (width - paddingX * 2)) * (points.length - 1),
+        );
+
+        setHover(Math.min(points.length - 1, Math.max(0, index)));
+    };
+    const step = (event: KeyboardEvent<SVGSVGElement>) => {
+        const delta =
+            event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+
+        if (!delta || !points.length) {
+            return;
+        }
+
+        event.preventDefault();
+        setHover((current) =>
+            Math.min(
+                points.length - 1,
+                Math.max(0, (current ?? points.length - 1) + delta),
+            ),
+        );
+    };
 
     return (
-        <div className="px-2 pt-4 pb-2 sm:px-5">
+        <div className="relative px-2 pt-4 pb-2 sm:px-5">
+            {focused && hover !== null && (
+                <div
+                    role="status"
+                    className="studio-tip pointer-events-none absolute top-2 z-10 rounded-lg border bg-popover/95 px-3 py-2 text-xs whitespace-nowrap shadow-lg backdrop-blur"
+                    style={{
+                        left: `${(x(hover) / width) * 100}%`,
+                        // Keep the tooltip inside the card at both ends.
+                        translate: `${
+                            hover / Math.max(points.length - 1, 1) > 0.7
+                                ? -100
+                                : hover / Math.max(points.length - 1, 1) < 0.3
+                                  ? 0
+                                  : -50
+                        }% 0`,
+                    }}
+                >
+                    <p className="font-medium">{focused.label}</p>
+                    <p className="mt-1 text-muted-foreground tabular-nums">
+                        <span className="text-foreground">
+                            {focused.visitors}
+                        </span>{' '}
+                        visitors ·{' '}
+                        <span className="text-foreground">
+                            {focused.pageViews}
+                        </span>{' '}
+                        views
+                    </p>
+                </div>
+            )}
             <svg
                 viewBox={`0 0 ${width} ${height}`}
-                className="h-auto w-full overflow-visible"
+                className="h-auto w-full touch-pan-y overflow-visible rounded-lg"
                 role="img"
-                aria-label="Traffic over the last fourteen days"
+                tabIndex={0}
+                aria-label="Traffic over the last fourteen days. Use the arrow keys to inspect each day."
+                onPointerMove={scrub}
+                onPointerLeave={() => setHover(null)}
+                onKeyDown={step}
+                onBlur={() => setHover(null)}
             >
                 <defs>
                     <linearGradient
@@ -616,8 +695,13 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
                         strokeDasharray="3 5"
                     />
                 ))}
-                <path d={area} fill="url(#visitor-area)" />
                 <path
+                    className="studio-area"
+                    d={area}
+                    fill="url(#visitor-area)"
+                />
+                <path
+                    className="studio-area"
                     d={line('pageViews')}
                     fill="none"
                     stroke="currentColor"
@@ -626,6 +710,8 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
                     strokeDasharray="5 5"
                 />
                 <path
+                    className="studio-draw"
+                    pathLength={1}
                     d={visitorLine}
                     fill="none"
                     stroke="var(--primary)"
@@ -633,13 +719,33 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                 />
+                {hover !== null && (
+                    <line
+                        x1={x(hover)}
+                        x2={x(hover)}
+                        y1={paddingTop}
+                        y2={paddingTop + plotHeight}
+                        stroke="currentColor"
+                        strokeOpacity=".22"
+                    />
+                )}
                 {points.map((point, index) => (
                     <g key={point.date}>
                         <circle
+                            className="studio-dot"
+                            style={{
+                                animationDelay: `${
+                                    0.25 +
+                                    (index / Math.max(points.length - 1, 1)) *
+                                        1.2
+                                }s`,
+                            }}
                             cx={x(index)}
                             cy={y(point.visitors)}
-                            r="3"
+                            r={hover === index ? 6 : 3}
                             fill="var(--primary)"
+                            stroke="var(--card)"
+                            strokeWidth={hover === index ? 2 : 0}
                         />
                         {(index % 3 === 0 || index === points.length - 1) && (
                             <text
@@ -683,17 +789,6 @@ function DeviceIcon({
     }
 
     return <Monitor {...props} />;
-}
-
-function formatDuration(seconds: number): string {
-    if (seconds < 60) {
-        return `${seconds}s`;
-    }
-
-    const minutes = Math.floor(seconds / 60);
-    const remainder = seconds % 60;
-
-    return remainder ? `${minutes}m ${remainder}s` : `${minutes}m`;
 }
 
 function formatRelativeTime(value: string): string {
