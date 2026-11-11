@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent, PointerEvent } from 'react';
 import { useLayoutEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 
@@ -71,6 +71,182 @@ export function CountUp({
             {formats[format](value)}
         </span>
     );
+}
+
+/** Smooth Catmull-Rom curve through the points, as an SVG path. */
+export function smoothPath(points: [number, number][]): string {
+    return points.reduce((d, [x, y], i, all) => {
+        if (i === 0) {
+            return `M${x},${y}`;
+        }
+
+        const [x0, y0] = all[i - 2] ?? all[i - 1];
+        const [x1, y1] = all[i - 1];
+        const [x3, y3] = all[i + 1] ?? [x, y];
+        // Keep control points between the segment's ends: no overshoot
+        // below zero or above a peak.
+        const clamp = (value: number) =>
+            Math.min(Math.max(value, Math.min(y1, y)), Math.max(y1, y));
+
+        return `${d} C${x1 + (x - x0) / 6},${clamp(y1 + (y - y0) / 6)} ${x - (x3 - x1) / 6},${clamp(y - (y3 - y1) / 6)} ${x},${y}`;
+    }, '');
+}
+
+/** Small trend line that draws itself in. */
+export function Sparkline({ values }: { values: number[] }) {
+    const width = 120;
+    const height = 36;
+    const maximum = Math.max(1, ...values);
+    const points = values.map((value, index): [number, number] => [
+        (index / Math.max(values.length - 1, 1)) * width,
+        height - 3 - (value / maximum) * (height - 6),
+    ]);
+    const line = smoothPath(points);
+
+    if (values.length < 2) {
+        return null;
+    }
+
+    return (
+        <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="h-9 w-28 overflow-visible"
+            preserveAspectRatio="none"
+            aria-hidden
+        >
+            <path
+                className="studio-area"
+                d={`${line} L${width},${height} L0,${height} Z`}
+                fill="color-mix(in srgb, var(--highlight) 16%, transparent)"
+            />
+            <path
+                className="studio-draw"
+                pathLength={1}
+                d={line}
+                fill="none"
+                stroke="var(--highlight)"
+                strokeWidth={2}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+            />
+        </svg>
+    );
+}
+
+const ringColors = [
+    'var(--chart-1)',
+    'var(--chart-3)',
+    'var(--chart-2)',
+    'var(--chart-4)',
+    'var(--chart-5)',
+];
+
+/** Donut ring with labelled segments; sweeps in once. */
+export function Donut({
+    segments,
+    label,
+    caption,
+    size = '7.5rem',
+    total: totalOverride,
+}: {
+    segments: { label: string; value: number }[];
+    label: string;
+    caption?: string;
+    size?: string;
+    /** Whole of the ring; the unfilled rest shows as track. */
+    total?: number;
+}) {
+    const total =
+        totalOverride ||
+        segments.reduce((sum, item) => sum + item.value, 0) ||
+        1;
+    // Cumulative percentage at the end of each segment.
+    const ends = segments.map(
+        (_, index) =>
+            (segments
+                .slice(0, index + 1)
+                .reduce((sum, item) => sum + item.value, 0) /
+                total) *
+            100,
+    );
+    const stops = segments.map(
+        (_, index) =>
+            `${ringColors[index % ringColors.length]} ${ends[index - 1] ?? 0}% ${ends[index]}%`,
+    );
+    const ring = `conic-gradient(${stops.join(', ')}, color-mix(in srgb, var(--foreground) 8%, transparent) ${ends.at(-1) ?? 0}% 100%)`;
+
+    return (
+        <div className="relative grid shrink-0 place-items-center">
+            <div
+                className="studio-donut"
+                style={{ '--ring': ring, '--size': size } as CSSProperties}
+                role="img"
+                aria-label={segments
+                    .map(
+                        (item) =>
+                            `${item.label} ${Math.round((item.value / total) * 100)}%`,
+                    )
+                    .join(', ')}
+            />
+            <div className="absolute text-center">
+                <strong className="block text-xl leading-none tabular-nums">
+                    {label}
+                </strong>
+                {caption && (
+                    <span className="mt-1 block text-[10px] text-muted-foreground">
+                        {caption}
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export { ringColors };
+
+/** Pointer tilt + glare for `.studio-tilt` elements. */
+export const tiltHandlers = {
+    onPointerMove(event: PointerEvent<HTMLElement>) {
+        if (prefersReducedMotion() || event.pointerType !== 'mouse') {
+            return;
+        }
+
+        const box = event.currentTarget.getBoundingClientRect();
+        const px = (event.clientX - box.left) / box.width;
+        const py = (event.clientY - box.top) / box.height;
+        const style = event.currentTarget.style;
+        style.setProperty('--ry', `${(px - 0.5) * 14}deg`);
+        style.setProperty('--rx', `${(0.5 - py) * 14}deg`);
+        style.setProperty('--gx', `${px * 100}%`);
+        style.setProperty('--gy', `${py * 100}%`);
+    },
+    onPointerLeave(event: PointerEvent<HTMLElement>) {
+        const style = event.currentTarget.style;
+        style.setProperty('--rx', '0deg');
+        style.setProperty('--ry', '0deg');
+    },
+};
+
+/** Up to two initials from a name ("Aether School OS" → "AS"). */
+export function initials(text: string): string {
+    return text
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((word) => word[0] ?? '')
+        .join('')
+        .toUpperCase();
+}
+
+/** Stable hue (0–359) from a string, for avatar tints. */
+export function hueOf(text: string): number {
+    let hash = 0;
+
+    for (const char of text) {
+        hash = (hash * 31 + char.charCodeAt(0)) % 360;
+    }
+
+    return hash;
 }
 
 type ViewTransitionDocument = Document & {

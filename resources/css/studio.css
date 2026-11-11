@@ -4,42 +4,303 @@
  * public portfolio is untouched. Shell (sidebar + header) stays still; only
  * page content moves.
  */
+.studio-shell,
 .studio {
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
     --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
-    isolation: isolate;
+    --glass-edge: rgb(255 255 255 / 0.55);
+    --glass-shadow:
+        0 1px 1px rgb(8 40 24 / 0.05), 0 10px 30px -14px rgb(8 40 24 / 0.25);
+}
+.dark .studio-shell,
+.dark .studio {
+    --glass-edge: rgb(255 255 255 / 0.07);
+    --glass-shadow:
+        0 1px 1px rgb(0 0 0 / 0.12), 0 8px 24px -10px rgb(0 0 0 / 0.45),
+        0 30px 60px -30px rgb(0 0 0 / 0.6);
 }
 
-/* Soft light behind the glass — glass only reads with something behind it. */
-.studio::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    border-radius: inherit;
+/* The whole studio floats over soft light — glass needs something behind it. */
+.studio-shell {
     background:
         radial-gradient(
-            42rem 30rem at 88% -8%,
-            color-mix(in srgb, var(--highlight) 16%, transparent),
-            transparent 70%
+            60vw 55vh at 10% 6%,
+            color-mix(in srgb, var(--highlight) 24%, transparent),
+            transparent 62%
         ),
         radial-gradient(
-            38rem 32rem at -6% 28%,
-            color-mix(in srgb, var(--primary) 13%, transparent),
+            55vw 60vh at 94% 92%,
+            color-mix(in srgb, var(--primary) 20%, transparent),
+            transparent 60%
+        ),
+        radial-gradient(
+            35vw 35vh at 72% 8%,
+            color-mix(in srgb, var(--highlight) 10%, transparent),
             transparent 70%
-        );
+        ),
+        var(--background);
+    background-attachment: fixed;
+}
+.studio-shell [data-sidebar='sidebar'] {
+    background: transparent;
+}
+.studio {
+    isolation: isolate;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Logo: gradient chip with a glow. */
+.studio-shell [data-sidebar='header'] .bg-sidebar-primary {
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--highlight), var(--primary));
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.3),
+        0 6px 16px -6px var(--highlight);
 }
 
 /* Glass cards on every admin screen. */
-.studio-page .rounded-xl.border.bg-card {
-    background-color: color-mix(in srgb, var(--card) 80%, transparent);
-    backdrop-filter: blur(16px) saturate(140%);
+.studio-page :is(.rounded-xl, .rounded-2xl).border.bg-card,
+[data-slot='dialog-content'] {
+    border-radius: 18px;
+    border-color: color-mix(in srgb, var(--foreground) 9%, transparent);
+    background-color: color-mix(in srgb, var(--card) 62%, transparent);
+    backdrop-filter: blur(18px) saturate(140%);
     box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #fff 9%, transparent),
-        0 1px 2px rgb(0 0 0 / 0.04),
-        0 14px 34px -20px rgb(0 0 0 / 0.28);
+        inset 0 1px 0 var(--glass-edge),
+        var(--glass-shadow);
+}
+/* Dialogs sit outside the shell: give them their own tokens, a denser
+   surface and a blurred backdrop. */
+[data-slot='dialog-content'] {
+    --glass-edge: rgb(255 255 255 / 0.55);
+    --glass-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.45);
+    background-color: color-mix(in srgb, var(--card) 88%, transparent);
+}
+.dark [data-slot='dialog-content'] {
+    --glass-edge: rgb(255 255 255 / 0.08);
+    --glass-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.8);
+}
+[data-slot='dialog-overlay'] {
+    backdrop-filter: blur(6px);
+}
+
+/* Status pill; `.is-live` adds a glowing pulse dot. */
+.studio-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--muted-foreground);
+    background: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+.studio-pill.is-accent,
+.studio-pill.is-live {
+    color: var(--highlight);
+    background: color-mix(in srgb, var(--highlight) 13%, transparent);
+}
+.studio-pill.is-live::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0 currentColor;
+    animation: studio-pulse 2.4s ease-out infinite;
+}
+@keyframes studio-pulse {
+    70% {
+        box-shadow: 0 0 0 6px transparent;
+    }
+}
+
+/* Timeline: a gradient rail through the row avatars. */
+.studio-timeline {
+    position: relative;
+}
+.studio-timeline::before {
+    content: '';
+    position: absolute;
+    top: 2.25rem;
+    bottom: 2.25rem;
+    inset-inline-start: calc(1.25rem + 1.25rem - 1px);
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+        180deg,
+        var(--highlight),
+        color-mix(in srgb, var(--primary) 30%, transparent)
+    );
+    opacity: 0.5;
+}
+.studio-timeline .studio-avatar {
+    position: relative;
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.3),
+        0 0 0 4px var(--card);
+}
+
+/* Card strip in an item's own colour (--c). */
+.studio-accent {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+.studio-accent::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--c), transparent);
+}
+.studio-accent::after {
+    content: '';
+    position: absolute;
+    inset: -40% auto auto -20%;
+    z-index: -1;
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(
+        circle,
+        color-mix(in srgb, var(--c) 18%, transparent),
+        transparent 70%
+    );
+}
+.studio-swatch {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--c) 70%, #fff),
+        var(--c)
+    );
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.35),
+        0 8px 18px -8px var(--c);
+}
+
+/* Gradient icon chip. */
+.studio-chip {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    color: var(--primary-foreground);
+    background: linear-gradient(135deg, var(--highlight), var(--primary));
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.3),
+        0 8px 18px -8px color-mix(in srgb, var(--highlight) 80%, transparent);
+}
+.studio-chip svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+/* Avatar chip tinted per item (--h is a hue from the item's name). */
+.studio-avatar {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.8rem;
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklch, var(--highlight), hsl(var(--h, 150) 70% 58%) 55%),
+        color-mix(in oklch, var(--primary), hsl(var(--h, 150) 65% 38%) 55%)
+    );
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+
+/* Gradient meter with a glossy top. */
+.studio-meter {
+    height: 0.5rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+.studio-meter > i {
+    position: relative;
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--primary), var(--highlight));
+    box-shadow: 0 0 12px -2px
+        color-mix(in srgb, var(--highlight) 70%, transparent);
+    transform-origin: left center;
+    animation: studio-grow 0.9s var(--ease-io) backwards;
+}
+.studio-meter > i::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 50%;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.45), transparent);
+}
+
+/* Donut: segments in --ring, swept in once. */
+@property --studio-sweep {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 100;
+}
+.studio-donut {
+    width: var(--size, 7.5rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--ring);
+    mask:
+        radial-gradient(farthest-side, transparent 66%, #000 67%),
+        conic-gradient(#000 calc(var(--studio-sweep) * 1%), transparent 0);
+    mask-composite: intersect;
+    animation: studio-sweep 1.3s var(--ease-out) 0.3s backwards;
+}
+@keyframes studio-sweep {
+    from {
+        --studio-sweep: 0;
+    }
+}
+
+/* Tilt card with pointer glare (vars set by tiltHandlers). */
+.studio-tilt {
+    position: relative;
+    overflow: hidden;
+    transform: perspective(900px) rotateX(var(--rx, 0deg))
+        rotateY(var(--ry, 0deg));
+    transition: transform 0.35s var(--ease-out);
+}
+.studio-tilt::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        circle at var(--gx, 30%) var(--gy, 0%),
+        rgb(255 255 255 / 0.3),
+        transparent 55%
+    );
+    mix-blend-mode: overlay;
+}
+
+/* Chart line glow. */
+.studio-glow {
+    filter: drop-shadow(
+        0 6px 10px color-mix(in srgb, var(--highlight) 45%, transparent)
+    );
 }
 
 /* ---------- Entrance ---------- */
@@ -446,6 +707,7 @@
         scale: none;
     }
     .studio-section,
+    .studio-pill.is-live::before,
     .studio-page [aria-invalid='true'],
     .studio-page [data-slot='checkbox'][data-state='checked'],
     .studio-page [role='radio'][aria-checked='true'] {

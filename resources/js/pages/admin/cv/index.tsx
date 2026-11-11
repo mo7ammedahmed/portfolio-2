@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowRight, Monitor, XCircle } from 'lucide-react';
+import { Donut } from '@/components/admin/motion';
 import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
 import cvRoutes from '@/routes/portfolio/cv';
@@ -42,8 +43,10 @@ export default function CvIndex({ cv }: Props) {
                 />
 
                 {!cv && (
-                    <div className="mt-6 flex items-center justify-center space-x-4">
-                        <Monitor className="size-6 text-muted-foreground" />
+                    <div className="mt-6 flex flex-col items-center justify-center gap-4 rounded-xl border bg-card p-10">
+                        <span className="studio-chip size-12!">
+                            <Monitor />
+                        </span>
                         <div className="text-center">
                             <h3 className="font-semibold">No CV found</h3>
                             <p className="mt-1 text-sm text-muted-foreground">
@@ -115,43 +118,18 @@ export default function CvIndex({ cv }: Props) {
                                             Content completeness
                                         </h4>
                                         <div className="flex items-center gap-3">
-                                            <div className="relative h-32 w-32">
-                                                <svg
-                                                    className="absolute inset-0 h-full w-full text-muted-foreground/20"
-                                                    viewBox="0 0 64 64"
-                                                    aria-hidden="true"
-                                                >
-                                                    <circle
-                                                        cx="32"
-                                                        cy="32"
-                                                        r="30"
-                                                        pathLength="100"
-                                                        fill="none"
-                                                        strokeWidth="4"
-                                                    />
-                                                </svg>
-                                                <svg
-                                                    className="absolute inset-0 h-full w-full -rotate-90 transform transition-transform duration-750"
-                                                    viewBox="0 0 64 64"
-                                                    aria-hidden="true"
-                                                >
-                                                    <circle
-                                                        cx="32"
-                                                        cy="32"
-                                                        r="30"
-                                                        strokeWidth="4"
-                                                        stroke="currentColor"
-                                                        pathLength="100"
-                                                        fill="none"
-                                                        style={{
-                                                            strokeDasharray: `${cv.ats_total}, 100`,
-                                                        }}
-                                                    />
-                                                </svg>
-                                                <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold">
-                                                    {cv.ats_total}/100
-                                                </div>
-                                            </div>
+                                            <Donut
+                                                size="8rem"
+                                                total={100}
+                                                label={`${cv.ats_total}`}
+                                                caption="of 100"
+                                                segments={[
+                                                    {
+                                                        label: 'Completeness',
+                                                        value: cv.ats_total,
+                                                    },
+                                                ]}
+                                            />
                                             <div className="space-y-2 text-xs">
                                                 <p className="font-medium">
                                                     Content checklist
@@ -191,14 +169,8 @@ export default function CvIndex({ cv }: Props) {
                                                             )}
                                                     </span>
                                                     <div className="flex items-center gap-2">
-                                                        <div className="relative h-2 w-20">
-                                                            <div
-                                                                className="absolute top-0 left-0 h-2 w-full bg-muted"
-                                                                role="presentation"
-                                                            />
-                                                            <div
-                                                                className="absolute top-0 left-0 h-2 bg-highlight"
-                                                                role="presentation"
+                                                        <div className="studio-meter w-28">
+                                                            <i
                                                                 style={{
                                                                     width: `${score * 10}%`,
                                                                 }}

@@ -82,7 +82,7 @@ export function FormSection({
             <div className="lg:sticky lg:top-6 lg:self-start">
                 <span
                     aria-hidden
-                    className="studio-section-index mb-3 block font-mono text-[10px] tracking-[0.16em] text-highlight"
+                    className="studio-section-index studio-pill is-accent mb-3 font-mono tracking-[0.12em]"
                 />
                 <h2 className="font-editorial text-2xl">{title}</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
