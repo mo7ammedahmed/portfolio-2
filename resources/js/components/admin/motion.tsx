@@ -227,6 +227,17 @@ export const tiltHandlers = {
     },
 };
 
+/** Up to two initials from a name ("Aether School OS" → "AS"). */
+export function initials(text: string): string {
+    return text
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((word) => word[0] ?? '')
+        .join('')
+        .toUpperCase();
+}
+
 /** Stable hue (0–359) from a string, for avatar tints. */
 export function hueOf(text: string): number {
     let hash = 0;

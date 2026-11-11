@@ -61,7 +61,8 @@
 }
 
 /* Glass cards on every admin screen. */
-.studio-page .rounded-xl.border.bg-card {
+.studio-page :is(.rounded-xl, .rounded-2xl).border.bg-card,
+[data-slot='dialog-content'] {
     border-radius: 18px;
     border-color: color-mix(in srgb, var(--foreground) 9%, transparent);
     background-color: color-mix(in srgb, var(--card) 62%, transparent);
@@ -69,6 +70,122 @@
     box-shadow:
         inset 0 1px 0 var(--glass-edge),
         var(--glass-shadow);
+}
+/* Dialogs sit outside the shell: give them their own tokens, a denser
+   surface and a blurred backdrop. */
+[data-slot='dialog-content'] {
+    --glass-edge: rgb(255 255 255 / 0.55);
+    --glass-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.45);
+    background-color: color-mix(in srgb, var(--card) 88%, transparent);
+}
+.dark [data-slot='dialog-content'] {
+    --glass-edge: rgb(255 255 255 / 0.08);
+    --glass-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.8);
+}
+[data-slot='dialog-overlay'] {
+    backdrop-filter: blur(6px);
+}
+
+/* Status pill; `.is-live` adds a glowing pulse dot. */
+.studio-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--muted-foreground);
+    background: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+.studio-pill.is-accent,
+.studio-pill.is-live {
+    color: var(--highlight);
+    background: color-mix(in srgb, var(--highlight) 13%, transparent);
+}
+.studio-pill.is-live::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0 currentColor;
+    animation: studio-pulse 2.4s ease-out infinite;
+}
+@keyframes studio-pulse {
+    70% {
+        box-shadow: 0 0 0 6px transparent;
+    }
+}
+
+/* Timeline: a gradient rail through the row avatars. */
+.studio-timeline {
+    position: relative;
+}
+.studio-timeline::before {
+    content: '';
+    position: absolute;
+    top: 2.25rem;
+    bottom: 2.25rem;
+    inset-inline-start: calc(1.25rem + 1.25rem - 1px);
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+        180deg,
+        var(--highlight),
+        color-mix(in srgb, var(--primary) 30%, transparent)
+    );
+    opacity: 0.5;
+}
+.studio-timeline .studio-avatar {
+    position: relative;
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.3),
+        0 0 0 4px var(--card);
+}
+
+/* Card strip in an item's own colour (--c). */
+.studio-accent {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+.studio-accent::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--c), transparent);
+}
+.studio-accent::after {
+    content: '';
+    position: absolute;
+    inset: -40% auto auto -20%;
+    z-index: -1;
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(
+        circle,
+        color-mix(in srgb, var(--c) 18%, transparent),
+        transparent 70%
+    );
+}
+.studio-swatch {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--c) 70%, #fff),
+        var(--c)
+    );
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.35),
+        0 8px 18px -8px var(--c);
 }
 
 /* Gradient icon chip. */
@@ -590,6 +707,7 @@
         scale: none;
     }
     .studio-section,
+    .studio-pill.is-live::before,
     .studio-page [aria-invalid='true'],
     .studio-page [data-slot='checkbox'][data-state='checked'],
     .studio-page [role='radio'][aria-checked='true'] {

@@ -63,7 +63,7 @@ export default function SkillsIndex({
                                             className="grid gap-4 p-5 md:grid-cols-[1fr_10rem_1fr_6rem] md:items-center"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="grid size-10 place-items-center overflow-hidden rounded-lg bg-foreground font-mono text-xs text-background">
+                                                <div className="grid size-11 place-items-center overflow-hidden rounded-xl border bg-white font-mono text-xs text-neutral-900 shadow-[0_8px_18px_-10px_rgb(0_0_0/.35)]">
                                                     {iconUrl ? (
                                                         <img
                                                             src={iconUrl}
@@ -88,19 +88,20 @@ export default function SkillsIndex({
                                                     </p>
                                                 </div>
                                             </div>
-                                            <span className="text-sm text-muted-foreground">
-                                                {skill.group_en}
+                                            <span>
+                                                <span className="studio-pill is-accent">
+                                                    {skill.group_en}
+                                                </span>
                                             </span>
                                             <div className="flex items-center gap-3">
-                                                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                                                    <div
-                                                        className="h-full rounded-full bg-highlight"
+                                                <div className="studio-meter flex-1">
+                                                    <i
                                                         style={{
                                                             width: `${skill.proficiency}%`,
                                                         }}
                                                     />
                                                 </div>
-                                                <span className="w-9 text-xs text-muted-foreground">
+                                                <span className="w-9 text-xs font-semibold text-muted-foreground tabular-nums">
                                                     {skill.proficiency}%
                                                 </span>
                                             </div>

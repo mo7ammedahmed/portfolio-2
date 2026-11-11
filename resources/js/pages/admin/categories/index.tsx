@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { PageHeading } from '@/components/admin/page-heading';
 import {
     EmptyState,
@@ -49,16 +50,18 @@ export default function CategoriesIndex({
                             {categories.data.map((category) => (
                                 <article
                                     key={category.id}
-                                    className="rounded-xl border bg-card p-5"
+                                    className="studio-accent studio-lift rounded-xl border bg-card p-5"
+                                    style={
+                                        {
+                                            '--c': category.color,
+                                        } as CSSProperties
+                                    }
                                 >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex gap-3">
+                                    <div className="relative flex items-start justify-between gap-4">
+                                        <div className="flex gap-4">
                                             <span
-                                                className="mt-1 size-4 shrink-0 rounded-full"
-                                                style={{
-                                                    backgroundColor:
-                                                        category.color,
-                                                }}
+                                                className="studio-swatch"
+                                                aria-hidden
                                             />
                                             <div>
                                                 <h2 className="font-editorial text-2xl">
@@ -83,15 +86,22 @@ export default function CategoriesIndex({
                                     <p className="mt-5 line-clamp-2 text-sm leading-6 text-muted-foreground">
                                         {category.description_en}
                                     </p>
-                                    <div className="mt-5 flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
-                                        <span>
-                                            {category.projects_count} projects
+                                    <div className="relative mt-5 flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
+                                        <span className="flex items-baseline gap-1.5">
+                                            <strong className="font-editorial text-2xl text-foreground tabular-nums">
+                                                {category.projects_count}
+                                            </strong>
+                                            projects
                                         </span>
-                                        <span>
-                                            {category.is_visible
-                                                ? 'Public'
-                                                : 'Hidden'}{' '}
-                                            · Order {category.sort_order}
+                                        <span className="flex items-center gap-2">
+                                            <span
+                                                className={`studio-pill ${category.is_visible ? 'is-live' : ''}`}
+                                            >
+                                                {category.is_visible
+                                                    ? 'Public'
+                                                    : 'Hidden'}
+                                            </span>
+                                            Order {category.sort_order}
                                         </span>
                                     </div>
                                 </article>

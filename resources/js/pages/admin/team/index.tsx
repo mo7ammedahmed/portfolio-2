@@ -7,6 +7,8 @@ import {
     UserPlus,
     UsersRound,
 } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { hueOf, initials } from '@/components/admin/motion';
 import { PageHeading } from '@/components/admin/page-heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -92,8 +94,8 @@ export default function TeamAccess({
                 <div className="mt-8 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
                     <section className="rounded-2xl border bg-card p-5 sm:p-6">
                         <div className="flex items-start gap-3">
-                            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
-                                <UserPlus className="size-4" />
+                            <span className="studio-chip">
+                                <UserPlus />
                             </span>
                             <div>
                                 <h2 className="text-lg font-semibold">
@@ -178,8 +180,8 @@ export default function TeamAccess({
 
                     <section className="rounded-2xl border bg-card p-5 sm:p-6">
                         <div className="flex items-start gap-3">
-                            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted">
-                                <ShieldCheck className="size-4" />
+                            <span className="studio-chip">
+                                <ShieldCheck />
                             </span>
                             <div>
                                 <h2 className="text-lg font-semibold">
@@ -352,13 +354,28 @@ export default function TeamAccess({
                             >
                                 {({ processing, errors }) => (
                                     <>
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-semibold">
-                                                {member.name}
-                                            </p>
-                                            <p className="truncate text-xs text-muted-foreground">
-                                                {member.email}
-                                            </p>
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span
+                                                className="studio-avatar"
+                                                style={
+                                                    {
+                                                        '--h': hueOf(
+                                                            member.email,
+                                                        ),
+                                                    } as CSSProperties
+                                                }
+                                                aria-hidden
+                                            >
+                                                {initials(member.name)}
+                                            </span>
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-semibold">
+                                                    {member.name}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {member.email}
+                                                </p>
+                                            </div>
                                         </div>
                                         <div>
                                             <Label
@@ -440,18 +457,32 @@ export default function TeamAccess({
                                 key={invitation.id}
                                 className="flex items-center justify-between gap-4 border-t px-5 py-4 first:border-t-0"
                             >
-                                <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold">
-                                        {invitation.email}
-                                    </p>
-                                    <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <Clock3 className="size-3" />
-                                        {invitation.role?.name ??
-                                            'No role'} ·{' '}
-                                        {new Date(
-                                            invitation.expires_at,
-                                        ).toLocaleDateString()}
-                                    </p>
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <span
+                                        className="studio-avatar"
+                                        style={
+                                            {
+                                                '--h': hueOf(invitation.email),
+                                            } as CSSProperties
+                                        }
+                                        aria-hidden
+                                    >
+                                        <Mail className="size-4" />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-semibold">
+                                            {invitation.email}
+                                        </p>
+                                        <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                            <Clock3 className="size-3" />
+                                            {invitation.role?.name ??
+                                                'No role'}{' '}
+                                            ·{' '}
+                                            {new Date(
+                                                invitation.expires_at,
+                                            ).toLocaleDateString()}
+                                        </p>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span
@@ -546,7 +577,9 @@ function AccessList({
     return (
         <section className="overflow-hidden rounded-2xl border bg-card">
             <header className="flex items-center gap-2 px-5 py-4">
-                {icon}
+                <span className="studio-chip size-9! rounded-[10px]!">
+                    {icon}
+                </span>
                 <h2 className="font-semibold">{title}</h2>
             </header>
             {children.length ? (

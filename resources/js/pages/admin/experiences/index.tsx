@@ -1,5 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { hueOf, initials } from '@/components/admin/motion';
 import { PageHeading } from '@/components/admin/page-heading';
 import {
     EmptyState,
@@ -48,64 +50,71 @@ export default function ExperiencesIndex({
                 {experiences.data.length ? (
                     <>
                         <div className="mt-8 overflow-hidden rounded-xl border bg-card">
-                            <div className="divide-y">
-                                {experiences.data.map(
-                                    (experience, position) => (
-                                        <div
-                                            key={experience.id}
-                                            className="grid gap-4 p-5 md:grid-cols-[3rem_1fr_12rem_6rem] md:items-center"
+                            <div className="studio-timeline divide-y">
+                                {experiences.data.map((experience) => (
+                                    <div
+                                        key={experience.id}
+                                        className="grid gap-4 p-5 md:grid-cols-[3rem_1fr_14rem_6rem] md:items-center"
+                                    >
+                                        <span
+                                            className="studio-avatar"
+                                            style={
+                                                {
+                                                    '--h': hueOf(
+                                                        experience.company_en ||
+                                                            experience.name_en,
+                                                    ),
+                                                } as CSSProperties
+                                            }
+                                            aria-hidden
                                         >
-                                            <span className="font-mono text-xs text-highlight">
-                                                {String(position + 1).padStart(
-                                                    2,
-                                                    '0',
-                                                )}
-                                            </span>
-                                            <div>
-                                                <p className="font-semibold">
-                                                    {experience.name_en}
-                                                </p>
-                                                <p className="mt-1 text-sm text-muted-foreground">
-                                                    {experience.company_en} ·{' '}
-                                                    {experience.location_en}
-                                                </p>
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
+                                            {initials(
+                                                experience.company_en ||
+                                                    experience.name_en,
+                                            )}
+                                        </span>
+                                        <div>
+                                            <p className="font-semibold">
+                                                {experience.name_en}
+                                            </p>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {experience.company_en} ·{' '}
+                                                {experience.location_en}
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                                            <span className="tabular-nums">
                                                 {experience.started_at?.slice(
                                                     0,
                                                     7,
-                                                ) ??
-                                                    experience.display_year}{' '}
+                                                ) ?? experience.display_year}
                                                 {(experience.started_at ||
                                                     experience.display_year) &&
-                                                (experience.is_current ||
-                                                    experience.ended_at)
-                                                    ? ' — '
+                                                experience.ended_at &&
+                                                !experience.is_current
+                                                    ? ` — ${experience.ended_at.slice(0, 7)}`
                                                     : ''}
-                                                {experience.is_current
-                                                    ? 'Present'
-                                                    : experience.ended_at?.slice(
-                                                          0,
-                                                          7,
-                                                      )}
-                                                {!experience.is_visible && (
-                                                    <span className="ms-2 rounded-full bg-muted px-2 py-1 text-xs">
-                                                        Draft
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <ResourceActions
-                                                editHref={edit.url(
-                                                    experience.id,
-                                                )}
-                                                deleteHref={destroy.url(
-                                                    experience.id,
-                                                )}
-                                                label={experience.name_en}
-                                            />
+                                            </span>
+                                            {experience.is_current && (
+                                                <span className="studio-pill is-live">
+                                                    Present
+                                                </span>
+                                            )}
+                                            {!experience.is_visible && (
+                                                <span className="studio-pill">
+                                                    Draft
+                                                </span>
+                                            )}
                                         </div>
-                                    ),
-                                )}
+                                        <ResourceActions
+                                            editHref={edit.url(experience.id)}
+                                            deleteHref={destroy.url(
+                                                experience.id,
+                                            )}
+                                            label={experience.name_en}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                         <Pagination pagination={experiences} />
