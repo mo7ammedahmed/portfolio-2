@@ -14,6 +14,7 @@ import {
     Users,
 } from 'lucide-react';
 import type { ComponentType, ReactNode, SVGProps } from 'react';
+import { Donut, ringColors } from '@/components/admin/motion';
 import { PageHeading } from '@/components/admin/page-heading';
 import { PageViewsChart } from '@/components/Analytics/PageViewsChart';
 import { analytics as analyticsIndex } from '@/routes/portfolio';
@@ -252,6 +253,7 @@ export default function Analytics({ hasProfile, filters, analytics }: Props) {
                             description="Desktop, mobile, and tablet"
                             items={analytics.devices}
                             icon={Monitor}
+                            donut
                         />
                         <BreakdownPanel
                             title="Browsers"
@@ -530,10 +532,10 @@ function SummaryCard({
     inverse?: boolean;
 }) {
     return (
-        <article className="min-w-0 rounded-xl border bg-card p-5">
+        <article className="studio-lift min-w-0 rounded-xl border bg-card p-5">
             <div className="flex items-start justify-between gap-3">
-                <span className="grid size-9 place-items-center rounded-lg border bg-background">
-                    <Icon className="size-4 text-highlight" />
+                <span className="studio-chip">
+                    <Icon />
                 </span>
                 <ChangeBadge change={metric.change} inverse={inverse} />
             </div>
@@ -605,11 +607,14 @@ function BreakdownPanel({
     description,
     items,
     icon: Icon,
+    donut = false,
 }: {
     title: string;
     description: string;
     items: BreakdownItem[];
     icon?: ComponentType<SVGProps<SVGSVGElement>>;
+    /** Show the split as a donut with a colour legend. */
+    donut?: boolean;
 }) {
     return (
         <section className="rounded-xl border bg-card p-5">
@@ -620,12 +625,51 @@ function BreakdownPanel({
                         {description}
                     </p>
                 </div>
-                {Icon && <Icon className="size-4 text-highlight" />}
+                {Icon && (
+                    <span className="studio-chip">
+                        <Icon />
+                    </span>
+                )}
             </div>
 
-            {items.length ? (
+            {items.length && donut ? (
+                <div className="mt-6 flex items-center gap-5">
+                    <Donut
+                        size="6rem"
+                        segments={items}
+                        label={`${Math.round(items[0].percentage)}%`}
+                        caption={items[0].label}
+                    />
+                    <ul className="min-w-0 flex-1 space-y-2.5 text-xs">
+                        {items.map((item, index) => (
+                            <li
+                                key={item.label}
+                                className="flex items-center justify-between gap-3"
+                            >
+                                <span className="flex min-w-0 items-center gap-2">
+                                    <span
+                                        className="size-2.5 shrink-0 rounded-full"
+                                        style={{
+                                            background:
+                                                ringColors[
+                                                    index % ringColors.length
+                                                ],
+                                        }}
+                                    />
+                                    <span className="truncate font-medium">
+                                        {item.label}
+                                    </span>
+                                </span>
+                                <span className="shrink-0 text-muted-foreground tabular-nums">
+                                    {item.percentage.toFixed(1)}%
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ) : items.length ? (
                 <div className="mt-6 space-y-4">
-                    {items.map((item) => (
+                    {items.map((item, index) => (
                         <div key={item.label}>
                             <div className="flex items-center justify-between gap-4 text-xs">
                                 <span
@@ -634,15 +678,15 @@ function BreakdownPanel({
                                 >
                                     {item.label}
                                 </span>
-                                <span className="shrink-0 text-muted-foreground">
+                                <span className="shrink-0 text-muted-foreground tabular-nums">
                                     {item.value.toLocaleString()} ·{' '}
                                     {item.percentage.toFixed(1)}%
                                 </span>
                             </div>
-                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                                <div
-                                    className="h-full rounded-full bg-highlight"
+                            <div className="studio-meter mt-2">
+                                <i
                                     style={{
+                                        animationDelay: `${0.3 + index * 0.045}s`,
                                         width: `${Math.max(
                                             4,
                                             item.percentage,

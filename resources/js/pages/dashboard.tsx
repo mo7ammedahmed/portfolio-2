@@ -16,13 +16,22 @@ import {
 } from 'lucide-react';
 import type {
     ComponentType,
+    CSSProperties,
     KeyboardEvent,
     PointerEvent,
     ReactNode,
     SVGProps,
 } from 'react';
 import { useState } from 'react';
-import { CountUp, formatDuration } from '@/components/admin/motion';
+import {
+    CountUp,
+    Donut,
+    formatDuration,
+    hueOf,
+    smoothPath,
+    Sparkline,
+    tiltHandlers,
+} from '@/components/admin/motion';
 import { PageHeading } from '@/components/admin/page-heading';
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
@@ -129,12 +138,14 @@ export default function Dashboard({
             value: <CountUp value={analytics.summary.visitors} />,
             note: `+${analytics.summary.visitorsToday} today`,
             icon: Users,
+            trend: analytics.daily.map((day) => day.visitors),
         },
         {
             label: 'Sessions',
             value: <CountUp value={analytics.summary.sessions} />,
             note: 'all time',
             icon: Activity,
+            trend: analytics.daily.map((day) => day.sessions),
         },
         {
             label: 'Page views',
@@ -144,6 +155,7 @@ export default function Dashboard({
                 Math.max(analytics.summary.sessions, 1)
             ).toFixed(1)} per session`,
             icon: MousePointerClick,
+            trend: analytics.daily.map((day) => day.pageViews),
         },
         {
             label: 'Average time',
@@ -277,7 +289,9 @@ export default function Dashboard({
                                         Views and average attention
                                     </p>
                                 </div>
-                                <Eye className="size-4 text-highlight" />
+                                <span className="studio-chip">
+                                    <Eye />
+                                </span>
                             </div>
                             <div className="mt-6 space-y-5">
                                 {analytics.topPages.length ? (
@@ -298,9 +312,8 @@ export default function Dashboard({
                                                         )}
                                                     </span>
                                                 </div>
-                                                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                                                    <div
-                                                        className="studio-bar h-full rounded-full bg-highlight"
+                                                <div className="studio-meter mt-2">
+                                                    <i
                                                         style={{
                                                             animationDelay: `${0.35 + index * 0.045}s`,
                                                             width: `${Math.max(
@@ -333,7 +346,9 @@ export default function Dashboard({
                                     never stored
                                 </p>
                             </div>
-                            <Clock3 className="size-4 text-highlight" />
+                            <span className="studio-chip">
+                                <Clock3 />
+                            </span>
                         </div>
                         {analytics.recentVisitors.length ? (
                             <div className="overflow-x-auto">
@@ -371,7 +386,25 @@ export default function Dashboard({
                                                     className="transition-colors hover:bg-muted/35"
                                                 >
                                                     <td className="px-5 py-4 font-mono text-xs font-semibold">
-                                                        {visitor.visitor}
+                                                        <span className="flex items-center gap-2.5">
+                                                            <span
+                                                                className="studio-avatar size-7! rounded-lg! text-[10px]"
+                                                                style={
+                                                                    {
+                                                                        '--h': hueOf(
+                                                                            visitor.visitor,
+                                                                        ),
+                                                                    } as CSSProperties
+                                                                }
+                                                                aria-hidden
+                                                            >
+                                                                {visitor.visitor.slice(
+                                                                    0,
+                                                                    2,
+                                                                )}
+                                                            </span>
+                                                            {visitor.visitor}
+                                                        </span>
                                                     </td>
                                                     <td className="px-5 py-4">
                                                         <span className="flex items-center gap-2">
@@ -427,23 +460,42 @@ export default function Dashboard({
                             Portfolio content
                         </h2>
                     </div>
-                    <div className="studio-stagger grid gap-4 md:grid-cols-3">
+                    <div className="studio-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         {contentCards.map((card, index) => (
                             <div
                                 key={card.label}
                                 className="studio-lift relative overflow-hidden rounded-xl border bg-card p-6"
                             >
-                                <span className="absolute top-5 right-5 font-mono text-xs text-muted-foreground">
-                                    0{index + 1}
-                                </span>
-                                <card.icon className="size-5 text-highlight" />
-                                <strong className="mt-8 block font-editorial text-5xl">
+                                <div className="flex items-start justify-between">
+                                    <span className="studio-chip">
+                                        <card.icon />
+                                    </span>
+                                    {card.label === 'Projects' &&
+                                    metrics.projects > 0 ? (
+                                        <Donut
+                                            size="4.25rem"
+                                            label={`${Math.round((metrics.featuredProjects / metrics.projects) * 100)}%`}
+                                            total={metrics.projects}
+                                            segments={[
+                                                {
+                                                    label: 'Featured',
+                                                    value: metrics.featuredProjects,
+                                                },
+                                            ]}
+                                        />
+                                    ) : (
+                                        <span className="font-mono text-xs text-muted-foreground">
+                                            0{index + 1}
+                                        </span>
+                                    )}
+                                </div>
+                                <strong className="mt-6 block font-editorial text-5xl">
                                     <CountUp
                                         value={card.value}
                                         duration={900}
                                     />
                                 </strong>
-                                <div className="mt-2 flex items-baseline justify-between">
+                                <div className="mt-2 flex items-baseline justify-between gap-3">
                                     <span className="font-semibold">
                                         {card.label}
                                     </span>
@@ -477,18 +529,38 @@ export default function Dashboard({
                                     <Link
                                         key={project.id}
                                         href={projectEdit(project.id)}
-                                        className="flex items-center justify-between gap-4 p-5 transition-colors hover:bg-muted/60"
+                                        className="group flex items-center justify-between gap-4 p-5"
                                     >
-                                        <div className="min-w-0">
-                                            <p className="truncate font-semibold">
-                                                {project.name_en}
-                                            </p>
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                                Updated{' '}
-                                                {new Date(
-                                                    project.updated_at,
-                                                ).toLocaleDateString()}
-                                            </p>
+                                        <div className="flex min-w-0 items-center gap-4">
+                                            <span
+                                                className="studio-avatar"
+                                                style={
+                                                    {
+                                                        '--h': hueOf(
+                                                            project.name_en,
+                                                        ),
+                                                    } as CSSProperties
+                                                }
+                                                aria-hidden
+                                            >
+                                                {project.name_en
+                                                    .split(/\s+/)
+                                                    .slice(0, 2)
+                                                    .map((word) => word[0])
+                                                    .join('')
+                                                    .toUpperCase()}
+                                            </span>
+                                            <div className="min-w-0">
+                                                <p className="truncate font-semibold">
+                                                    {project.name_en}
+                                                </p>
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    Updated{' '}
+                                                    {new Date(
+                                                        project.updated_at,
+                                                    ).toLocaleDateString()}
+                                                </p>
+                                            </div>
                                         </div>
                                         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                                             <span
@@ -501,6 +573,7 @@ export default function Dashboard({
                                             {project.is_visible
                                                 ? 'Public'
                                                 : 'Draft'}
+                                            <ArrowRight className="size-3.5 -translate-x-1 text-highlight opacity-0 transition-[opacity,translate] duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                                         </span>
                                     </Link>
                                 ))
@@ -513,18 +586,27 @@ export default function Dashboard({
                         </div>
                     </section>
 
-                    <aside className="paper-grid rounded-xl border p-5">
-                        <div className="rounded-xl bg-foreground p-6 text-background shadow-lg">
-                            <Eye className="size-5 text-highlight" />
-                            <h2 className="mt-10 font-editorial text-3xl">
+                    <aside className="grid">
+                        <div
+                            className="studio-tilt flex flex-col rounded-[18px] p-6 text-white shadow-[0_30px_60px_-25px_rgb(0_0_0/.6),inset_0_1px_0_rgb(255_255_255/.25)]"
+                            style={{
+                                background:
+                                    'linear-gradient(140deg, var(--highlight), var(--primary) 55%, color-mix(in srgb, var(--primary) 55%, #000))',
+                            }}
+                            {...tiltHandlers}
+                        >
+                            <span className="grid size-10 place-items-center rounded-xl bg-white/15 backdrop-blur">
+                                <Eye className="size-5" />
+                            </span>
+                            <h2 className="mt-auto pt-10 font-editorial text-3xl">
                                 See it live
                             </h2>
-                            <p className="mt-3 text-sm leading-6 text-background/60">
+                            <p className="mt-3 text-sm leading-6 text-white/75">
                                 Theme and content changes are reflected on the
                                 public portfolio.
                             </p>
                             <Button
-                                className="mt-6 w-full bg-primary text-primary-foreground"
+                                className="mt-6 w-full bg-white text-neutral-900 hover:bg-white/90"
                                 asChild
                             >
                                 <a href="/" target="_self" rel="noreferrer">
@@ -545,22 +627,35 @@ function MetricCard({
     value,
     note,
     icon: Icon,
+    trend,
 }: {
     label: string;
     value: ReactNode;
     note: string;
     icon: ComponentType<SVGProps<SVGSVGElement>>;
+    trend?: number[];
 }) {
     return (
         <div className="studio-lift rounded-xl border bg-card p-5">
-            <div className="flex items-center justify-between">
-                <Icon className="size-4 text-highlight" />
-                <span className="text-xs text-muted-foreground">{note}</span>
+            <div className="flex items-start justify-between gap-3">
+                <span className="studio-chip">
+                    <Icon />
+                </span>
+                <span className="rounded-full bg-highlight/10 px-2.5 py-1 text-[11px] font-semibold text-highlight">
+                    {note}
+                </span>
             </div>
-            <strong className="mt-7 block font-editorial text-4xl tracking-tight">
-                {value}
-            </strong>
-            <p className="mt-1 text-sm text-muted-foreground">{label}</p>
+            <div className="mt-6 flex items-end justify-between gap-3">
+                <div>
+                    <strong className="block font-editorial text-4xl tracking-tight">
+                        {value}
+                    </strong>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {label}
+                    </p>
+                </div>
+                {trend && <Sparkline values={trend} />}
+            </div>
         </div>
     );
 }
@@ -582,12 +677,12 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
     const y = (value: number) =>
         paddingTop + plotHeight - (value / maximum) * plotHeight;
     const line = (key: 'visitors' | 'pageViews') =>
-        points
-            .map(
-                (point, index) =>
-                    `${index === 0 ? 'M' : 'L'} ${x(index)} ${y(point[key])}`,
-            )
-            .join(' ');
+        smoothPath(
+            points.map((point, index): [number, number] => [
+                x(index),
+                y(point[key]),
+            ]),
+        );
     const visitorLine = line('visitors');
     const area = `${visitorLine} L ${x(points.length - 1)} ${
         paddingTop + plotHeight
@@ -673,14 +768,24 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
                     >
                         <stop
                             offset="0%"
-                            stopColor="var(--primary)"
-                            stopOpacity=".28"
+                            stopColor="var(--highlight)"
+                            stopOpacity=".38"
                         />
                         <stop
                             offset="100%"
-                            stopColor="var(--primary)"
+                            stopColor="var(--highlight)"
                             stopOpacity="0"
                         />
+                    </linearGradient>
+                    <linearGradient
+                        id="visitor-line"
+                        x1="0"
+                        y1="0"
+                        x2="1"
+                        y2="0"
+                    >
+                        <stop offset="0%" stopColor="var(--primary)" />
+                        <stop offset="100%" stopColor="var(--highlight)" />
                     </linearGradient>
                 </defs>
                 {[0, 0.5, 1].map((ratio) => (
@@ -710,12 +815,12 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
                     strokeDasharray="5 5"
                 />
                 <path
-                    className="studio-draw"
+                    className="studio-draw studio-glow"
                     pathLength={1}
                     d={visitorLine}
                     fill="none"
-                    stroke="var(--primary)"
-                    strokeWidth="3"
+                    stroke="url(#visitor-line)"
+                    strokeWidth="3.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                 />
@@ -742,10 +847,18 @@ function TrafficChart({ points }: { points: DailyPoint[] }) {
                             }}
                             cx={x(index)}
                             cy={y(point.visitors)}
-                            r={hover === index ? 6 : 3}
-                            fill="var(--primary)"
-                            stroke="var(--card)"
-                            strokeWidth={hover === index ? 2 : 0}
+                            r={hover === index ? 6.5 : 3}
+                            fill={
+                                hover === index
+                                    ? 'var(--highlight)'
+                                    : 'var(--card)'
+                            }
+                            stroke={
+                                hover === index
+                                    ? 'var(--card)'
+                                    : 'var(--highlight)'
+                            }
+                            strokeWidth={hover === index ? 3 : 2}
                         />
                         {(index % 3 === 0 || index === points.length - 1) && (
                             <text

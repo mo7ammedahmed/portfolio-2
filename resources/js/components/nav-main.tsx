@@ -138,7 +138,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                 <span
                     ref={pillRef}
                     aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-sidebar-accent opacity-0"
+                    className="pointer-events-none absolute inset-0 bg-sidebar-primary opacity-0"
                 />
                 <SidebarMenu>
                     {items.map((item, index) => (
@@ -147,7 +147,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                 asChild
                                 isActive={index === active}
                                 tooltip={{ children: item.title }}
-                                className="data-[active=true]:bg-transparent [&>svg]:transition-colors data-[active=true]:[&>svg]:text-highlight"
+                                className="transition-colors duration-300 data-[active=true]:bg-transparent data-[active=true]:font-semibold data-[active=true]:text-sidebar-primary-foreground data-[active=true]:hover:bg-transparent data-[active=true]:hover:text-sidebar-primary-foreground"
                             >
                                 <Link
                                     href={item.href}
