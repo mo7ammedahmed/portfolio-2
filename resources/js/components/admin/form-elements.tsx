@@ -78,8 +78,12 @@ export function FormSection({
     children: ReactNode;
 }) {
     return (
-        <section className="grid gap-6 border-b py-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
-            <div>
+        <section className="studio-section mt-6 grid gap-6 rounded-xl border bg-card p-5 sm:p-7 lg:grid-cols-[14rem_minmax(0,1fr)]">
+            <div className="lg:sticky lg:top-6 lg:self-start">
+                <span
+                    aria-hidden
+                    className="studio-section-index mb-3 block font-mono text-[10px] tracking-[0.16em] text-highlight"
+                />
                 <h2 className="font-editorial text-2xl">{title}</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     {description}

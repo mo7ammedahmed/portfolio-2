@@ -195,6 +195,228 @@
         translate 0.18s var(--ease-out);
 }
 
+/* ---------- Inner elements (every screen) ---------- */
+
+/* Text fields, textareas, selects: soft glass, glowing focus. */
+.studio-page
+    :is([data-slot='input'], textarea, select, [data-slot='select-trigger']) {
+    border-radius: 10px;
+    background-color: color-mix(in srgb, var(--card) 72%, transparent);
+    transition:
+        border-color 0.2s var(--ease-out),
+        box-shadow 0.25s var(--ease-out),
+        background-color 0.2s var(--ease-out);
+}
+.studio-page
+    :is(
+        [data-slot='input'],
+        textarea,
+        select,
+        [data-slot='select-trigger']
+    ):hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--foreground) 30%, var(--border));
+}
+.studio-page
+    :is(
+        [data-slot='input'],
+        textarea,
+        select,
+        [data-slot='select-trigger']
+    ):focus {
+    outline: none;
+    border-color: var(--highlight);
+    background-color: var(--card);
+    box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--highlight) 16%, transparent),
+        0 10px 24px -16px color-mix(in srgb, var(--highlight) 70%, transparent);
+}
+
+/* The label of the field being edited lights up. */
+.studio-page [data-slot='label'] {
+    transition: color 0.2s var(--ease-out);
+}
+.studio-page :focus-within > [data-slot='label'] {
+    color: var(--highlight);
+}
+
+/* Native select: custom chevron. */
+.studio-page select {
+    appearance: none;
+    padding-inline-end: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+/* File pickers: the native button becomes a pill. */
+.studio-page input[type='file'] {
+    cursor: pointer;
+}
+.studio-page input[type='file']::file-selector-button {
+    margin-inline-end: 0.75rem;
+    border: 0;
+    border-radius: 7px;
+    padding: 0.2rem 0.75rem;
+    background: color-mix(in srgb, var(--highlight) 14%, transparent);
+    color: var(--highlight);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s var(--ease-out);
+}
+.studio-page input[type='file']:hover::file-selector-button {
+    background: color-mix(in srgb, var(--highlight) 24%, transparent);
+}
+
+/* Invalid fields shake once when the error appears. */
+.studio-page [aria-invalid='true'] {
+    animation: studio-shake 0.42s var(--ease-out);
+}
+@keyframes studio-shake {
+    20%,
+    60% {
+        translate: -4px 0;
+    }
+    40%,
+    80% {
+        translate: 4px 0;
+    }
+}
+
+/* Checkboxes pop; tiles that hold one light up when checked. */
+.studio-page [data-slot='checkbox'] {
+    transition:
+        background-color 0.2s var(--ease-out),
+        border-color 0.2s var(--ease-out);
+}
+.studio-page [data-slot='checkbox'][data-state='checked'],
+.studio-page [role='radio'][aria-checked='true'] {
+    animation: studio-check 0.32s var(--ease-back);
+}
+@keyframes studio-check {
+    from {
+        scale: 0.8;
+    }
+}
+.studio-page label:has([data-slot='checkbox']) {
+    cursor: pointer;
+    transition:
+        border-color 0.2s var(--ease-out),
+        background-color 0.2s var(--ease-out),
+        translate 0.2s var(--ease-out);
+}
+.studio-page label:has([data-slot='checkbox']):hover {
+    border-color: color-mix(in srgb, var(--highlight) 40%, var(--border));
+    translate: 0 -2px;
+}
+.studio-page label:has([data-slot='checkbox'][data-state='checked']) {
+    border-color: color-mix(in srgb, var(--highlight) 55%, var(--border));
+    background-color: color-mix(in srgb, var(--highlight) 7%, var(--card));
+}
+
+/* Two-way segmented controls: one thumb slides between the options. */
+.studio-page .grid-cols-2:has(> button[aria-pressed]) {
+    position: relative;
+    isolation: isolate;
+}
+.studio-page .grid-cols-2:has(> button[aria-pressed])::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset-block: 0.25rem;
+    inset-inline-start: 0.25rem;
+    width: calc(50% - 0.25rem);
+    border-radius: 0.5rem;
+    background: var(--background);
+    box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.08),
+        0 6px 16px -10px rgb(0 0 0 / 0.35);
+    transition: translate 0.45s var(--ease-out);
+}
+.studio-page
+    .grid-cols-2:has(
+        > button[aria-pressed]:last-child[aria-pressed='true']
+    )::before {
+    translate: 100% 0;
+}
+.studio-page .grid-cols-2:not(:has(> button[aria-pressed='true']))::before {
+    opacity: 0;
+}
+.studio-page .grid-cols-2 > button[aria-pressed='true'] {
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Buttons: press, primary glow, arrows nudge, icon buttons pop. */
+.studio-page [data-slot='button'] {
+    transition:
+        translate 0.2s var(--ease-out),
+        scale 0.15s var(--ease-out),
+        box-shadow 0.25s var(--ease-out),
+        background-color 0.2s var(--ease-out),
+        color 0.2s var(--ease-out),
+        border-color 0.2s var(--ease-out);
+}
+.studio-page [data-slot='button']:active:not(:disabled) {
+    scale: 0.97;
+}
+.studio-page [data-slot='button'].bg-primary:hover:not(:disabled) {
+    translate: 0 -1px;
+    box-shadow: 0 12px 26px -12px
+        color-mix(in srgb, var(--primary) 85%, transparent);
+}
+.studio-page [data-slot='button'] :is(.lucide-arrow-right, .lucide-plus) {
+    transition:
+        translate 0.25s var(--ease-out),
+        rotate 0.3s var(--ease-out);
+}
+.studio-page [data-slot='button']:hover .lucide-arrow-right {
+    translate: 3px 0;
+}
+.studio-page [data-slot='button']:hover .lucide-plus {
+    rotate: 90deg;
+}
+.studio-page [data-slot='button'] > svg:only-child {
+    transition:
+        scale 0.25s var(--ease-back),
+        rotate 0.25s var(--ease-out);
+}
+.studio-page [data-slot='button']:hover > svg:only-child {
+    scale: 1.14;
+}
+.studio-page [data-slot='button'][aria-label^='Edit']:hover > svg:only-child {
+    rotate: -12deg;
+}
+
+/* List and table rows: tint + accent edge on hover. */
+.studio-page .bg-card .divide-y > *,
+.studio-page tbody tr {
+    transition:
+        background-color 0.2s var(--ease-out),
+        box-shadow 0.2s var(--ease-out);
+}
+.studio-page .bg-card .divide-y > :hover,
+.studio-page tbody tr:hover {
+    background-color: color-mix(in srgb, var(--highlight) 6%, transparent);
+    box-shadow: inset 3px 0 0 var(--highlight);
+}
+
+/* Form sections: numbered glass panels, sticky titles, reveal on scroll. */
+.studio-page {
+    counter-reset: studio-section;
+}
+.studio-section-index::before {
+    counter-increment: studio-section;
+    content: counter(studio-section, decimal-leading-zero);
+}
+@supports (animation-timeline: view()) {
+    .studio-section {
+        animation: studio-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 30%;
+    }
+}
+
 /* ---------- Theme switch: circle reveal (View Transitions) ---------- */
 :root.studio-vt::view-transition-old(root),
 :root.studio-vt::view-transition-new(root) {
@@ -220,6 +442,18 @@
     }
     .studio-lift:hover,
     .studio-lift:active {
+        translate: none;
+        scale: none;
+    }
+    .studio-section,
+    .studio-page [aria-invalid='true'],
+    .studio-page [data-slot='checkbox'][data-state='checked'],
+    .studio-page [role='radio'][aria-checked='true'] {
+        animation: none;
+    }
+    .studio-page label:has([data-slot='checkbox']):hover,
+    .studio-page [data-slot='button']:hover,
+    .studio-page [data-slot='button']:active {
         translate: none;
         scale: none;
     }
