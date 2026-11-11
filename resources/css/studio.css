@@ -1,0 +1,226 @@
+/*
+ * Studio motion system — dashboard only.
+ * Everything is scoped under `.studio` (the dashboard content region) so the
+ * public portfolio is untouched. Shell (sidebar + header) stays still; only
+ * page content moves.
+ */
+.studio {
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+    isolation: isolate;
+}
+
+/* Soft light behind the glass — glass only reads with something behind it. */
+.studio::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+        radial-gradient(
+            42rem 30rem at 88% -8%,
+            color-mix(in srgb, var(--highlight) 16%, transparent),
+            transparent 70%
+        ),
+        radial-gradient(
+            38rem 32rem at -6% 28%,
+            color-mix(in srgb, var(--primary) 13%, transparent),
+            transparent 70%
+        );
+}
+
+/* Glass cards on every admin screen. */
+.studio-page .rounded-xl.border.bg-card {
+    background-color: color-mix(in srgb, var(--card) 80%, transparent);
+    backdrop-filter: blur(16px) saturate(140%);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, #fff 9%, transparent),
+        0 1px 2px rgb(0 0 0 / 0.04),
+        0 14px 34px -20px rgb(0 0 0 / 0.28);
+}
+
+/* ---------- Entrance ---------- */
+@keyframes studio-in {
+    from {
+        opacity: 0;
+        filter: blur(14px);
+        transform: translateY(8px);
+    }
+}
+@keyframes studio-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+}
+@keyframes studio-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Page swap: arrives from blur, then its blocks stagger. */
+.studio-page {
+    animation: studio-in 0.42s var(--ease-out) backwards;
+}
+.studio-page > * > *,
+.studio-stagger > * {
+    animation: studio-rise 0.5s var(--ease-out) backwards;
+}
+.studio-page tbody tr {
+    animation: studio-fade 0.4s var(--ease-out) backwards;
+}
+.studio-page > * > :nth-child(2),
+.studio-stagger > :nth-child(1) {
+    animation-delay: 60ms;
+}
+.studio-page > * > :nth-child(3),
+.studio-stagger > :nth-child(2) {
+    animation-delay: 120ms;
+}
+.studio-page > * > :nth-child(4),
+.studio-stagger > :nth-child(3) {
+    animation-delay: 180ms;
+}
+.studio-page > * > :nth-child(5),
+.studio-stagger > :nth-child(4) {
+    animation-delay: 240ms;
+}
+.studio-page > * > :nth-child(6),
+.studio-stagger > :nth-child(5) {
+    animation-delay: 300ms;
+}
+.studio-page > * > :nth-child(n + 7),
+.studio-stagger > :nth-child(n + 6) {
+    animation-delay: 360ms;
+}
+.studio-page tbody tr:nth-child(2) {
+    animation-delay: 30ms;
+}
+.studio-page tbody tr:nth-child(3) {
+    animation-delay: 60ms;
+}
+.studio-page tbody tr:nth-child(4) {
+    animation-delay: 90ms;
+}
+.studio-page tbody tr:nth-child(5) {
+    animation-delay: 120ms;
+}
+.studio-page tbody tr:nth-child(6) {
+    animation-delay: 150ms;
+}
+.studio-page tbody tr:nth-child(7) {
+    animation-delay: 180ms;
+}
+.studio-page tbody tr:nth-child(8) {
+    animation-delay: 210ms;
+}
+.studio-page tbody tr:nth-child(n + 9) {
+    animation-delay: 240ms;
+}
+
+/* Page title wipes in. */
+.studio-page h1 {
+    animation: studio-wipe 0.7s var(--ease-io) 0.1s backwards;
+}
+@keyframes studio-wipe {
+    from {
+        clip-path: inset(-20% 100% -20% 0);
+    }
+    to {
+        clip-path: inset(-20% -6% -20% 0);
+    }
+}
+
+/* ---------- Touch ---------- */
+.studio-lift {
+    transition:
+        translate 0.2s var(--ease-out),
+        scale 0.2s var(--ease-out),
+        box-shadow 0.2s var(--ease-out),
+        border-color 0.2s var(--ease-out);
+}
+.studio-lift:hover {
+    translate: 0 -4px;
+    border-color: color-mix(in srgb, var(--highlight) 35%, var(--border));
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, #fff 9%, transparent),
+        0 22px 44px -22px rgb(0 0 0 / 0.38);
+}
+.studio-lift:active {
+    scale: 0.985;
+}
+
+/* ---------- Data life ---------- */
+.studio-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: studio-draw 1.3s var(--ease-io) 0.25s forwards;
+}
+@keyframes studio-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+.studio-area {
+    animation: studio-fade 0.9s var(--ease-out) 0.7s backwards;
+}
+.studio-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: studio-pop 0.35s var(--ease-back) backwards;
+}
+@keyframes studio-pop {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+}
+.studio-bar {
+    transform-origin: left center;
+    animation: studio-grow 0.9s var(--ease-io) backwards;
+}
+@keyframes studio-grow {
+    from {
+        transform: scaleX(0);
+    }
+}
+.studio-tip {
+    transition:
+        left 0.18s var(--ease-out),
+        opacity 0.18s var(--ease-out),
+        translate 0.18s var(--ease-out);
+}
+
+/* ---------- Theme switch: circle reveal (View Transitions) ---------- */
+:root.studio-vt::view-transition-old(root),
+:root.studio-vt::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* ---------- Reduced motion: drop travel, keep fades ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .studio-page,
+    .studio-page > * > *,
+    .studio-stagger > *,
+    .studio-dot {
+        animation-name: studio-fade;
+    }
+    .studio-page h1,
+    .studio-bar {
+        animation: none;
+    }
+    .studio-draw {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+    .studio-lift:hover,
+    .studio-lift:active {
+        translate: none;
+        scale: none;
+    }
+}
